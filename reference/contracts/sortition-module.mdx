@@ -7,6 +7,8 @@ description: "Juror selection via weighted random draws based on staked PNK"
 
 Manages juror selection through stake-weighted random drawing. Uses a sum tree data structure for efficient proportional selection.
 
+**Version**: 0.9.0 | **Proxy**: UUPS Upgradeable
+
 ## Phase System
 
 The sortition module operates in phases:
@@ -14,6 +16,8 @@ The sortition module operates in phases:
 1. **Staking**: Jurors can update stakes. No draws happening.
 2. **Generating**: RNG is requested from the random number source.
 3. **Drawing**: Jurors are drawn for disputes using the generated random number.
+
+Stakes submitted during Generating or Drawing phases are queued and applied when Staking phase resumes.
 
 ## Key Methods
 
@@ -30,4 +34,19 @@ Updates a juror's stake in the sum tree.
 
 Uses a sortition sum tree where each leaf represents a juror's stake in a court. Drawing probability is proportional to stake: a juror with 10% of total staked PNK in a court has a 10% chance of being drawn for each juror slot.
 
-[View Source](https://github.com/kleros/kleros-v2/blob/dev/contracts/src/arbitration/SortitionModuleBase.sol)
+## Neo Deployment Stake Caps
+
+The current production deployment ("Neo") adds two governance-controlled caps that are not present in the base SortitionModule:
+
+| Parameter | Value | Description |
+|---|---|---|
+| `maxStakePerJuror` | 2,000 PNK | Maximum PNK a single juror can stake across all courts |
+| `maxTotalStaked` | 2,000,000 PNK | Maximum total PNK staked across the entire system |
+
+<Warning>
+These caps apply to the **Neo** deployment on Arbitrum One (proxy `0x21A9402aDb818744B296e1d1BE58C804118DC03D`). They are governance parameters and can be changed by the Governor. If either cap is reached, new stake transactions will revert. Always verify current cap values on-chain before building staking tooling.
+</Warning>
+
+These caps were introduced to control the initial rollout of Kleros V2 and limit systemic risk during the early deployment phase. They are expected to be raised or removed as the protocol matures.
+
+[View Source](https://github.com/kleros/kleros-v2/blob/master/contracts/src/arbitration/SortitionModuleBase.sol)

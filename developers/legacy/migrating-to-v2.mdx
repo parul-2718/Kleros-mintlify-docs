@@ -121,8 +121,12 @@ emit DisputeRequest(arbitrator, disputeID, externalDisputeID, templateId, "");
 </Tabs>
 
 Key changes:
-- Court IDs changed (V2 uses a different court tree on Arbitrum)
+- **Court IDs are renumbered**: V1 uses 0-based court IDs (General Court = `0`). V2 uses 1-based IDs (General Court = `1`, Forking Court = `0` — reserved). Hardcoded V1 court IDs will silently route disputes to the wrong court.
 - `courtID` is encoded as `uint96` instead of `uint256`
+
+<Warning>
+**Breaking change for hardcoded court IDs.** If your V1 contract hardcoded `subcourtID = 0` for General Court, you must change this to `courtID = 1` for V2. Using `courtID = 0` on V2 targets the reserved Forking Court and will revert.
+</Warning>
 
 ---
 
@@ -149,15 +153,19 @@ V1 contracts live on Ethereum Mainnet (or Gnosis/Polygon). V2 contracts live on 
 
 ## Fee Token Support
 
-V2 adds ERC-20 fee token support. You can pay arbitration fees in accepted ERC-20 tokens instead of only ETH:
+V2 adds ERC-20 fee token support. You can pay arbitration fees in accepted ERC-20 tokens instead of only ETH, **when integrating directly with KlerosCore on Arbitrum**:
 
 ```solidity
-// V2: Create dispute with ERC20 fee
+// V2: Create dispute with ERC20 fee (direct KlerosCore only)
 IERC20 feeToken = IERC20(wethAddress);
 uint256 cost = arbitrator.arbitrationCost(extraData, feeToken);
 feeToken.approve(address(arbitrator), cost);
 arbitrator.createDispute(choices, extraData, feeToken, cost);
 ```
+
+<Warning>
+ERC-20 fees are **not available** when using the `ForeignGateway` for cross-chain arbitration. The gateway's ERC-20 `createDispute` overload reverts with `"Not supported"`. Cross-chain arbitrables must always pay fees in ETH.
+</Warning>
 
 ---
 
