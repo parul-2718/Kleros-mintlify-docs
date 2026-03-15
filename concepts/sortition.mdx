@@ -48,6 +48,10 @@ If 5 random numbers are drawn (e.g., 2519, 4953, 2264, 3342, 9531), then stakers
 
 A single juror **can be drawn multiple times** for the same dispute. This is intentional: it ensures that splitting tokens across multiple wallets provides no advantage over holding them in one address, maintaining Sybil resistance.
 
+<Note>
+In DisputeKitClassic, the `alreadyDrawn` mapping tracks whether a juror address has had its draw event registered for a given round. The same address **can** receive multiple vote IDs (draw weights) if drawn more than once, but the draw-registration event is recorded once per address. This means an address with 2 vote IDs counts as one unique juror entry but has twice the reward/penalty exposure.
+</Note>
+
 ### The Three-Phase Cycle
 
 The Sortition Module operates in three phases to prevent manipulation:
@@ -63,11 +67,11 @@ graph LR
     style D fill:#9b59b6,color:#fff
 ```
 
-**Staking Phase**: Jurors can freely adjust their stakes. The sortition tree is updated in real-time. This phase lasts until a minimum staking time has elapsed and at least one dispute needs jurors.
+**Staking Phase**: Jurors can freely adjust their stakes. The sortition tree is updated in real-time. This phase lasts until a minimum staking time has elapsed (`minStakingTime = 1800 seconds`) and at least one dispute needs jurors.
 
-**Generating Phase**: A random number is requested from the RNG source. Stake changes submitted during this phase are recorded but delayed, they won't affect the current drawing round. This prevents last-minute stake manipulation after the random seed is known.
+**Generating Phase**: A random number is requested from the RNG source. The RNG uses a lookahead of `rngLookahead = 20 blocks` — the random number depends on a block at least 20 blocks ahead, ensuring the result cannot be predicted at request time. Stake changes submitted during this phase are recorded but delayed, they won't affect the current drawing round. This prevents last-minute stake manipulation after the random seed is known.
 
-**Drawing Phase**: Jurors are drawn using the random number and the stake distribution from the end of the Staking phase. Delayed stakes remain queued. Drawing continues until all pending disputes have their jurors, or a maximum drawing time elapses.
+**Drawing Phase**: Jurors are drawn using the random number and the stake distribution from the end of the Staking phase. Delayed stakes remain queued. Drawing continues until all pending disputes have their jurors, or a maximum drawing time elapses (`maxDrawingTime = 1800 seconds`). If `maxDrawingTime` elapses without completing all draws, the phase transitions back to Staking.
 
 <Warning>
 If you stake during the Generating or Drawing phases, your changes won't affect your chances for the current round. They'll take effect in the next Staking phase. The Court interface shows whether your stakes are "Current" or "Delayed."

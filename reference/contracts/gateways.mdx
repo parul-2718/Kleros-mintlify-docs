@@ -5,6 +5,8 @@ description: "Cross-chain Foreign and Home Gateway contracts for multi-chain arb
 
 # Gateway Contracts
 
+**Version**: 0.8.0 | **Proxy**: UUPS Upgradeable
+
 Gateways enable cross-chain arbitration between Kleros Court on Arbitrum and Arbitrable contracts on foreign chains.
 
 ## Home Gateway (Arbitrum)
@@ -31,7 +33,7 @@ From the Arbitrable's perspective, the Foreign Gateway behaves as an Arbitrator.
 Creates a cross-chain dispute. Caller must send ETH equal to the arbitration cost.
 
 #### `arbitrationCost(bytes _extraData) view → uint256`
-Returns `feeForJuror[courtID] × minJurors` in ETH.
+Returns `feeForJuror[courtID] × minJurors` in ETH. **This reads from the ForeignGateway's own local `feeForJuror` mapping** — not from KlerosCore on Arbitrum. See fee sync risk below.
 
 #### `relayRule(address _messageSender, bytes32 _disputeHash, uint256 _ruling, address _relayer)`
 Called by the Vea outbox once a ruling is relayed from Arbitrum. Forwards the ruling to the Arbitrable.
@@ -42,10 +44,37 @@ Pays the relayer's fee after a ruling has been delivered.
 ### Governance Methods (Governor Only)
 
 #### `changeCourtJurorFee(uint96 _courtID, uint256 _feeForJuror)`
-Updates the per-juror fee stored in the ForeignGateway for a specific court. This must be called to keep gateway fees in sync when KlerosCore court fees change on Arbitrum. **Fee drift is a known operational risk** — if this is not updated after a governance change to `feeForJuror` on Arbitrum, arbitration cost on the foreign chain will be incorrect.
+Updates the per-juror fee stored in the ForeignGateway for a specific court.
 
 #### `changeVea(address _veaOutbox, uint256 _gracePeriod)`
-Updates the Vea outbox address. Supports a grace period for deprecated bridge transitions.
+Updates the Vea outbox address. A `deprecatedVeaOutbox` and expiration timestamp are stored to allow a grace period for in-flight disputes during bridge upgrades. Arbitrables should monitor for this event if they need to handle bridge transitions.
+
+## Fee Sync Risk
+
+<Warning>
+The `ForeignGateway` stores its own `mapping(uint96 courtId => uint256) feeForJuror` — a local copy of KlerosCore's fee schedule. When governance changes `feeForJuror` on KlerosCore (Arbitrum), the ForeignGateway mapping on Ethereum/Gnosis **must be manually updated** via `changeCourtJurorFee()`.
+
+Until that update happens, `arbitrationCost()` on the foreign chain returns a **stale value**. Cross-chain arbitrables should:
+1. Add a buffer to fee checks (e.g., fetch cost and add 10–20%)
+2. Monitor `CourtModified` events on KlerosCore and `changeCourtJurorFee` calls on the ForeignGateway
+3. Handle `createDispute()` reverts gracefully and retry with updated fees
+</Warning>
+
+## disputeHash — Cross-Chain Dispute Identifier
+
+Disputes have different IDs on each chain. The `disputeHash` is the canonical cross-chain identifier:
+
+```
+disputeHash = keccak256(blockhash, chainID, arbitrable, localDisputeID, choices, extraData)
+```
+
+| Identifier | Chain | Purpose |
+|---|---|---|
+| `localDisputeID` | Foreign chain | Incremental ID assigned by ForeignGateway for backward compatibility |
+| `disputeHash` | Both chains | Deterministic hash — the key used for ruling relay |
+| `homeDisputeID` | Arbitrum | ID assigned by KlerosCore |
+
+The ForeignGateway maps `localDisputeID → disputeHash`. The HomeGateway maps `disputeHash → homeDisputeID`. When building cross-chain arbitrables, store the `disputeHash` (emitted in events) to track ruling status across chains.
 
 ## ERC-20 Fee Limitation
 

@@ -74,7 +74,15 @@ flowchart LR
 
     - Jurors vote directly in a single transaction. Votes are visible immediately.
 
-    The winning option is determined by **plurality** the choice with the most votes wins.
+    The winning option is determined by **plurality** — the choice with the most votes wins.
+
+<Note>
+**Tied votes:** When multiple choices share the highest vote count, DisputeKitClassic produces multiple entries in `winningChoices[]`. In a tie, `currentRuling()` returns `tied = true` and the ruling defaults to `0` (refuse to arbitrate). Design your contract's ruling-0 handler to produce a reasonable fallback (e.g., refund both parties) since ties are possible even with an odd number of jurors if jurors abstain.
+</Note>
+
+<Note>
+**Round parameter snapshot:** Court parameters (fees, juror counts, period durations) are copied into each round at creation time. Governance changes to court parameters do not affect in-progress rounds — only new rounds created after the change use updated values.
+</Note>
   </Step>
 
   <Step title="Appeal Period">
@@ -103,6 +111,10 @@ flowchart LR
 ## The Phase System
 
 The Sortition Module uses a three-phase cycle to prevent manipulation of juror selection. A bot triggers phase transitions by calling `passPhase()`.
+
+<Warning>
+**Automation bots are required.** `KlerosCore.draw()` must be called by external automation bots to actually draw jurors — it does not happen automatically. If no bot calls `draw()`, disputes will stall waiting for jurors. In production, Kleros runs automation bots, but self-hosted integrations should be aware of this dependency.
+</Warning>
 
 ```mermaid
 stateDiagram-v2
@@ -206,7 +218,11 @@ jurorReward = (totalFees / numberOfCoherentVotes) × degreeOfCoherence
 pnkReward  = (totalPenalties / numberOfCoherentVotes) × degreeOfCoherence
 ```
 
-The `degreeOfCoherence` is calculated by the dispute kit and ranges from 0 to `ALPHA_DIVISOR` (10,000). In the Classic Dispute Kit, jurors who voted with the plurality receive full coherence.
+The `degreeOfCoherence` is calculated by the dispute kit. **In DisputeKitClassic, coherence is strictly binary**: jurors who voted with the plurality receive `10000` (100%), and jurors who did not receive `0`. There is no partial coherence — it is all-or-nothing.
+
+<Note>
+The `TokenAndETHShift` event emitted by KlerosCore on reward/penalty carries separate fields for PNK coherence degree and fee coherence degree, plus a `feeToken` field (the token in which fees were paid). In DisputeKitClassic both coherence degrees are always the same binary value.
+</Note>
 
 ### For Incoherent Jurors (voted against the winning plurality)
 

@@ -110,6 +110,7 @@ Court parameters (minStake, feeForJuror, session timings) are governed and can c
 - [ ] If paying in ERC20: verify the token is in `acceptedFeeTokens` on KlerosCore
 - [ ] If paying in ERC20: call `arbitrationCost(extraData, feeToken)` (not the ETH overload)
 - [ ] If paying in ERC20: approve KlerosCore to spend the fee amount before `createDispute()`
+- [ ] If paying in ERC20: do **NOT** send ETH with `createDispute()` — KlerosCore uses a `NON_PAYABLE_AMOUNT` guard constant that will cause the call to revert if any ETH value is included when an ERC-20 fee token is specified
 - [ ] Account for appeal costs each appeal round roughly doubles the juror count and cost
 - [ ] For cross-chain disputes: the Foreign Gateway mirrors `arbitrationCost()` locally, but sync may lag after governance changes add a buffer or retry mechanism
 

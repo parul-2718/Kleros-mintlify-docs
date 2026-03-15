@@ -137,6 +137,17 @@ function withdrawClaimDeposit(bytes32 _messageHash) external;
 
 ---
 
+## Bridge Upgrade Path
+
+When the Vea bridge is upgraded, the `ForeignGateway` stores both the new and old outbox addresses to allow in-flight disputes to complete:
+
+- `veaOutbox` — the current active outbox address
+- `deprecatedVeaOutbox` — the previous outbox address, kept valid until `deprecatedVeaOutboxExpiration` (a timestamp)
+
+During the grace period, messages can be relayed via either the new or the deprecated outbox. After expiration, only the new outbox is accepted. Arbitrables that store the gateway address should monitor for `changeVea` events if they need to handle bridge transitions gracefully.
+
+---
+
 ## Further Reading
 
 <CardGroup cols={2}>

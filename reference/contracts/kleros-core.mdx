@@ -31,7 +31,14 @@ Distributes PNK stakes and fees to jurors based on vote coherence.
 Finalizes dispute and calls `rule()` on the Arbitrable contract.
 
 ### `currentRuling(uint256 _disputeID) view → (uint256 ruling, bool tied, bool overridden)`
-Gets current ruling state.
+Gets current ruling state. All three return values are required for correct arbitrable implementation:
+- `ruling` — the current winning choice (0 = refuse to arbitrate)
+- `tied` — `true` if multiple choices share the highest vote count; ruling defaults to 0 when tied
+- `overridden` — `true` if the ruling was manually overridden (only possible via KlerosCoreRuler)
+
+<Warning>
+Arbitrable contracts must handle `tied = true`. In DisputeKitClassic, a tied vote results in `ruling = 0` (refuse to arbitrate). If your contract does not explicitly handle ruling 0, a tie will silently trigger your default/refund path.
+</Warning>
 
 ### `setStake(uint96 _courtID, uint256 _newStake)`
 Juror staking — requires prior PNK approval. In the Neo deployment, staking also requires the juror to hold the `KlerosV2NeoEarlyUser` NFT.
@@ -83,6 +90,15 @@ The General Court supports all four dispute kits. The active kit is selected via
 | 2 | DisputeKitShutter | Commit-reveal with Shutter encryption |
 | 3 | DisputeKitGated | Gated by eligibility token (SBT) |
 | 4 | DisputeKitGatedShutter | Gated + Shutter commit-reveal |
+
+## Round Data Structure
+
+Each dispute round stores a snapshot of the court parameters **at the time the round was created**. This means governance changes to court parameters (fees, juror counts, periods) do not retroactively affect in-progress rounds — only new rounds use updated values.
+
+Key round fields:
+- `drawnJurors[]` — array of drawn juror addresses (same address can appear multiple times)
+- `drawnJurorFromCourtIDs[]` — tracks which sub-court each juror was originally staked in at draw time (used for reward routing in parent-court draws)
+- `hiddenVotes`, `jurorsForCourtJump`, `timesPerPeriod` — copied from court at round creation
 
 ## Events
 

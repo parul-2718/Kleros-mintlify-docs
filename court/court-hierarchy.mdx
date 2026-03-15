@@ -106,13 +106,23 @@ Each court has parameters that define how it operates. These are set during cour
 | Parameter | Description | Spec Example |
 | --- | --- | --- |
 | **Minimum Stake** (`minStake`) | Minimum PNK required to stake in this court | 2,300 PNK |
-| **Alpha** (`alpha`) | Basis points controlling how much PNK is locked per vote | 10000 (100%) |
+| **Alpha** (`alpha`) | Basis points used to calculate PNK locked per draw. Formula: `lockedPNK = minStake × alpha / 10000`. This is locked from the juror's total stake, not necessarily equal to their total staked amount. | 10000 |
 | **Fee For Juror** (`feeForJuror`) | Payment per juror per dispute round | 0.005 ETH |
 | **Jurors For Court Jump** (`jurorsForCourtJump`) | Juror threshold that triggers escalation to parent court | 511 |
 | **Hidden Votes** (`hiddenVotes`) | Whether commit-reveal voting is used | true / false |
 | **Times Per Period** (`timesPerPeriod`) | Duration of each dispute phase in seconds | [280800, 583200, 583200, 388800] |
 
 <Warning>Court parameters are adjusted through governance and may differ from any static source. Always verify current values at [court.kleros.io](https://court.kleros.io).</Warning>
+
+### hiddenVotes and Commit-Reveal
+
+The `hiddenVotes` flag determines whether a court uses commit-reveal voting:
+
+<Warning>
+**General Court (ID 1) has `hiddenVotes = true`** — it uses commit-reveal. Jurors must submit a vote commitment hash first, then reveal their actual vote in a second transaction. Failing to reveal results in losing locked PNK.
+
+Most specialized courts have `hiddenVotes = false` and use direct single-transaction voting. Always check the `hiddenVotes` column in the table below before staking in a court.
+</Warning>
 
 ### Mainnet Court Parameters (Arbitrum One)
 
@@ -172,18 +182,28 @@ Do not use testnet parameter values to estimate mainnet costs or draw probabilit
 
 ### Understanding Alpha
 
-The `alpha` parameter determines how much of your stake is locked when drawn as a juror:
+The `alpha` parameter determines how much PNK is locked **per draw** (per vote ID assigned to you):
 
 ```
 pnkAtStakePerJuror = (minStake × alpha) / 10000
 ```
 
+<Warning>
+**`alpha` operates on `minStake`, not on your total staked amount.** A juror can stake far more than `minStake` — that increases their drawing probability, but the locked amount per draw is always `minStake × alpha / 10000` regardless of how much extra they staked.
+
+Example: Court has `minStake = 2,300 PNK`, `alpha = 10000`. A juror stakes 50,000 PNK.
+- Drawing probability: proportional to 50,000 PNK in the sortition tree
+- Locked amount per draw: `2,300 × 10000 / 10000 = 2,300 PNK` (not 50,000)
+</Warning>
+
 <Accordion title="Alpha Example">
-**With minStake = 2,300 PNK and alpha = 10000 (100%)**
+**General Court: minStake = 2,300 PNK, alpha = 10000**
 
-Your locked amount per vote = 2,300 PNK
+Locked amount per vote ID = 2,300 PNK
 
-If alpha were 5000 (50%), your locked amount would be 1,150 PNK per vote. The `alpha` parameter effectively sets the economic risk of participating as a juror higher alpha means more PNK at stake per vote.
+**Automated Curation Court (ID 31): minStake = 2,600 PNK, alpha = 290 (2.9%)**
+
+Locked amount per vote ID = `2,600 × 290 / 10000 = ~75.4 PNK` — dramatically lower risk per draw, reflecting its low-stakes automated use case.
 </Accordion>
 
 ### Time Periods

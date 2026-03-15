@@ -22,6 +22,9 @@ Kleros V2 was designed around six key principles:
 |---|---|
 | **KlerosCore** | Dispute creation, period management, appeals, ruling execution, juror rewards |
 | **DisputeKitClassic** | Plurality voting, commit-reveal, equal-split incentives, asymmetric appeal funding |
+| **DisputeKitGated** | Classic voting restricted to jurors holding a specific eligibility token (SBT/NFT) |
+| **DisputeKitShutter** | Threshold-encrypted single-transaction voting via Shutter Network |
+| **DisputeKitGatedShutter** | Gated eligibility combined with Shutter encryption |
 | **SortitionModule** | Stake-weighted random juror selection via sum trees |
 | **DisputeTemplateRegistry** | On-chain registry of dispute question/answer templates |
 | **PolicyRegistry** | Court policy storage (IPFS URIs) |
@@ -40,17 +43,52 @@ The long-term architecture supports Arbitrables on any EVM chain:
 ## Dispute Kit System
 
 Courts can support multiple dispute kits, enabling different:
-- **Drawing methods**: PNK-weighted, Proof-of-Humanity-based, etc.
-- **Voting systems**: Plurality, Condorcet-IRV, etc.
+- **Drawing methods**: PNK-weighted sortition, eligibility-token-gated, etc.
+- **Voting systems**: Plurality, commit-reveal, threshold-encrypted (Shutter)
 - **Incentive models**: Equal split, weighted functions, etc.
 - **Appeal systems**: Fund-2-only, fund-multiple, stake-based, etc.
 
-Currently, `DisputeKitClassic` (PNK drawing + plurality voting + equal split + fund-2-only appeals) is the only deployed kit and is mandatorily supported by all courts.
+All four kits (Classic, Shutter, Gated, GatedShutter) are deployed and active on Arbitrum One. The General Court supports all four. Specialized courts that use DisputeKitGated require jurors to hold a specific eligibility token (SBT) to stake.
+
+## Per-Court Eligibility
+
+Every `Court` struct in KlerosCore has an `eligibility` field (`ICourtEligibility`) that can gate which addresses are allowed to stake. This is separate from the dispute kit — the eligibility check applies at staking time, not at draw time.
+
+Currently deployed eligibility tokens (soulbound NFTs) on Arbitrum One:
+- **SBTACPLawyer** (`0x0d41Cb0c9Da123a7554C5eee87aD289874e85E48`) — required for Corte de Defensores del Cliente (Court ID 32)
+- **SBTACPExperience** (`0xbCF80cb53f173Ff8be96813a40be20eFAb2B59ed`) — required for Corte de Disputas de Consumo y Vecindad (Court ID 29)
+
+## Arbitrable Whitelist
+
+KlerosCore includes an `arbitrableWhitelistEnabled` flag. When enabled by governance, only whitelisted contract addresses can call `createDispute()`. This allows governance to control which applications can use the protocol. The current status can be queried on-chain.
+
+## Governance Controls
+
+### Force-Unstake Powers
+
+Governance (Governor role) can forcibly remove a juror's stake via:
+- `forcedUnstakeAllCourts(address _juror)` — removes stake from every court
+- `forcedUnstake(address _juror, uint96 _courtID)` — removes stake from a specific court
+
+These functions exist as a safety mechanism for cases where a juror's stakes need to be cleared (e.g., after a slashing event that can't be resolved through normal flow).
+
+### Pause Mechanisms
+
+KlerosCore has **two distinct pause modes**:
+
+| Event | Effect |
+|---|---|
+| `Paused` / `Unpaused` | Blocks new staking and reward execution. Disputes, voting, and appeals continue. |
+| `ArbitrationPaused(uint256 _gracePeriodEnd)` / `ArbitrationUnpaused` | Blocks dispute creation with a configurable grace period end timestamp for time-delayed transitions. |
+
+<Warning>
+`ArbitrationPaused` includes a `_gracePeriodEnd` timestamp — it is not a simple on/off toggle. Existing in-flight disputes complete, but new ones cannot be created until the grace period expires and `ArbitrationUnpaused` is called. Integrators should handle both pause events when building monitoring systems.
+</Warning>
 
 ## Security Model
 
 - **Cryptoeconomic**: Jurors stake PNK; incoherent voters lose stake
 - **Random Selection**: Prevents manipulation of juror composition
 - **Appeal Escalation**: Exponentially increasing cost to sustain an attack
-- **Emergency Controls**: Guardian pause + Governor unpause for rapid response
+- **Emergency Controls**: Guardian pause + Governor unpause for rapid response; separate ArbitrationPaused with grace period for scheduled maintenance
 - **Fork Mechanism**: Ultimate defense: honest minority can fork the protocol

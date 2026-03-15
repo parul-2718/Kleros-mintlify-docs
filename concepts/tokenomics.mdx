@@ -13,7 +13,7 @@ The **PNK token** (pinakion) serves two functions in the Kleros protocol: it is 
 
 Kleros uses PNK rather than ETH for staking because a dedicated token provides stronger security guarantees against 51% attacks.
 
-If jurors staked ETH, an attacker could acquire enough to dominate a court by tapping into Ethereum's deep global liquidity. With PNK, the attacker faces a much thinner market, as they buy PNK, supply becomes scarce and the price rises sharply. The token's market depth is naturally bounded by the Kleros ecosystem, making attacks progressively more expensive.
+If jurors staked ETH, an attacker could acquire enough to dominate a court by tapping into Ethereum's deep global liquidity. With PNK, the attacker faces a much thinner market — as they buy PNK, supply becomes scarce and the price rises sharply. The token's market depth is naturally bounded by the Kleros ecosystem, making attacks progressively more expensive.
 
 This is the same principle behind why blockchains use native tokens for consensus: the security budget is proportional to the value of the native asset, not to external liquidity.
 
@@ -21,7 +21,7 @@ This is the same principle behind why blockchains use native tokens for consensu
 
 ## PNK Supply
 
-The total supply of PNK is **764,626,704 tokens**. This supply can only be modified through a DAO governance vote, there is no minting function controlled by the team.
+The total supply of PNK is **764,626,704 tokens**. This supply can only be modified through a DAO governance vote — there is no minting function controlled by the team.
 
 In Kleros V2, PNK on Arbitrum (the home chain) uses the standard bridge token rather than the complex Minime token used on Ethereum mainnet. This makes PNK transfers cheaper and simpler.
 
@@ -31,16 +31,32 @@ In Kleros V2, PNK on Arbitrum (the home chain) uses the standard bridge token ra
 
 ### V1 vs V2 Staking
 
-In Kleros V1, staking was a "virtual" operation, PNK stayed in your wallet, and the contract tracked your staked amount.
+In Kleros V1, staking was a "virtual" operation — PNK stayed in your wallet, and the contract tracked your staked amount.
 
-In Kleros V2, staking **transfers PNK to the KlerosCore contract**. Your staked tokens are held by the contract and returned when you unstake (minus any penalties from incoherent voting). This is similar to how DeFi staking protocols work and requires a standard ERC-20 `approve()` transaction before staking.
+In Kleros V2, staking **transfers PNK to the SortitionModule contract** (not KlerosCore). The SortitionModule holds all staked PNK and manages the sortition sum trees used for juror selection. Your staked tokens are returned when you unstake (minus any penalties from incoherent voting). This requires a standard ERC-20 `approve()` transaction before staking.
+
+<Note>
+A common misconception is that PNK is held in KlerosCore. In V2, `lockStake()`, `unlockStake()`, `setStakePenalty()`, and `setStakeReward()` all live in the **SortitionModule**. KlerosCore delegates all stake management to it.
+</Note>
+
+### Staking Caps (Neo Deployment)
+
+The current production deployment enforces two governance-controlled caps:
+- `maxStakePerJuror` — maximum PNK a single address can stake across all courts (currently 2,000 PNK)
+- `maxTotalStaked` — maximum total PNK staked across the entire protocol (currently 2,000,000 PNK)
+
+If a cap is reached, the staking transaction reverts. These caps are expected to increase as the protocol matures.
+
+### Leftover PNK from Capped Stakes
+
+When a stake attempt is partially blocked by the `maxStakePerJuror` cap, the SortitionModule emits a `LeftoverPNK(address account, uint256 amount)` event and holds the excess PNK. The juror can withdraw it via `withdrawLeftoverPNK()`. The `LeftoverPNKWithdrawn` event confirms the withdrawal.
 
 ### The Staking Economy
 
 When you stake PNK in a court:
 - Your **chance of being drawn** as a juror is proportional to your stake relative to the total stake in that court
 - When drawn, a portion of your stake is **locked** as collateral (determined by the court's `alpha` parameter)
-- If you vote **coherently** (with the majority), you receive arbitration fees (ETH) and PNK from incoherent jurors
+- If you vote **coherently** (with the majority), you receive arbitration fees and PNK from incoherent jurors
 - If you vote **incoherently**, you lose your locked PNK, which is redistributed to coherent jurors
 
 ### Staking Rewards (KIP-66)
@@ -53,7 +69,9 @@ KIP-66 is a community-approved governance proposal that introduces additional st
 
 Jurors earn from two independent streams:
 
-**Arbitration fees**: Paid by dispute creators in ETH or whitelisted ERC-20 tokens. These are the "wages" for jury duty. The fee per juror is set per court and can be adjusted through governance.
+**Arbitration fees**: Paid by dispute creators in ETH **or accepted ERC-20 tokens** (WETH, DAI). These are the "wages" for jury duty. The fee per juror is set per court and can be adjusted through governance.
+
+ERC-20 fee rates are governance-maintained fixed rates (not oracle prices) stored via the `RatesConverter` contract (`0x95D68c863075DB3B22560554761D3c318d8052F8` on Arbitrum One). This means ERC-20 fee amounts can drift from market rates between governance updates.
 
 **PNK redistribution**: Tokens lost by incoherent jurors are redistributed to coherent ones. This is the "penalty/reward" mechanism that enforces honest voting. The amount at risk per vote is `minStake × alpha / 10000`.
 
@@ -63,12 +81,13 @@ When all jurors in a round are incoherent (no majority exists), both the fees an
 
 ## Governance
 
-PNK holders vote on protocol changes through [Kleros Snapshot governance](/governance/snapshot). Voting power is proportional to PNK holdings. Governance decisions include:
+PNK holders vote on protocol changes through [Kleros Snapshot governance](/governance/snapshot). Voting power is proportional to **staked PNK** (not wallet balance) as measured by `KlerosCoreSnapshotProxy`. Governance decisions include:
 
 - Adding or modifying courts and their parameters
-- Adjusting fee structures and token whitelists
+- Adjusting fee structures, token whitelists, and ERC-20 conversion rates
 - Approving protocol upgrades through the [Governor](/products/governor) contract
 - Approving Kleros Improvement Proposals (KIPs)
+- Adjusting staking caps (`maxStakePerJuror`, `maxTotalStaked`)
 
 ---
 

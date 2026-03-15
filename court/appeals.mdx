@@ -21,8 +21,8 @@ The appeals system is a core feature of Kleros Court that ensures fairness and a
 
 <Step title="Appeal Funding">
   During the appeal period, anyone can fund an appeal:
-  - **Challenger**: Funds to overturn the ruling (2× appeal cost)
-  - **Winner**: Funds to defend the ruling (1× appeal cost)
+  - **Loser of the current ruling**: Funds to overturn the ruling (2× appeal cost)
+  - **Winner of the current ruling**: Funds to defend the ruling (1× appeal cost)
 </Step>
 
 <Step title="Counter-Funding">
@@ -47,8 +47,8 @@ The appeal system uses asymmetric funding to create proper incentives:
 
 | Side | Funding Required | Rationale |
 | --- | --- | --- |
-| **Challenging Side** | 2× appeal cost | Higher barrier discourages frivolous appeals |
-| **Winning Side** | 1× appeal cost | Lower cost to defend legitimate rulings |
+| **Loser of current ruling** | 2× appeal cost | Higher barrier discourages frivolous appeals |
+| **Winner of current ruling** | 1× appeal cost | Lower cost to defend legitimate rulings |
 
 ### Calculating Appeal Cost
 
@@ -76,10 +76,10 @@ Timing is critical for appeals. Miss the deadline and your opportunity is lost.
 
 | Party | Deadline |
 | --- | --- |
-| **Challenger** | First half of appeal period only |
-| **Winner** | Entire appeal period |
+| **Loser of current ruling** | First half of appeal period only |
+| **Winner of current ruling** | Entire appeal period |
 
-This asymmetry creates urgency for challengers while giving winners adequate time to respond.
+This asymmetry creates urgency for the losing party while giving the winning party adequate time to respond.
 
 ---
 
@@ -207,7 +207,7 @@ Appeal funding is a form of crowdfunding justice. Multiple contributors can fund
                           ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                     APPEAL PERIOD                           │
-│   Challenger funds (2×) ◄──────► Winner funds (1×)          │
+│   Loser funds (2×) ◄──────────► Winner funds (1×)           │
 └─────────────────────────┬───────────────────────────────────┘
                           │
             ┌─────────────┼─────────────┐

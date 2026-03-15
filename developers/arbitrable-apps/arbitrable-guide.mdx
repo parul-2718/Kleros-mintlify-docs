@@ -294,11 +294,11 @@ function raiseDispute(uint256 _txID) external payable {
 
 ## Extra Data Encoding
 
-Configure court and juror count:
+Configure court, juror count, and dispute kit:
 
 ```solidity
-function setArbitrationParams(uint96 _courtID, uint256 _minJurors) external onlyOwner {
-    arbitratorExtraData = abi.encodePacked(_courtID, _minJurors);
+function setArbitrationParams(uint96 _courtID, uint256 _minJurors, uint256 _disputeKitID) external onlyOwner {
+    arbitratorExtraData = abi.encodePacked(_courtID, _minJurors, _disputeKitID);
 }
 ```
 
@@ -306,6 +306,11 @@ function setArbitrationParams(uint96 _courtID, uint256 _minJurors) external only
 |-------|-------|-------------|
 | 0-11 | courtID | uint96, target court |
 | 12-43 | minJurors | uint256, minimum jurors |
+| 44-75 | disputeKitID | uint256, dispute kit (1=Classic, 2=Shutter, 3=Gated, 4=GatedShutter) |
+
+<Note>
+If `disputeKitID` is omitted from `extraData`, KlerosCore defaults to kit ID 1 (DisputeKitClassic). Explicitly encoding kit ID 1 is recommended for clarity. Use kit 3 (Gated) or 4 (GatedShutter) only if your target court has that kit registered and your users hold the required eligibility token.
+</Note>
 
 ## Complete Example
 

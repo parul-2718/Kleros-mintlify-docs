@@ -22,7 +22,7 @@ Kleros is a decentralized dispute resolution protocol. Think of it as a **court 
     Disputes can originate from Ethereum mainnet or other chains via the gateway system.
   </Card>
   <Card title="Battle-Tested" icon="shield-check">
-    Over $50M in value secured through Kleros arbitration since 2018.
+    Hundreds of disputes resolved across DeFi, curation, identity, and more since 2018.
   </Card>
 </CardGroup>
 
@@ -43,7 +43,7 @@ Your Contract → Creates Dispute → Jurors Vote → Ruling Returned → Your C
 ```
 
 1. Your contract implements `IArbitrableV2` interface
-2. When a dispute arises, call `createDispute()` with arbitration fees
+2. When a dispute arises, call `createDispute()` with arbitration fees (ETH or accepted ERC-20 tokens)
 3. Random jurors are drawn (weighted by staked PNK)
 4. Jurors vote, with appeals possible
 5. Final ruling is passed back to your contract via `rule()`
