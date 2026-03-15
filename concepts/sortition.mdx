@@ -79,7 +79,7 @@ If you stake during the Generating or Drawing phases, your changes won't affect 
 
 Secure randomness is critical, if anyone can predict or influence the random number, they can manipulate juror selection.
 
-Kleros V2 uses **Chainlink VRF** as the primary random number source, with a fallback mechanism to prevent the system from freezing if Chainlink becomes unavailable. The fallback produces `hash(c)` where `c` is the number of times the fallback has been triggered.
+Kleros V2 uses **Randomizer.io** as the primary random number source on the production deployment (Arbitrum One), with Chainlink VRF and BlockHash RNG also deployed as alternatives. All three contracts implement a common `IRNG` interface so the SortitionModule can swap RNG sources through governance. The `rngLookahead` parameter sets the minimum block distance between requesting and receiving the random number, ensuring the result cannot be predicted at request time.
 
 The RNG request is made with a configurable **lookahead** parameter, the random number depends on a future block, not the current one. This prevents the requester from knowing the outcome at request time.
 

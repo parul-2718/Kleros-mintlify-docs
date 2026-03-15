@@ -78,10 +78,10 @@ Use this checklist before deploying to mainnet. Each item has bitten someone bef
 | 2 | Blockchain | Technical blockchain/smart contract disputes |
 | 3 | Non-Technical | Business, marketing, and content disputes |
 | 4 | Token Listing | Token curation and listing decisions |
-| 5+ | Specialized | Check [court.kleros.io](https://court.kleros.io) for the current tree |
+| 5+ | Specialized | See [Court Hierarchy](/court/court-hierarchy) for the full 32-court table |
 
 <Warning>
-Court IDs on Arbitrum Sepolia (testnet) differ from Arbitrum One (mainnet). Always verify IDs from the [kleros-v2 deployments](https://github.com/kleros/kleros-v2/tree/dev/contracts/deployments) for your target network.
+Court IDs on Arbitrum Sepolia (testnet) differ from Arbitrum One (mainnet) — the testnet only has 6 courts. Always verify IDs from the [kleros-v2 deployments](https://github.com/kleros/kleros-v2/tree/master/contracts/deployments) for your target network.
 </Warning>
 
 Court parameters (minStake, feeForJuror, session timings) are governed and can change via governance proposals. Query them from the `courts(courtID)` getter on KlerosCore rather than hardcoding.
@@ -172,11 +172,16 @@ Kleros disputes follow a fixed phase sequence. Understand the timing impact on y
 
 | Phase | Duration (General Court) | Notes |
 |-------|--------------------------|-------|
-| Evidence | ~3 days | Either party can submit evidence |
-| Voting | ~3 days | Jurors cast encrypted votes (Shutter) |
-| Appeal | ~5 days | Losing party can fund an appeal |
-| **Total (no appeal)** | **~11 days** | Minimum time to ruling |
-| **Per appeal round** | **+~11 days** | Each round adds roughly the same |
+| Evidence | ~3.25 days (280,800 s) | Either party can submit evidence |
+| Commit | ~6.75 days (583,200 s) | Jurors submit vote commitments (hidden-vote courts only) |
+| Vote / Reveal | ~6.75 days (583,200 s) | Jurors reveal votes or cast direct votes |
+| Appeal | ~4.5 days (388,800 s) | Anyone can fund an appeal |
+| **Total (no appeal)** | **~21 days** | Minimum time to ruling (General Court) |
+| **Per appeal round** | **+~21 days** | Each round adds roughly the same |
+
+<Warning>
+These are the **actual on-chain values** for the General Court on Arbitrum One as configured at deployment. Court parameters are governance-controlled and may change. Always query `courts(courtID)` on KlerosCore rather than hardcoding timing assumptions.
+</Warning>
 
 - [ ] Your application tolerates the dispute resolution timeline (1–4 weeks typical)
 - [ ] Funds or state remain locked during the dispute without creating issues
@@ -284,14 +289,13 @@ Kleros disputes follow a fixed phase sequence. Understand the timing impact on y
 
 ---
 
-## V2 Beta Considerations
+## V2 Production Considerations
 
-Kleros V2 is in beta. These items are specific to the current beta period:
+Kleros V2 is live on Arbitrum One. These items are specific to the current production deployment:
 
-- [ ] **Access gating:** Verify your users can access the Court V2 interface. Beta access is currently limited to V2 testnet participants, V1 jurors, and PoH V1 registrants. General availability timing is TBD.
-- [ ] **Contract upgrades:** V2 contracts use UUPS proxy patterns and may be upgraded post-audit. Subscribe to the [Kleros blog](https://blog.kleros.io) and [Discord](https://discord.gg/kleros) for upgrade announcements.
-- [ ] **Subgraph stability:** The V2 subgraph schema may change during beta. Pin to a specific subgraph version and test after upgrades.
-- [ ] **SDK status:** The `@kleros/kleros-v2-sdk` package is under development. For production use, interact with contracts directly via ABIs from `@kleros/kleros-v2-contracts` or the [kleros-v2 repository](https://github.com/kleros/kleros-v2).
+- [ ] **Contract upgrades:** V2 contracts use UUPS proxy patterns. Subscribe to the [Kleros blog](https://blog.kleros.io) and [Discord](https://discord.gg/kleros) for upgrade announcements.
+- [ ] **Subgraph stability:** The V2 subgraph schema may change. Pin to a specific subgraph version and test after upgrades.
+- [ ] **SDK status:** The `@kleros/kleros-v2-sdk` package is under active development. For production use, interact with contracts directly via ABIs from `@kleros/kleros-v2-contracts` or the [kleros-v2 repository](https://github.com/kleros/kleros-v2).
 - [ ] **Testnet first:** Always deploy and test a full dispute lifecycle on Arbitrum Sepolia before mainnet. Testnet disputes may take longer to resolve due to limited juror participation.
 
 <Warning>
@@ -319,15 +323,16 @@ During the beta period, contact the Kleros team via [Discord](https://discord.gg
 
 | Contract | Address |
 |----------|---------|
-| KlerosCore (proxy) | `0x33d0b8879368acD8ca868e656Ade97bBcfeB12BA` |
-| SortitionModule | Verify from [deployments](https://github.com/kleros/kleros-v2/tree/dev/contracts/deployments/arbitrum) |
-| DisputeKitClassic | Verify from deployments |
-| DisputeTemplateRegistry | Verify from deployments |
-| HomeGateway | Verify from deployments |
+| KlerosCore (proxy) | `0x991d2df165670b9cac3B022f4B68D65b664222ea` |
+| SortitionModule (proxy) | `0x21A9402aDb818744B296e1d1BE58C804118DC03D` |
+| DisputeKitClassic (proxy) | `0x70B464be85A547144C72485eBa2577E5D3A45421` |
+| DisputeTemplateRegistry (proxy) | `0x0cFBaCA5C72e7Ca5fFABE768E135654fB3F2a5A2` |
+
+See [Deployment Addresses](/reference/contracts/deployment-addresses) for the full list including all contract implementations, gateways, and test tokens.
 
 ```solidity
 // Querying court parameters on-chain
-IKlerosCore core = IKlerosCore(0x33d0b8879368acD8ca868e656Ade97bBcfeB12BA);
+IKlerosCore core = IKlerosCore(0x991d2df165670b9cac3B022f4B68D65b664222ea);
 
 // Get arbitration cost for General Court (ID 1) with 3 jurors
 bytes memory extraData = abi.encodePacked(uint96(1), uint256(3));
@@ -348,7 +353,7 @@ uint256 cost = core.arbitrationCost(extraData);
 ```
 
 <Warning>
-Always verify addresses from the [official repository](https://github.com/kleros/kleros-v2/tree/dev/contracts/deployments) before mainnet deployment. During beta, addresses may be updated through proxy upgrades.
+Always verify addresses from the [official repository](https://github.com/kleros/kleros-v2/tree/master/contracts/deployments) before mainnet deployment. Proxy addresses are stable across upgrades but confirm before deploying.
 </Warning>
 
 ### Useful Links

@@ -9,9 +9,13 @@ The Sortition Module handles juror selection through weighted random draws based
 
 ## Phase System
 
-1. **Staking Phase**: Jurors update stakes. Stake changes queued.
-2. **Generating Phase**: Random number requested from RNG source.
-3. **Drawing Phase**: Jurors drawn using the random number and stake weights.
+1. **Staking Phase**: Jurors update stakes. Stake changes take effect **immediately** and update the sortition sum tree in real-time.
+2. **Generating Phase**: Random number requested from RNG source. Stake changes submitted during this phase are **delayed** — they will not affect the current drawing round.
+3. **Drawing Phase**: Jurors drawn using the random number and stake weights from the end of the Staking phase. Stake changes remain delayed.
+
+<Warning>
+Stake changes made during the Generating or Drawing phases are queued and only take effect at the start of the next Staking phase. The Court UI shows whether stakes are "Current" or "Delayed."
+</Warning>
 
 ## Drawing Mechanism
 
@@ -24,6 +28,6 @@ Uses a sortition sum tree where each leaf represents a juror's stake. Drawing pr
 ## Stake Management
 
 - Stakes are organized per court in the tree
-- Jurors can stake in multiple courts simultaneously
+- Jurors can stake in multiple courts simultaneously (subject to `MAX_STAKE_PATHS` limit)
 - Minimum stake requirement per court (`minStake`)
-- Stake changes may be delayed when in Drawing phase
+- **Neo deployment caps**: `maxStakePerJuror` = 2,000 PNK, `maxTotalStaked` = 2,000,000 PNK — staking reverts if either cap is exceeded

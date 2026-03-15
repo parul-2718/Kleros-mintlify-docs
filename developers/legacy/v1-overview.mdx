@@ -28,7 +28,7 @@ V1 uses a single `KlerosLiquid` contract that combines arbitration, staking, jur
 | Arbitration standard | ERC-792 | IArbitratorV2 (no appeal in interface) |
 | Evidence standard | ERC-1497 | Dispute Templates + cross-chain evidence |
 | Dispute kits | None (monolithic) | Modular (DisputeKitClassic, specialized kits) |
-| Voting | Commit-reveal | Shutter-encrypted single-transaction |
+| Voting | Commit-reveal | Commit-reveal (default); Shutter encryption available in testing |
 | Cross-chain | Limited (xDAI bridge) | Vea bridge (Ethereum, Gnosis, extensible) |
 | Staking | Direct in KlerosLiquid | SortitionModule (sortition tree) |
 
@@ -47,9 +47,7 @@ V1 uses a single `KlerosLiquid` contract that combines arbitration, staking, jur
 
 | Contract | Address |
 | --- | --- |
-| xKlerosLiquid | Check [deployment addresses](https://docs.kleros.io/developer/deployment-addresses) |
-
-For the full deployment address list, see the [GitBook deployment addresses page](https://docs.kleros.io/developer/deployment-addresses).
+| xKlerosLiquid | See the [kleros-v2 repository](https://github.com/kleros/kleros-v2/tree/master/contracts/deployments) for current addresses |
 
 ---
 
