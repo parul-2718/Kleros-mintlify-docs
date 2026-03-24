@@ -150,12 +150,14 @@ stateDiagram-v2
 
 Kleros V2 introduces modular dispute resolution through pluggable Dispute Kits. Each court specifies which kits it supports, and every court must support the **Classic Dispute Kit** as a universal fallback.
 
-| Kit | Description | Status |
-| --- | --- | --- |
-| **Classic** | Plurality voting where the option with the most votes wins. Universal fallback every court must support it. | Live |
-| **Shutter-Enabled** | Threshold encryption for enhanced vote privacy. Single-transaction voting with automatic decryption. | In testing |
-
-<Note>The dispute kit architecture is designed to be extensible. Additional kits (ranked choice, PoH-gated, etc.) can be added through governance as the protocol evolves. When creating disputes, arbitrable applications specify a dispute kit ID in `extraData`.</Note>
+| Kit ID | Name | Description | Status |
+| --- | --- | --- | --- |
+| 1 | **Classic** | Plurality voting where the option with the most votes wins. | Live |
+| 2 | **Shutter** | Threshold-encrypted single-transaction voting with automatic decryption at period end. | In testing |
+| 3 | **Gated** | Classic voting restricted to jurors holding a specific eligibility token (SBT). Used for courts requiring verified credentials. | Live |
+| 4 | **GatedShutter** | Gated eligibility combined with Shutter encryption. | Live |
+ 
+<Note>All four kits are deployed and registered on the General Court on Arbitrum One. Specialized courts (e.g., courts 29 and 32 for Argentina Consumer Protection) use DisputeKitGated and require specific SBTs — see [Deployment Addresses](/reference/contracts/deployment-addresses). The dispute kit architecture is extensible; new kits can be added through governance.</Note>
 
 ---
 

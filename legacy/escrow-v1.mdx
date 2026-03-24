@@ -13,12 +13,30 @@ Kleros Escrow V1 was the original decentralized escrow platform on Ethereum Main
 
 ---
 
-## Key Differences from V2
+## Token support
+
+<Danger>
+**Non-standard ERC-20 tokens are not supported.** Tokens such as USDT, BNB, and OMG are **not compatible** with Kleros Escrow V1. These tokens use non-standard transfer implementations that may cause transactions to fail or funds to become stuck.
+</Danger>
+
+Escrow V1 only supports ETH and standard ERC-20 tokens. Non-standard tokens typically have one or more of the following characteristics:
+
+- **No return value on `transfer`/`transferFrom`** (e.g., USDT, BNB, OMG)
+- **Fee-on-transfer** mechanisms that reduce the received amount
+- **Rebasing** supply adjustments
+- **Pausable** transfers that can be frozen by an admin
+
+If you need to use non-standard tokens, migrate to [Escrow V2](/products/escrow), which includes `SafeERC20` handling and automatic safety checks for broader token compatibility.
+
+---
+
+## Key differences from V2
 
 | Feature | V1 | V2 |
 |---------|----|----|
 | Network | Ethereum Mainnet | Arbitrum One |
 | Token Support | ETH only | ETH + any ERC-20 token |
+| Non-standard ERC-20 | Not supported | Supported via SafeERC20 |
 | Settlement | Basic | Structured proposal/counter-proposal |
 | Platform Fees | None | None |
 | Evidence/Appeals | Handled by escrow contract | Handled by Court |

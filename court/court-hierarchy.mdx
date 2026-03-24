@@ -112,7 +112,63 @@ Each court has parameters that define how it operates. These are set during cour
 | **Hidden Votes** (`hiddenVotes`) | Whether commit-reveal voting is used | true / false |
 | **Times Per Period** (`timesPerPeriod`) | Duration of each dispute phase in seconds | [280800, 583200, 583200, 388800] |
 
-<Warning>The values above are **specification examples**, not necessarily the current live values. Court parameters are adjusted through governance and may differ on the live protocol. Always verify current values at [court.kleros.io](https://court.kleros.io).</Warning>
+<Warning>Court parameters are adjusted through governance and may differ from any static source. Always verify current values at [court.kleros.io](https://court.kleros.io).</Warning>
+
+### Mainnet Court Parameters (Arbitrum One)
+ 
+The following table shows the production court configuration as deployed. Values are governance-controlled and may have changed since this was written — always cross-check with [court.kleros.io](https://court.kleros.io).
+ 
+| ID | Name | Parent | minStake (PNK) | feeForJuror (ETH) | jurorsForJump | hiddenVotes |
+|---|---|---|---|---|---|---|
+| 1 | General Court | 1 (root) | 2,300 | 0.005 | 511 | Yes |
+| 2 | Blockchain | 1 | 7,000 | 0.0069 | 63 | No |
+| 3 | Non-Technical | 2 | 7,000 | 0.003 | 31 | No |
+| 4 | Token Listing | 3 | 70,000 | 0.064 | 47 | No |
+| 5 | Technical | 2 | 33,000 | 0.033 | 31 | No |
+| 6 | Marketing Services | 1 | 7,800 | 0.0062 | 15 | No |
+| 7 | English Language | 1 | 9,000 | 0.0074 | 3 | No |
+| 8 | Video Production | 1 | 7,500 | 0.0062 | 3 | No |
+| 9 | Onboarding | 1 | 2,300 | 0.0007 | 255 | No |
+| 10 | Curation | 1 | 2,600 | 0.0024 | 30 | No |
+| 11 | Data Analysis | 1 | 15,000 | 0.018 | 64 | No |
+| 12 | Statistical Modeling | 11 | 19,000 | 0.019 | 32 | No |
+| 13 | Curation (Medium) | 10 | 2,900 | 0.0023 | 30 | No |
+| 14 | Spanish-English Translation | 7 | 9,000 | 0.0031 | 128 | No |
+| 15 | French-English Translation | 7 | 9,000 | 0.0031 | 128 | No |
+| 16 | Portuguese-English Translation | 7 | 9,000 | 0.0031 | 128 | No |
+| 17 | German-English Translation | 7 | 9,000 | 0.0039 | 128 | No |
+| 18 | Russian-English Translation | 7 | 9,000 | 0.0039 | 128 | No |
+| 19 | Korean-English Translation | 7 | 9,000 | 0.005 | 128 | No |
+| 20 | Japanese-English Translation | 7 | 9,000 | 0.005 | 128 | No |
+| 21 | Turkish-English Translation | 7 | 9,000 | 0.005 | 128 | No |
+| 22 | Chinese-English Translation | 7 | 9,000 | 0.005 | 128 | No |
+| 23 | Corte General en Español | 1 | 5,100 | 0.005 | 128 | No |
+| 24 | Humanity Court | 1 | 5,300 | 0.0024 | 31 | No |
+| 25 | Development Court | 1 | 9,500 | 0.011 | 63 | No |
+| 26 | Solidity Court | 25 | 9,500 | 0.011 | 63 | No |
+| 27 | Javascript Court | 25 | 9,500 | 0.011 | 63 | No |
+| 28 | Corte de Curación en Español | 23 | 5,100 | 0.0024 | 30 | No |
+| 29 | Corte de Disputas de Consumo y Vecindad | 23 | 8,400 | 0.0054 | 15 | No |
+| 30 | Oracle Court | 1 | 5,000 | 0.0069 | 31 | No |
+| 31 | Automated Curation | 10 | 2,600 | 0.00017 | 3 | No |
+| 32 | Corte de Defensores del Cliente | 29 | 8,400 | 0.0054 | 15 | No |
+ 
+<Note>
+Courts 29 and 32 (Argentina Consumer Protection courts) use `DisputeKitGated` and require specific SBT eligibility tokens. See [Deployment Addresses](/reference/contracts/deployment-addresses) for SBT contract addresses.
+</Note>
+ 
+### Testnet Parameters (Arbitrum Sepolia)
+ 
+Testnet court parameters are deliberately different from mainnet to allow faster testing:
+ 
+| Parameter | Mainnet (General Court) | Testnet (General Court) |
+|---|---|---|
+| minStake | 2,300 PNK | 150 PNK |
+| feeForJuror | 0.005 ETH | 0.00001 ETH |
+| timesPerPeriod | ~3 days each | 12 hours each |
+| Courts available | 32 | 6 |
+ 
+Do not use testnet parameter values to estimate mainnet costs or draw probabilities.
 
 ### Understanding Alpha
 
