@@ -1,0 +1,142 @@
+---
+title: "Integration Guide"
+description: "Integrate the Reality.eth + Kleros oracle into your smart contract to access reliable real-world data on-chain."
+---
+
+## Integration Options
+
+There are two ways to integrate with the Reality.eth + Kleros oracle:
+
+**Smart contract integration**: Your contract calls Reality.eth functions directly to ask questions and read finalized answers. This is the recommended approach for on-chain applications.
+
+**Frontend-only integration**: Use the [Reality.eth web interface](https://reality.eth.limo/) to submit questions and retrieve answers manually, without contract changes.
+
+---
+
+## Smart Contract Integration
+
+### Step 1: Ask a Question
+
+```solidity
+import {IRealityETH} from "./interfaces/IRealityETH.sol";
+
+contract OracleConsumer {
+    IRealityETH public immutable realityETH;
+    // Kleros Arbitrator Proxy General Court on Mainnet
+    address public constant ARBITRATOR = 0x728cba71a3723caab33ea416cb46e2cc9215a596;
+    uint32 public constant TIMEOUT = 86400; // 24 hours
+
+    constructor(address _realityETH) {
+        realityETH = IRealityETH(_realityETH);
+    }
+
+    function askQuestion(string calldata _question) external payable returns (bytes32) {
+        return realityETH.askQuestion{value: msg.value}(
+            0,              // template: bool (yes/no)
+            _question,      // e.g. "Did team X win?␟sports␟en"
+            ARBITRATOR,     // Kleros arbitrator proxy
+            TIMEOUT,        // answer timeout
+            0,              // opens immediately
+            0               // nonce
+        );
+    }
+}
+```
+
+Any ETH sent with `askQuestion` becomes the question reward, incentivizing answerers.
+
+### Step 2: Read the Finalized Answer
+
+```solidity
+function getAnswer(bytes32 _questionID) external view returns (bytes32) {
+    require(realityETH.isFinalized(_questionID), "Not finalized");
+    return realityETH.resultFor(_questionID);
+}
+
+function getAnswerAsBool(bytes32 _questionID) external view returns (bool) {
+    bytes32 answer = realityETH.resultFor(_questionID);
+    // 0x01 = Yes, 0x00 = No
+    return answer == bytes32(uint256(1));
+}
+```
+
+<Warning>
+  `resultFor()` reverts if the question is not yet finalized. Always check `isFinalized()` first, or use a callback pattern.
+</Warning>
+
+### Step 3: Handle the Callback (Optional)
+
+For automated execution, use Reality.eth's callback mechanism:
+
+```solidity
+function resultReady(bytes32 _questionID) external {
+    require(msg.sender == address(realityETH), "Only Reality.eth");
+    bytes32 answer = realityETH.resultFor(_questionID);
+    // Execute logic based on the answer
+}
+```
+
+---
+
+## Choosing an Arbitrator Proxy
+
+Each Kleros Arbitrator Proxy is configured with:
+
+| Parameter | Description |
+| --- | --- |
+| **Subcourt** | Which Kleros court handles disputes |
+| **Number of jurors** | Initial juror count for first round |
+| **Arbitration fee** | Cost to escalate a question to Kleros |
+
+Use an existing proxy or contact `integrations@kleros.io` to deploy one configured for your use case.
+
+To check the current arbitration fee:
+
+```solidity
+uint256 fee = realityETH.getArbitrator(_questionID).getDisputeFee(_questionID);
+```
+
+---
+
+## DAO Governance Integration
+
+The Reality.eth + Kleros oracle powers the **Zodiac Reality Module** for DAO governance. This module translates off-chain Snapshot votes into on-chain transactions through Reality.eth's verification:
+
+1. A Snapshot proposal passes with a batch of transactions
+2. The SafeSnap plugin posts the proposal as a Reality.eth question
+3. If the answer ("Is this proposal valid?") goes unchallenged, the transactions execute through the Gnosis Safe
+4. If challenged, Kleros Court arbitrates
+
+See the [DAO Governance example](/developers/examples/dao-governance) for implementation details.
+
+---
+
+## Reality.eth Deployments
+
+Reality.eth contracts are deployed across multiple chains. Reference the correct contract address for your target chain:
+
+| Chain | Repository Path |
+| --- | --- |
+| Ethereum Mainnet | `chains/deployments/1/` |
+| Gnosis Chain | `chains/deployments/100/` |
+| Arbitrum One | `chains/deployments/42161/` |
+| Polygon | `chains/deployments/137/` |
+
+Full deployment data: [Reality.eth monorepo](https://github.com/RealityETH/reality-eth-monorepo/tree/main/packages/contracts/chains/deployments)
+
+---
+
+## Testing
+
+For local development, you can deploy Reality.eth and a mock arbitrator on a testnet:
+
+```bash
+# Clone the Reality.eth monorepo
+git clone https://github.com/RealityETH/reality-eth-monorepo.git
+cd reality-eth-monorepo/packages/contracts
+
+# Deploy to a local network or testnet
+npx hardhat deploy --network <your-network>
+```
+
+For integration testing with Kleros Court, use the Arbitrum Sepolia testnet where Kleros V2 contracts are deployed.

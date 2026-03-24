@@ -1,0 +1,105 @@
+---
+title: "Dispute Resolver"
+description: "Create, manage, and resolve disputes with Kleros Court without writing smart contracts"
+---
+
+# Dispute Resolver
+
+[resolve.kleros.io](https://resolve.kleros.io)
+
+Kleros Dispute Resolver allows users to create, manage, and interact with disputes on the Kleros protocol through a web interface. It provides a user-friendly way to create custom disputes, submit evidence, fund appeals, and track dispute progress without writing smart contracts.
+
+---
+
+## When to Use Dispute Resolver
+
+- **Standalone disputes**: Create a dispute without integrating with an existing dApp.
+- **Off-chain disputes**: Disputes involving off-chain activities that cannot be trustlessly integrated with Kleros.
+- **Recognition-of-Jurisdiction (RoJ) setup**: Your platform pledges to enforce Kleros rulings. You create standalone disputes on resolve.kleros.io, share the dispute link with parties, and enforce the outcome manually. This lets you test Kleros before investing in smart contract development.
+- **No smart contract resources**: When you lack resources for a full smart contract integration.
+- **Custom arbitrable contracts without a frontend**: If your arbitrable contract implements the `IDisputeResolver` interface ([NPM package](https://www.npmjs.com/package/@kleros/dispute-resolver-interface-contract)), it can use the Dispute Resolver frontend for evidence submission and appeal funding.
+
+---
+
+## Features
+
+### Create Dispute
+
+- Select a Kleros court
+- Choose number of jurors
+- Define dispute title, description, and category
+- Set the question type: single-select, multi-select, non-negative number, or date
+- Define ruling options
+- Add party information (aliases and addresses)
+- Upload supporting documentation (up to 4MB)
+- Review arbitration cost before submitting
+
+### Ongoing Disputes
+
+Browse active disputes filtered by phase: evidence submission, commit, voting, or appeal.
+
+### Interact
+
+- View dispute details and timeline
+- Submit evidence during the evidence phase
+- Fund appeals during the appeal phase
+- Withdraw rewards after resolution
+
+---
+
+## Using the Application
+
+### Prerequisites
+
+1. A Web3 wallet (e.g., MetaMask)
+2. Wallet connected to the correct network
+3. Sufficient funds for dispute creation or appeal funding
+
+### Creating a Dispute
+
+1. Navigate to the "Create" tab
+2. Fill out the form: court, juror count, title, description, question type, ruling options, party info, documentation
+3. Review the arbitration cost
+4. Submit the transaction
+
+### Submitting Evidence
+
+1. Open the dispute details page during the Evidence phase
+2. Enter a title and description for your evidence
+3. Upload supporting files
+4. Specify which side the evidence supports
+5. Submit
+
+### Funding Appeals
+
+1. Open a dispute in the appeal phase
+2. Choose which ruling option to support
+3. View funding progress and potential return
+4. Enter contribution amount and confirm
+
+When appealed, both sides need to provide funds. If only one side is fully funded, that side wins by default. If both are funded, the case goes to a new round with more jurors.
+
+---
+
+## For Developers with Custom Contracts
+
+If you have a custom arbitrable contract and need a UI for dispute interaction:
+
+1. Implement the `IDisputeResolver` interface in your contract
+2. Dispute Resolver will be compatible with your contract automatically
+3. Users can submit evidence and fund appeals through the Dispute Resolver frontend
+
+The `IDisputeResolver` interface standardizes crowdfunded appeals and evidence submission. Available as an [NPM package](https://www.npmjs.com/package/@kleros/dispute-resolver-interface-contract).
+
+---
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Launch Dispute Resolver" icon="rocket" href="https://resolve.kleros.io">
+    resolve.kleros.io
+  </Card>
+  <Card title="Types of Integration" icon="puzzle-piece" href="/integrate/types-of-integration">
+    All integration paths
+  </Card>
+</CardGroup>

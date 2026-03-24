@@ -1,0 +1,113 @@
+---
+title: "Types of Integration"
+description: "Integration paths for dispute resolution, curated data, and oracle services"
+---
+
+# Types of Integration
+
+Kleros offers three main integration paths depending on what your project needs.
+
+---
+
+## 1. Dispute Resolution Integration
+
+Use Kleros Court to resolve disputes in your application. Two approaches:
+
+**Smart Contract Integration** (trustless, on-chain enforcement)
+
+Your contract implements the `IArbitrableV2` interface, calls `createDispute()` on KlerosCore, and receives rulings via `rule()`. Dispute creation and enforcement are fully on-chain.
+
+<Card title="Build an Arbitrable App" icon="code" href="/developers/arbitrable-apps/arbitrable-overview">
+  Full guide in the Developers tab: interfaces, examples, testing, production checklist.
+</Card>
+
+**Recognition-of-Jurisdiction (RoJ)** (no smart contract required)
+
+Disputes are created standalone on [resolve.kleros.io](https://resolve.kleros.io) and your platform pledges to enforce the ruling. Suitable for off-chain disputes, testing before investing in development, or cases where Kleros is not on your chain.
+
+<Card title="Dispute Resolver" icon="gavel" href="/integrate/tools/dispute-resolver">
+  Create standalone disputes through a web interface.
+</Card>
+
+### Planning Your Integration
+
+Before integrating, decide on:
+
+- **Court selection**: Which Kleros court handles your disputes. Court selection affects juror expertise, cost, and resolution time. See [Court Hierarchy](/court/court-hierarchy) for available courts.
+- **Juror count**: Number of jurors for the first round. More jurors = higher cost but more robust arbitration.
+- **Escalation criteria**: When your platform allows escalation to Kleros (e.g., after internal dispute resolution fails, above a certain transaction value).
+- **Enforcement criteria**: How your platform commits to enforcing the ruling.
+- **Dispute policy**: The document jurors use to decide. See [Policy Writing Guide](/integrate/policy-guide).
+
+---
+
+## 2. Curated Data Integration
+
+Use Kleros Curate to build or consume community-curated registries. Anyone can submit items, and challenges are resolved through Kleros Court.
+
+Applications include token lists, address tag registries, contract verification, and any dataset that benefits from decentralized community curation.
+
+<CardGroup cols={2}>
+  <Card title="Curate Product" icon="list-check" href="/products/curate">
+    Curate product overview and capabilities
+  </Card>
+  <Card title="Curate Developer Docs" icon="code" href="/developers/products/curate/overview">
+    Technical integration for developers
+  </Card>
+</CardGroup>
+
+---
+
+## 3. Oracle Integration (Reality.eth + Kleros)
+
+Use the Reality.eth bond escalation mechanism with Kleros Court as the final arbitration backstop. Suitable for prediction markets, DAO governance, and any use case requiring a subjective on-chain oracle.
+
+The architecture has four components:
+1. **Your application contract** interacts with Reality.eth
+2. **Reality.eth** handles the bond escalation (anyone can submit answers with increasing bonds)
+3. **Realitio-Kleros Proxy** bridges Reality.eth to Kleros Court
+4. **Kleros Court** adjudicates disputes when arbitration is requested
+
+To use this service, your contract must be compatible with the Reality.eth interface, and you submit the address of the Reality.eth-Kleros arbitrator proxy when asking a question.
+
+<Card title="Oracle Product" icon="crystal-ball" href="/products/reality">
+  Oracle (Reality.eth + Kleros) product overview
+</Card>
+
+---
+
+## Channel Partnerships
+
+Kleros can be integrated as a dispute resolution layer within existing governance and infrastructure tools.
+
+### Safe Zodiac + Kleros (DAO Governance)
+
+DAOs using Gnosis Safe can achieve fully decentralized governance by combining Snapshot (off-chain voting), Zodiac Reality Module (on-chain execution), and Kleros Court (arbitration of disputed proposals).
+
+The setup provides separation of powers: token holders vote (legislative), the multisig executes (executive), and Kleros arbitrates disputed proposals (judiciary).
+
+<Card title="Safe Zodiac Integration Guide" icon="shield-check" href="/integrate/zodiac-integration">
+  Step-by-step guide to integrate Kleros with Gnosis Safe governance
+</Card>
+
+---
+
+## Integration Tools
+
+| Tool | Purpose | Link |
+| --- | --- | --- |
+| [Dispute Resolver](/integrate/tools/dispute-resolver) | Create, manage, and interact with disputes through a web UI. No smart contract development required. | [resolve.kleros.io](https://resolve.kleros.io) |
+| [Centralized Arbitrator](/integrate/tools/centralized-arbitrator) | Deploy a test arbitrator you control to debug your arbitrable app before connecting to Kleros Court. | [centralizedarbitrator.kleros.io](https://centralizedarbitrator.kleros.io) |
+
+---
+
+## Further Reading
+
+<CardGroup cols={2}>
+  <Card title="Policy Writing Guide" icon="file-pen" href="/integrate/policy-guide">
+    Write dispute policies that lead to fair outcomes
+  </Card>
+  <Card title="Integration FAQ" icon="circle-question" href="/integrate/faq">
+    Common questions about integrating with Kleros
+  </Card>
+</CardGroup>

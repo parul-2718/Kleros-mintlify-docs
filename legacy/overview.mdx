@@ -1,0 +1,52 @@
+---
+title: "Legacy (V1) Overview"
+description: "Documentation for Kleros V1 products and retired applications"
+---
+
+# Legacy (V1) Documentation
+
+This section documents Kleros V1 products and retired applications. These systems are either superseded by V2 equivalents or have been discontinued.
+
+<Warning>
+**For new users and integrations**, use [Kleros V2](/court/overview) on Arbitrum. V1 documentation is maintained for reference and for existing integrations that have not yet migrated.
+</Warning>
+
+---
+
+## V1 Products (Superseded by V2)
+
+| Product | V1 Status | V2 Replacement |
+|---------|-----------|----------------|
+| [Court V1](/legacy/court-v1) | Active but deprecated | [Court V2](/court/overview) on Arbitrum |
+| [Curate V1](/legacy/curate-v1) | Active but deprecated | [Curate V2](/products/curate) on Arbitrum |
+| [Escrow V1](/legacy/escrow-v1) | Active but deprecated | [Escrow V2](/products/escrow) on Arbitrum |
+| [Governor V1](/legacy/governor-v1) | Active but deprecated | [Governor V2](/products/governor) on Arbitrum |
+| [Resolver V1](/legacy/resolver-v1) | Deprecated | Integrated into Court V2 interface |
+
+---
+
+## Retired Products
+
+These products are no longer actively maintained:
+
+| Product | Description | Status |
+|---------|-------------|--------|
+| [Moderate](/legacy/retired/moderate) | Telegram moderation bot using Kleros Court | Retired |
+| [Linguo](/legacy/retired/linguo) | Decentralized translation marketplace | Retired |
+| [Tokens](/legacy/retired/tokens) | Token submission and listing interface | Replaced by Curate token registry |
+
+---
+
+## Migration to V2
+
+If you are running an existing V1 integration, see the [Migration Guide](/legacy/migration-guide) for steps to upgrade to V2.
+
+Key V2 advantages over V1:
+
+- Deployed on Arbitrum with significantly lower gas costs
+- Modular dispute kit architecture
+- Cross-chain support via VEA bridge
+- Simplified integration (evidence and appeals handled by the Court, not the arbitrable)
+- Enhanced vote privacy (Shutter integration in development)
+
+For migration support, contact the team at **integrations@kleros.io**.

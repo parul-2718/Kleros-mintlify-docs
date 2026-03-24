@@ -1,0 +1,50 @@
+---
+title: "Kleros SDK"
+description: "TypeScript SDK for interacting with Kleros V2"
+---
+
+
+
+The Kleros SDK is a TypeScript library for interacting with the Kleros V2 protocol. It succeeds Archon and is compatible with kleros-v2 contracts.
+
+## Installation
+
+```bash
+npm install @kleros/kleros-sdk
+```
+
+## Dependencies
+
+- ABIs from `@kleros/kleros-v2-contracts`
+- Subgraph from `@kleros/kleros-v2-subgraph`
+
+## Capabilities
+
+### Contract Discovery
+- Find KlerosCore, Dispute Kit, and Gateway addresses
+- Discover available dispute kits and their capabilities
+
+### Staking
+- Increase/decrease PNK allowance for KlerosCore
+- Set stake transactions
+
+### Dispute Kit Operations (per-kit)
+- **Vote commit/cast**: Upload to decentralized storage + transaction
+- **Evidence submission**: Upload to storage + on-chain submission
+- **Appeal crowdfunding**: Contribution transactions
+
+### Views / Queries
+- Retrieve active disputes from KlerosCore or specific dispute kits
+- Check dispute kit phases
+- Get juror voting power, commitments, and cast votes
+- Retrieve juror, dispute, and court statistics (via subgraph)
+- Retrieve evidence from decentralized storage with content validation
+
+### Utilities
+- Dynamic evidence rendering
+- Content validation (hash verification)
+- ExtraData encoding/decoding
+
+## Source
+
+[GitHub Repository](https://github.com/kleros/kleros-sdk)

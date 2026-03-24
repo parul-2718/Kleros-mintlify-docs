@@ -1,0 +1,53 @@
+---
+title: "Court V1"
+description: "Kleros Court V1 on Ethereum Mainnet (legacy)"
+---
+
+# Court V1 (Legacy)
+
+<Warning>
+Court V1 is superseded by [Court V2](/court/overview) on Arbitrum. Use V2 for all new activity.
+</Warning>
+
+Kleros Court V1 was the original decentralized dispute resolution protocol deployed on Ethereum Mainnet in 2018. The core smart contract was **KlerosLiquid**, which combined juror staking, random selection, voting, and dispute management in a single contract.
+
+---
+
+## Key Characteristics
+
+- **Network**: Ethereum Mainnet (also deployed on Gnosis Chain / xDAI)
+- **Contract**: KlerosLiquid (monolithic all logic in one contract)
+- **PNK Staking**: PNK remained in the juror's wallet during staking
+- **RNG**: Blockhash-based random number generation
+- **Voting**: Commit-reveal with plurality aggregation
+- **Standards**: ERC-792 (Arbitration) and ERC-1497 (Evidence)
+- **Courts**: Hierarchical subcourt tree with General Court as root
+
+---
+
+## V1 vs V2 Comparison
+
+| Feature | V1 | V2 |
+|---------|----|----|
+| Network | Ethereum Mainnet | Arbitrum One |
+| Architecture | Monolithic (KlerosLiquid) | Modular (KlerosCore + SortitionModule + DisputeKits) |
+| Evidence | Handled by arbitrable contracts | Handled by Court |
+| Appeals | Handled by arbitrable contracts | Handled by Court |
+| RNG | Blockhash | Chainlink VRF with fallback |
+| Cross-chain | Single chain | Multi-chain via VEA bridge |
+| Gas costs | High | Low |
+
+---
+
+## V1 Court Structure
+
+V1 had a similar hierarchical court tree to V2, with the General Court as root and specialized subcourts including Blockchain Non-Technical, English Language, Onboarding, and others. Staking in a child court automatically included the juror in all parent courts.
+
+---
+
+## V1 Resources
+
+- **V1 Court App**: Previously at court.kleros.io (now redirects to V2)
+- **Contract**: KlerosLiquid on Ethereum Mainnet
+- **ERC-792 Standard**: See [ERC-792 documentation](/developers/legacy/erc-792)
+- **Migration**: See [Migration Guide](/legacy/migration-guide)

@@ -1,0 +1,69 @@
+---
+title: "Development Workflow"
+description: "Task tracking, branching conventions, and release process for Kleros development"
+---
+
+
+
+General workflow for contributing to Kleros repositories.
+
+---
+
+## Task Tracking
+
+Kleros uses GitHub Issues for task tracking. Each issue follows a lifecycle:
+
+1. **Open**: Issue is created and described
+2. **Assigned**: A contributor takes ownership
+3. **In Progress**: Work is being done on a feature branch
+4. **In Review**: Pull request submitted, awaiting review
+5. **Done**: Merged to the target branch
+
+For the kleros-v2 monorepo, issues may be organized across packages (contracts, web, subgraph, bots, SDK).
+
+---
+
+## Branching
+
+| Branch | Purpose |
+| --- | --- |
+| `master` or `main` | Stable release branch |
+| `dev` | Development branch (kleros-v2 uses `dev` as default) |
+| `feat/<name>` | Feature branches |
+| `fix/<name>` | Bug fix branches |
+| `docs/<name>` | Documentation branches |
+
+Create feature branches from the development branch. After merging, create a fresh branch from the updated development branch rather than reusing the merged branch.
+
+---
+
+## Pull Requests
+
+- One PR per feature or fix
+- Include a clear description of what changed and why
+- Reference the GitHub issue number
+- Ensure CI checks pass before requesting review
+- Request review from at least one team member
+
+---
+
+## Commits
+
+Kleros repositories use [Conventional Commits](https://conventionalcommits.org/):
+
+```
+feat: add appeal funding to dispute kit
+fix: correct extraData encoding for court ID
+docs: update deployment addresses
+chore: bump dependencies
+```
+
+The kleros-v2 repo enforces this via commitlint.
+
+---
+
+## Releases
+
+Releases are tagged in Git and published to npm where applicable (e.g., `@kleros/kleros-v2-contracts`, `@kleros/kleros-sdk`).
+
+Smart contract deployments follow a separate process. See [Smart Contract Workflow](/contributing/smart-contract-workflow).

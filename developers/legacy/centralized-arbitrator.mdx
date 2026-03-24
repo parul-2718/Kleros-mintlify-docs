@@ -1,0 +1,54 @@
+---
+title: "Centralized Arbitrator"
+description: "Deploy and operate a test arbitrator to debug your arbitrable app before connecting to Kleros Court"
+---
+
+
+
+[centralizedarbitrator.kleros.io](https://centralizedarbitrator.kleros.io)
+
+The Centralized Arbitrator dashboard allows anyone to quickly deploy and operate a centralized arbitrator from a graphical interface. It serves as a testing and debugging tool for arbitrable apps integrating with Kleros Court.
+
+---
+
+## How It Works
+
+1. Access the [dashboard](https://centralizedarbitrator.kleros.io) and connect a MetaMask wallet on your target network.
+2. Choose between:
+   - **Deploy new**: Your Ethereum address becomes the owner who can set rulings and modify the arbitration fee.
+   - **Select existing**: Input the address of a previously deployed centralized arbitrator.
+3. Set or modify the arbitration fee as needed.
+4. Track incoming disputes from your arbitrable app, filter by status, and give rulings directly from the interface.
+
+---
+
+## Network Compatibility
+
+The Centralized Arbitrator can be used on Ethereum Mainnet and Ethereum testnets. Contact the Kleros team to request support for additional testnets.
+
+---
+
+## Use Case
+
+The typical workflow is:
+
+1. Deploy a centralized arbitrator on a testnet
+2. Point your arbitrable contract to this arbitrator address
+3. Create test disputes from your app
+4. Give rulings manually from the dashboard to verify your contract handles them correctly
+5. Once satisfied, switch your contract's arbitrator address to Kleros Court (KlerosCore)
+
+This lets you test the full dispute lifecycle (creation, evidence, ruling, appeal) under your control before going live with decentralized arbitration.
+
+---
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Launch Centralized Arbitrator" icon="rocket" href="https://centralizedarbitrator.kleros.io">
+    centralizedarbitrator.kleros.io
+  </Card>
+  <Card title="Build an Arbitrable App" icon="code" href="/developers/arbitrable-apps/arbitrable-overview">
+    Integration guide in the Developers tab
+  </Card>
+</CardGroup>

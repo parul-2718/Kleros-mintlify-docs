@@ -1,0 +1,21 @@
+---
+title: "Cross-Chain Evidence Standard"
+description: "How to submit evidence from a different chain than the arbitrator"
+---
+
+
+
+When disputes are created cross-chain (e.g., Arbitrable on Ethereum, KlerosCore on Arbitrum), evidence can be submitted from the foreign chain. The evidence events are emitted on the foreign chain and indexed by the court frontend.
+
+## Mechanism
+
+Evidence submission for cross-chain disputes follows the same format as same-chain evidence, but the events are emitted on the foreign chain where the Arbitrable contract lives. The court frontend indexes evidence events from both the home chain and supported foreign chains.
+
+## Submitting Evidence Cross-Chain
+
+```solidity
+// On the foreign chain, through the Arbitrable contract
+arbitrableContract.submitEvidence(disputeID, evidenceURI);
+```
+
+The evidence URI points to IPFS-hosted evidence JSON following the standard [Evidence Format](/reference/data-formats/evidence-format).

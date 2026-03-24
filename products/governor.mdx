@@ -1,0 +1,89 @@
+---
+title: "Governor"
+description: "Decentralized governance execution with dispute resolution for contested actions"
+---
+
+# Governor
+
+<img src="/images/governor-hero.png" alt="Kleros Governor Interface" />
+<Note>**V2** Looking for V1 documentation? See [Governor V1 (Legacy)](/legacy/governor-v1).</Note>
+
+**Kleros Governor** enables DAOs and on-chain organizations to execute governance decisions with a built-in dispute resolution backstop. It uses an optimistic execution model: anyone can submit a list of transactions to be executed, and if no one challenges it, the transactions go through. If multiple competing lists are submitted, Kleros Court resolves the conflict.
+
+Governor is the mechanism Kleros itself uses to manage protocol parameters, court configurations, and contract upgrades.
+
+---
+
+## Key Capabilities
+
+<CardGroup cols={3}>
+  <Card title="Optimistic Execution" icon="forward">
+    Transactions execute automatically if unchallenged during the submission period
+  </Card>
+  <Card title="Dispute Resolution" icon="gavel">
+    Competing transaction lists are settled by Kleros Court jurors
+  </Card>
+  <Card title="Permissionless Submission" icon="plus">
+    Anyone can submit a transaction list by providing a deposit
+  </Card>
+</CardGroup>
+
+---
+
+## How It Works
+
+Governor operates in sessions. Each session follows this flow:
+
+<Steps>
+  <Step title="Submission Period">
+    Anyone can submit a list of transactions they want the Governor to execute. Each submission requires a deposit and must be submitted within the first half of the submission window (withdrawals are only possible during this first half as well).
+  </Step>
+  <Step title="Approval / Dispute">
+    When the submission period ends, one of three things happens:
+
+    - **Zero submissions:** The session closes and a new one begins.
+    - **One submission:** The transaction list is approved and executed. The submitter's deposit is returned.
+    - **Multiple submissions:** A dispute is created in Kleros Court. Jurors decide which list should be executed. The number of choices equals the number of submitted lists.
+  </Step>
+  <Step title="Execution">
+    The approved transaction list is executed on-chain. Transactions in the list are processed sequentially.
+  </Step>
+</Steps>
+
+### Withdrawing a Submission
+
+Submitters can withdraw their transaction list during the first half of the submission period, provided it is within the `withdrawTimeout` after submission. This returns their deposit and removes the list from consideration.
+
+---
+
+## Use Cases
+
+**Protocol Governance**: Kleros uses Governor to manage its own contract parameters: updating court configurations, whitelisting fee tokens, adjusting staking parameters, and upgrading contracts.
+
+**DAO Execution**: Any DAO can use Governor to execute treasury operations, parameter changes, or contract calls with a dispute resolution safety net.
+
+**Multi-sig Alternative**: Governor provides a decentralized alternative to multi-sig wallets for organizations that want permissionless, transparent governance execution.
+
+---
+
+## How Governor Differs from Traditional Governance
+
+| Traditional | Kleros Governor |
+|-------------|----------------|
+| Proposals voted on before execution | Transactions submitted optimistically and challenged only if contested |
+| Fixed voter set (token holders, multi-sig signers) | Anyone can submit; Kleros jurors resolve disputes |
+| Often slow (multi-day voting periods) | Fast when uncontested; dispute resolution adds time only if needed |
+| Requires quorum | No quorum needed for single submissions |
+
+---
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Use Governor" icon="arrow-right" href="https://governor.kleros.io">
+    Open the Governor application
+  </Card>
+  <Card title="Governance Overview" icon="landmark" href="/governance/overview">
+    Learn about Kleros governance and KIPs
+  </Card>
+</CardGroup>

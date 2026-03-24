@@ -1,0 +1,40 @@
+---
+title: "Policy Format"
+description: "Court policy specification rules and guidelines for dispute resolution"
+---
+
+
+
+Court policies define the rules jurors follow when evaluating disputes. Policies are stored on IPFS and referenced by the `PolicyRegistry` contract.
+
+## Policy JSON
+
+```json
+{
+  "name": "General Court Policy",
+  "description": "Rules for the General Court",
+  "summary": "The General Court handles disputes that do not fit into specialized courts.",
+  "requiredFields": [
+    {
+      "label": "Contract terms",
+      "description": "The original agreement between the parties"
+    }
+  ],
+  "rulingOptions": {
+    "titles": ["Option A", "Option B"],
+    "descriptions": [
+      "Description of what Option A means",
+      "Description of what Option B means"
+    ]
+  },
+  "uri": "/ipfs/QmPolicyFileHash"
+}
+```
+
+## PolicyRegistry Contract
+
+```solidity
+function setPolicy(uint96 _courtID, string calldata _courtName, string calldata _policyURI) external
+```
+
+Only the governor can set policies. The `_policyURI` points to the IPFS-hosted policy JSON.

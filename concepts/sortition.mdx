@@ -1,0 +1,105 @@
+---
+title: "Sortition"
+description: "How jurors are randomly selected using stake-weighted sortition"
+---
+
+
+
+**Sortition** the selection of decision-makers by lottery is one of the oldest democratic institutions. Ancient Athens used it to select juries and magistrates, preventing power concentration. Kleros applies this principle to decentralized dispute resolution.
+
+In Kleros, jurors are drawn randomly from a pool of stakers, with selection probability proportional to each person's staked PNK. This page explains why sortition is used and how it works at the protocol level.
+
+---
+
+## Why Random Selection?
+
+Sortition solves several problems that plague alternative selection methods:
+
+**Resistance to manipulation** Because selection is random, no one can predict or control which jurors are drawn. This makes targeted bribery and collusion difficult.
+
+**Sybil resistance** Drawing probability is proportional to PNK staked, not to the number of accounts. An attacker splitting tokens across multiple wallets gains no advantage over holding them in one.
+
+**Scalability** Only a small subset of stakers is needed for each dispute. The system can handle many disputes simultaneously without requiring every participant to review every case.
+
+**Self-selection for expertise** Jurors choose which courts to stake in, naturally matching themselves to disputes they're qualified to evaluate.
+
+---
+
+## How Juror Selection Works
+
+### The Sortition Sum Tree
+
+Kleros uses a data structure called a **sortition sum tree** to efficiently draw jurors in proportion to their stakes. Each staker occupies a range in the tree proportional to their PNK. A random number then selects a position in the tree, and the staker whose range contains that position is drawn.
+
+<Accordion title="Visual example from the Kleros Yellow Paper">
+Imagine 6 stakers have staked a total of 10,000 PNK:
+
+| Staker | Staked | Range |
+|--------|--------|-------|
+| A | 1,000 | 0 – 999 |
+| B | 1,500 | 1,000 – 2,499 |
+| C | 500 | 2,500 – 2,999 |
+| D | 3,000 | 3,000 – 5,999 |
+| E | 1,500 | 6,000 – 7,499 |
+| F | 2,500 | 7,500 – 9,999 |
+
+If 5 random numbers are drawn (e.g., 2519, 4953, 2264, 3342, 9531), then stakers B, D, C, D, and F are selected. Staker D gets a **weight of 2** (drawn twice), meaning they get 2 votes and twice the risk/reward. Everyone else drawn once gets a weight of 1.
+</Accordion>
+
+A single juror **can be drawn multiple times** for the same dispute. This is intentional: it ensures that splitting tokens across multiple wallets provides no advantage over holding them in one address, maintaining Sybil resistance.
+
+### The Three-Phase Cycle
+
+The Sortition Module operates in three phases to prevent manipulation:
+
+```mermaid
+graph LR
+    S["Staking Phase"] --> G["Generating Phase"]
+    G --> D["Drawing Phase"]
+    D --> S
+    
+    style S fill:#27ae60,color:#fff
+    style G fill:#f39c12,color:#fff
+    style D fill:#9b59b6,color:#fff
+```
+
+**Staking Phase**: Jurors can freely adjust their stakes. The sortition tree is updated in real-time. This phase lasts until a minimum staking time has elapsed and at least one dispute needs jurors.
+
+**Generating Phase**: A random number is requested from the RNG source. Stake changes submitted during this phase are recorded but delayed, they won't affect the current drawing round. This prevents last-minute stake manipulation after the random seed is known.
+
+**Drawing Phase**: Jurors are drawn using the random number and the stake distribution from the end of the Staking phase. Delayed stakes remain queued. Drawing continues until all pending disputes have their jurors, or a maximum drawing time elapses.
+
+<Warning>
+If you stake during the Generating or Drawing phases, your changes won't affect your chances for the current round. They'll take effect in the next Staking phase. The Court interface shows whether your stakes are "Current" or "Delayed."
+</Warning>
+
+---
+
+## Random Number Generation
+
+Secure randomness is critical, if anyone can predict or influence the random number, they can manipulate juror selection.
+
+Kleros V2 uses **Randomizer.io** as the primary random number source on the production deployment (Arbitrum One), with Chainlink VRF and BlockHash RNG also deployed as alternatives. All three contracts implement a common `IRNG` interface so the SortitionModule can swap RNG sources through governance. The `rngLookahead` parameter sets the minimum block distance between requesting and receiving the random number, ensuring the result cannot be predicted at request time.
+
+The RNG request is made with a configurable **lookahead** parameter, the random number depends on a future block, not the current one. This prevents the requester from knowing the outcome at request time.
+
+---
+
+## Historical Context
+
+Sortition has a long history in democratic governance. The Athenian *kleroterion*, a stone randomization device, selected jurors for trials and citizens for public office. The word "Kleros" (κλῆρος) itself means "lot" or "allotment" in Greek.
+
+The PNK token name, *pinakion*, references the bronze plaque that Athenian citizens used as identification tokens for jury selection. The parallel is intentional: Kleros applies ancient democratic principles to modern decentralized systems.
+
+---
+
+## Further Reading
+
+<CardGroup cols={2}>
+  <Card title="Court Hierarchy" icon="sitemap" href="/court/court-hierarchy">
+    How courts are organized and how staking across courts works
+  </Card>
+  <Card title="Kleros Yellow Paper §4.5" icon="file" href="https://kleros.io/yellowpaper.pdf">
+    Formal treatment of juror selection, Sybil resistance, and random number generation
+  </Card>
+</CardGroup>

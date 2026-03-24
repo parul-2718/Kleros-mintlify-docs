@@ -1,0 +1,202 @@
+---
+title: "Architecture"
+description: "Protocol components and how they interact"
+---
+
+## System Overview
+
+Kleros V2 uses a modular architecture where specialized contracts handle specific responsibilities:
+
+```mermaid
+graph TB
+    Arbitrable[Your Contract] -->|createDispute| KlerosCore
+    KlerosCore -->|draw jurors| SortitionModule
+    KlerosCore -->|manage votes| DisputeKit
+    KlerosCore -->|ruling| Arbitrable
+    
+    SortitionModule -->|random selection| RNG
+    DisputeKit -->|aggregates| Votes
+    
+    Gateway[Foreign Gateway] -.->|cross-chain| KlerosCore
+```
+
+## Core Components
+
+### KlerosCore
+
+The orchestrator. Manages the dispute lifecycle and coordinates between modules.
+
+| Responsibility | Description |
+|----------------|-------------|
+| Dispute creation | Accepts disputes from arbitrable contracts |
+| Period management | Moves disputes through evidence → vote → appeal → execution |
+| Fee collection | Collects and distributes arbitration fees |
+| Court configuration | Stores court parameters (timing, fees, stakes) |
+
+```solidity
+interface IArbitratorV2 {
+    function createDispute(uint256 _choices, bytes calldata _extraData) 
+        external payable returns (uint256 disputeID);
+    
+    function arbitrationCost(bytes calldata _extraData) 
+        external view returns (uint256 cost);
+    
+    function currentRuling(uint256 _disputeID) 
+        external view returns (uint256 ruling, bool tied, bool overridden);
+}
+```
+
+### Sortition Module
+
+Handles juror selection using weighted randomness.
+
+**Key concepts:**
+- **Sortition Tree**: Data structure mapping staked PNK to selection probability
+- **Phases**: Staking → Generating → Drawing (prevents RNG manipulation)
+- **Delayed Stakes**: Stake changes queue until the drawing phase completes
+
+```mermaid
+graph LR
+    subgraph Phases
+        S[Staking] -->|minStakingTime + dispute exists| G[Generating]
+        G -->|RNG ready| D[Drawing]
+        D -->|all drawn OR timeout| S
+    end
+```
+
+### Dispute Kits
+
+Modular voting mechanisms. The protocol ships with **DisputeKitClassic** but supports custom implementations.
+
+| Kit | Mechanism | Use Case |
+|-----|-----------|----------|
+| Classic | Plurality voting, proportional to stake | Default for all courts |
+| Sybil Resistant | Requires Proof of Humanity | One-person-one-vote disputes |
+| Gated | Requires token holdings | Specialized community disputes |
+
+**Classic Dispute Kit features:**
+- Commit-reveal voting (optional, per court)
+- Coherence-based rewards (vote with majority = keep stake)
+- Appeal crowdfunding
+
+### Gateways (Cross-Chain)
+
+Enable disputes from other chains to be resolved on Arbitrum.
+
+```
+[Ethereum Mainnet]          [Arbitrum One]
+       │                          │
+  Foreign Gateway ──bridge──► Home Gateway ──► KlerosCore
+       │                          │
+  Your Contract                Jurors Vote
+```
+
+**Flow:**
+1. Arbitrable on mainnet calls Foreign Gateway
+2. Message bridged to Home Gateway on Arbitrum
+3. Dispute resolved on Arbitrum
+4. Ruling bridged back to mainnet
+
+## Dispute Lifecycle
+
+<Steps>
+  <Step title="Evidence Period">
+    Parties submit evidence. Jurors are drawn via Sortition Module.
+  </Step>
+  <Step title="Commit Period (if enabled)">
+    Jurors submit hidden vote commitments (hash of vote + salt).
+  </Step>
+  <Step title="Vote Period">
+    Jurors reveal votes. Must match commitment if commit phase was used.
+  </Step>
+  <Step title="Appeal Period">
+    Losing party can fund an appeal. More jurors drawn for next round.
+  </Step>
+  <Step title="Execution">
+    Stakes redistributed. Coherent jurors rewarded, incoherent penalized. Ruling sent to arbitrable.
+  </Step>
+</Steps>
+
+## Court Hierarchy
+
+Courts form a tree. Appeals can "jump" to parent courts when juror count exceeds threshold.
+
+```mermaid
+flowchart TD
+    FC[Forking Court\nID: 0, Reserved] --> GC[General Court\nID: 1]
+    GC --> BT[Blockchain\nTechnical]
+    GC --> CU[Curation]
+    GC --> EL[English\nLanguage]
+    BT --> SO[Solidity]
+    
+    style FC fill:#e8e8e8,stroke:#999,stroke-dasharray:5 5
+    style GC fill:#9b59b6,stroke:#7d3c98,color:#fff
+```
+
+**Court parameters:**
+- `minStake`: Minimum PNK to stake
+- `feeForJuror`: ETH fee per juror per round
+- `jurorsForCourtJump`: Threshold to appeal to parent court
+- `timesPerPeriod`: Duration of each dispute period
+
+## Data Flow
+
+### Creating a Dispute
+
+```mermaid
+sequenceDiagram
+    participant A as Your Contract
+    participant K as KlerosCore
+    participant S as SortitionModule
+    participant D as DisputeKit
+
+    A->>K: createDispute(choices, extraData)
+    K->>S: createDisputeHook()
+    K->>D: createDispute()
+    K-->>A: disputeID
+```
+
+### Executing a Ruling
+
+```mermaid
+sequenceDiagram
+    participant K as KlerosCore
+    participant D as DisputeKit
+    participant S as SortitionModule
+    participant A as Your Contract
+
+    K->>D: getCoherentCount()
+    K->>S: unlockStake() / penalize()
+    K->>A: rule(disputeID, ruling)
+    A->>A: Execute business logic
+```
+
+## Security Model
+
+| Mechanism | Purpose |
+|-----------|---------|
+| **Stake-weighted selection** | Sybil resistance need PNK to participate |
+| **Coherence incentives** | Vote with majority to keep stake, lose stake if incoherent |
+| **Appeals** | Multiple rounds catch errors, increases cost of attacks |
+| **Phase system** | Prevents RNG manipulation |
+| **Guardian/Governor** | Emergency pause capability |
+
+## Key Addresses (Arbitrum One)
+
+| Contract | Purpose |
+|----------|---------|
+| KlerosCore | Main arbitrator |
+| SortitionModule | Juror selection |
+| DisputeKitClassic | Default voting |
+| DisputeTemplateRegistry | Template storage |
+| EvidenceModule | Evidence tracking |
+
+<Note>
+For current addresses, check the [kleros-v2 deployment files](https://github.com/kleros/kleros-v2/tree/dev/contracts/deployments).
+</Note>
+
+## Further Reading
+
+- [Arbitrable Interface](/developers/specs/arbitrable) Full interface specification
+- [Dispute Kits](/developers/specs/dispute-kit) Custom voting mechanisms
+- [Sortition Module](/developers/specs/sortition) Juror selection deep dive

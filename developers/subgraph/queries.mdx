@@ -1,0 +1,232 @@
+---
+title: "Query Examples"
+description: "Common GraphQL queries for Kleros subgraphs"
+---
+
+# Query Examples
+
+Common GraphQL queries for fetching data from Kleros subgraphs.
+
+---
+
+## V2 Core Queries (Arbitrum)
+
+### Fetch Courts
+
+```graphql
+{
+  courts(first: 20, orderBy: id) {
+    id
+    hiddenVotes
+    minStake
+    feeForJuror
+    jurorsForCourtJump
+    timesPerPeriod
+    stakedJurors {
+      id
+    }
+  }
+}
+```
+
+### Fetch Recent Disputes
+
+```graphql
+{
+  disputes(first: 10, orderBy: createdAtBlock, orderDirection: desc) {
+    id
+    court {
+      id
+    }
+    period
+    ruled
+    currentRuling
+    lastPeriodChange
+    nbRounds
+    rounds {
+      nbVotes
+    }
+  }
+}
+```
+
+### Fetch Juror Stakes for a Specific Address
+
+```graphql
+{
+  jurorTokensPerCourts(where: { juror: "0xYOUR_ADDRESS_LOWERCASE" }) {
+    court {
+      id
+    }
+    staked
+    locked
+  }
+}
+```
+
+---
+
+## Curate Queries (V1)
+
+### Fetch Registered Items from a Light Curate List
+
+```graphql
+{
+  litems(
+    first: 10
+    where: {
+      status: Registered
+      registryAddress: "0xYOUR_LIST_ADDRESS_LOWERCASE"
+    }
+    orderBy: latestRequestResolutionTime
+    orderDirection: desc
+  ) {
+    itemID
+    data
+    props {
+      type
+      label
+      description
+      value
+    }
+  }
+}
+```
+
+### Fetch Items in Challenge Period
+
+```graphql
+{
+  litems(
+    first: 10
+    where: {
+      status_in: [RegistrationRequested, ClearingRequested]
+      registryAddress: "0xYOUR_LIST_ADDRESS_LOWERCASE"
+      disputed: false
+    }
+    orderBy: latestRequestSubmissionTime
+    orderDirection: asc
+  ) {
+    itemID
+    status
+    props {
+      label
+      value
+    }
+    requests(first: 1, orderBy: submissionTime, orderDirection: desc) {
+      submissionTime
+      requester
+    }
+  }
+}
+```
+
+### Fetch Item Details with Request History
+
+```graphql
+query ItemDetails($id: ID!) {
+  item(id: $id) {
+    data
+    requests(orderBy: submissionTime, orderDirection: desc) {
+      requestType
+      disputed
+      disputeID
+      submissionTime
+      resolved
+      requester
+      challenger
+      rounds(orderBy: creationTime, orderDirection: desc) {
+        appealPeriodStart
+        appealPeriodEnd
+        ruling
+        hasPaidRequester
+        hasPaidChallenger
+      }
+    }
+  }
+}
+```
+
+Item IDs in the subgraph use the format `<itemID>@<listAddress>`:
+
+```typescript
+const compoundId = `${itemID}@${tcrAddress.toLowerCase()}`;
+const result = useQuery(ITEM_DETAILS_QUERY, { variables: { id: compoundId } });
+```
+
+---
+
+## Address Tag Registries (Gnosis Chain)
+
+Batched query to fetch address tags from the three Kleros address tag registries on Gnosis Chain:
+
+```graphql
+{
+  contractDomainTags: litems(
+    where: {
+      status_in: [Registered, ClearingRequested]
+      registryAddress: "0x CONTRACT_DOMAIN_TAG_REGISTRY"
+    }
+    first: 1000
+  ) {
+    props { label value }
+  }
+  addressTags: litems(
+    where: {
+      status_in: [Registered, ClearingRequested]
+      registryAddress: "0x ADDRESS_TAG_REGISTRY"
+    }
+    first: 1000
+  ) {
+    props { label value }
+  }
+}
+```
+
+Endpoint: `https://thegraph.com/hosted-service/subgraph/kleros/legacy-curate-xdai`
+
+---
+
+## Proof of Humanity
+
+### Check Registration Status
+
+```graphql
+{
+  submission(id: "0xADDRESS_LOWERCASE") {
+    registered
+    name
+    creationTime
+    status
+    requests(first: 1, orderBy: creationTime, orderDirection: desc) {
+      evidence {
+        URI
+      }
+    }
+  }
+}
+```
+
+Alternatively, call `isRegistered(address)` directly on the PoH contract at `0xC5E9dDebb09Cd64DfaCab4011A0D5cEDaf7c9BDb`.
+
+---
+
+## Tips
+
+- Addresses must be **lowercase** in all queries. The subgraph stores them as bytes and does not understand checksummed addresses.
+- Items with status `ClearingRequested` are still registered until the removal request is finalized. Include them when fetching "active" items.
+- The Graph hosted service has a **1000 item limit** per query. For registries with more items, paginate using `skip` or `id_gt`.
+- Light Curate entities are prefixed with `l` (e.g., `litems`, `lrequests`). Classic Curate uses unprefixed entities (`items`, `requests`).
+
+---
+
+## Further Reading
+
+<CardGroup cols={2}>
+  <Card title="Subgraph Endpoints" icon="link" href="/developers/subgraph/endpoints">
+    Full list of subgraph URLs
+  </Card>
+  <Card title="Light Curate Integration" icon="list-check" href="/developers/legacy/light-curate">
+    Full Light Curate developer guide
+  </Card>
+</CardGroup>

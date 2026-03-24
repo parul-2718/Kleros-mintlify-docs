@@ -1,0 +1,48 @@
+---
+title: "Court Specification"
+description: "Court hierarchy format, parameters, and configuration"
+---
+
+
+
+Courts are organized in a hierarchical tree with the General Court as root. Each court has configurable parameters stored on-chain in KlerosCore.
+
+## Court Parameters
+
+```typescript
+{
+  name: string;               // Documentation-only (set in PolicyRegistry)
+  id: number;                 // Unique court identifier
+  parent: number;             // Parent court ID (root references itself)
+  hiddenVotes: boolean;       // Whether votes use commit-reveal
+  minStake: string;          // Minimum PNK to stake (wei)
+  feeForJuror: string;       // Juror fee per dispute (wei)
+  alpha: string;             // Stake weight (basis points)
+  jurorsForCourtJump: string; // Juror threshold for appeal to parent
+  timesPerPeriod: number[];   // [evidence, commit, vote, appeal] in seconds
+}
+```
+
+## Hierarchy Rules
+
+- Court ID 0 is reserved for the future **Forking Court**
+- Court ID 1 is the **General Court** (current root)
+- Each non-root court must have a valid parent
+- Child courts inherit supported dispute kits from parents
+- Appeals that exceed `jurorsForCourtJump` escalate to the parent court
+
+## Example
+
+```json
+{
+  "name": "General Court",
+  "id": 1,
+  "parent": 1,
+  "hiddenVotes": true,
+  "minStake": "2300000000000000000000",
+  "feeForJuror": "5000000000000000",
+  "alpha": "10000",
+  "jurorsForCourtJump": "511",
+  "timesPerPeriod": [280800, 583200, 583200, 388800]
+}
+```

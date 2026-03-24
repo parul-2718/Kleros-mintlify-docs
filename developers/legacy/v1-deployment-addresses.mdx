@@ -1,0 +1,70 @@
+---
+title: "V1 Deployment Addresses"
+description: "Contract addresses for Kleros V1 deployments on Ethereum, Gnosis Chain, and testnets"
+---
+
+
+
+<Warning>
+These are V1 (KlerosLiquid) deployment addresses. For V2 (KlerosCore on Arbitrum), see [V2 Deployment Addresses](/reference/contracts/deployment-addresses).
+</Warning>
+
+---
+
+## Ethereum Mainnet
+
+| Contract | Address |
+| --- | --- |
+| KlerosLiquid | `0x988b3A538b618C7A603e1c11Ab82Cd16dbE28069` |
+| PNK Token | `0x93ED3FBe21207Ec2E8f2d3c3de6e058Cb73Bc04d` |
+| PolicyRegistry | `0xCf1f07713d5193FaE5c8D9B6C5c834Fc3Cbad4fD` |
+
+## Gnosis Chain
+
+| Contract | Address |
+| --- | --- |
+| xKlerosLiquid | Check [GitBook Deployment Addresses](https://docs.kleros.io/developer/deployment-addresses) |
+
+## Realitio Arbitration Proxy
+
+Used for Reality.eth + Kleros oracle integration and Safe Zodiac governance.
+
+| Network | Address |
+| --- | --- |
+| Ethereum Mainnet | `0xf72CfD1B34a91A64f9A98537fe63FBaB7530AdcA` |
+
+---
+
+## V1 Subcourt IDs (Ethereum Mainnet)
+
+The General Court ID is `0` on V1 (different from V2 where General Court is ID `1`).
+
+Check current subcourt IDs and parameters on [KlerosBoard](https://klerosboard.com/).
+
+---
+
+## Generating extraData
+
+To specify a subcourt and juror count in V1:
+
+```javascript
+const generateArbitratorExtraData = (subcourtID, noOfVotes) =>
+  `0x${parseInt(subcourtID, 10).toString(16).padStart(64, "0")}${parseInt(noOfVotes, 10).toString(16).padStart(64, "0")}`;
+
+// Example: General Court (0), 3 jurors
+generateArbitratorExtraData(0, 3);
+// "0x00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003"
+```
+
+---
+
+## Further Reading
+
+<CardGroup cols={2}>
+  <Card title="V2 Deployment Addresses" icon="file-contract" href="/reference/contracts/deployment-addresses">
+    KlerosCore, SortitionModule, and V2 contracts on Arbitrum
+  </Card>
+  <Card title="GitBook V1 Addresses" icon="book" href="https://docs.kleros.io/developer/deployment-addresses">
+    Full V1 address list on GitBook
+  </Card>
+</CardGroup>

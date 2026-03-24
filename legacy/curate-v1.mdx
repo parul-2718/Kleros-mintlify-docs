@@ -1,0 +1,40 @@
+---
+title: "Curate V1"
+description: "Kleros Curate V1 Token Curated Registries on Ethereum (legacy)"
+---
+
+# Curate V1 (Legacy)
+
+<Warning>
+Curate V1 is superseded by [Curate V2](/products/curate) on Arbitrum.
+</Warning>
+
+Curate V1 was the original decentralized registry application deployed on Ethereum Mainnet. It enabled anyone to create and maintain community-curated registries (Token Curated Registries / TCRs) with crypto-economic incentives and Kleros Court dispute resolution.
+
+---
+
+## V1 Architecture
+
+Curate V1 came in two variants:
+
+**Classic Curate**: Stored all item data directly in contract storage. Offered maximum flexibility and on-chain queryability, but with higher gas costs (storage costs scaled with item count).
+
+**Light Curate**: Stored only the item's IPFS multihash in the contract, with full item data indexed via The Graph's subgraph. Significantly cheaper to deploy and use (~700k gas for new TCR deployment vs ~7 million for Classic, using EIP-1167 minimal proxies).
+
+Most production registries used Light Curate for cost efficiency. V2 continues this approach.
+
+---
+
+## Key Registries (V1)
+
+- **Token Registry (T2CR)**: Verified token submissions used by wallets and exchanges
+- **Address Tags Registry**: Human-readable labels for Ethereum addresses, used by block explorers
+- **CDN Registry**: Token logos and metadata served to dApps
+
+These registries were the data layer behind [Kleros Scout](/products/scout).
+
+---
+
+## Migration
+
+V2 Curate is deployed on Arbitrum with lower gas costs and the same TCR mechanics. Existing V1 registries remain accessible but new registries should be created on V2. See the [Migration Guide](/legacy/migration-guide).

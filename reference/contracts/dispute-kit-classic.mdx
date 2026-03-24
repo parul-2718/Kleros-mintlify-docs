@@ -1,0 +1,35 @@
+---
+title: "DisputeKitClassic"
+description: "Default dispute kit, voting, commit-reveal, appeals, incentives"
+---
+
+
+
+Default dispute kit with proportional PNK drawing, plurality voting (optional commit-reveal), and equal-split incentives. Supported by all courts as fallback.
+
+## Juror Methods
+
+### `castCommit(uint256 _coreDisputeID, uint256[] _voteIDs, bytes32 _commit)`
+Submit vote commitment during commit period (hidden vote courts only).
+
+### `castVote(uint256 _coreDisputeID, uint256[] _voteIDs, uint256 _choice, uint256 _salt, string _justification)`
+Cast or reveal a vote. For hidden-vote courts, choice and salt must match commitment.
+
+## Appeal Methods
+
+### `fundAppeal(uint256 _coreDisputeID, uint256 _choice) payable`
+Fund an appeal. Winners pay 1× cost, losers pay 2×. Losers have half the funding period. Appeal proceeds when two choices are funded.
+
+### `withdrawFeesAndRewards(uint256 _coreDisputeID, address _beneficiary, uint256 _coreRoundID, uint256 _choice) → uint256`
+Withdraw appeal fees and rewards post-resolution.
+
+## Events
+
+| Event | Description |
+|---|---|
+| `VoteCommitted` | Commitment submitted |
+| `Justification` | Vote justification recorded |
+| `Contribution` | Appeal funding contribution |
+| `ChoiceFunded` | Appeal choice fully funded |
+
+[View Source](https://github.com/kleros/kleros-v2/blob/dev/contracts/src/arbitration/dispute-kits/DisputeKitClassicBase.sol)

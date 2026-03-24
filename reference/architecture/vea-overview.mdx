@@ -1,0 +1,155 @@
+---
+title: "Vea Bridge"
+description: "Cross-chain message bridge architecture specification for Kleros V2"
+---
+
+# Vea Bridge Specification
+
+Vea is a cross-chain optimistic bridge that passes messages fast in the normal case and falls back on secure, slow native bridges when disputes occur. This page covers the protocol architecture and design.
+
+For integration guides, see the [Developers Vea Bridge page](/developers/crosschain/vea-bridge). For the full protocol specification, see [docs.vea.ninja](https://docs.vea.ninja/).
+
+---
+
+## Design Goals
+
+| Requirement | Description |
+| --- | --- |
+| **No native bridging in normal operations** | Fall back to native bridges only when malicious behavior is suspected. |
+| **Correctness** | Actors are incentivised to bridge correct messages and punished for interference. |
+| **Modularity** | Clear interface abstracts the bridging mechanism from the application. Independent lifecycle from the integrating application. |
+| **General-purpose** | Passes arbitrary messages, not Kleros-specific. |
+| **Multi-chain** | Can connect any L1, L2, L3 that settles to Ethereum, including ZK rollups. |
+| **Trustless** | 1-of-N honest participant model. Permissionless participation. |
+
+Source: [Fast Bridge Overview specification](/reference/architecture/v2-architecture)
+
+---
+
+## Contract Architecture
+
+For each sending-receiving chain pair, Vea deploys exactly one contract per chain:
+
+| Contract | Chain | Role |
+| --- | --- | --- |
+| **VeaInbox** | Sending chain (e.g., Arbitrum) | Manages state of all messages sent through Vea. Messages are inserted into an append-only merkle mountain range (MMR). |
+| **Router** | Intermediary chain(s) | Routes native bridge messages. Present only when chains don't share a direct native bridge. |
+| **VeaOutbox** | Receiving chain (e.g., Ethereum) | Manages the optimistic game over inbox state. Receives claims, handles challenges, relays verified messages. |
+
+---
+
+## Merkle Mountain Range
+
+All messages sent through Vea are inserted into an append-only merkle tree maintained in VeaInbox. Unlike standard balanced binary trees with fixed height, the Vea inbox uses a merkle mountain range (MMR) that grows in height as leaves are inserted. The MMR is represented by a set of merkle subtrees.
+
+Messages are relayed on the receiving chain by proving inclusion in the merkle tree represented by the snapshot root (merkle proofs). Proof size is logarithmic in the number of messages.
+
+For implementation details on leaf hashing, inbox data structure, and root calculation, see [docs.vea.ninja/introduction/technical-deep-dive/implementation-details](https://docs.vea.ninja/introduction/technical-deep-dive/implementation-details).
+
+---
+
+## Epoch and Snapshot Mechanics
+
+- Time is partitioned into epochs defined by `epochPeriod`.
+- Epochs mark the period between potential bridging events (highest frequency of bridge operation).
+- Snapshots can be taken at the beginning or end of an epoch.
+- A claim delay of roughly one `epochPeriod` is introduced so that challengers know the L2 state before claims can be made about a past epoch.
+
+---
+
+## Claim and Challenge Protocol
+
+### Claim
+
+On the receiving chain, claims can be made about the snapshot of the merkle root taken in VeaInbox. Claims require an ETH deposit.
+
+- Only one claim per message hash is accepted. Subsequent claims are rejected.
+- If the claim is honest, the claimer gets their deposit back.
+- If successfully challenged, half the deposit is burned and half rewards the challenger.
+
+The mandatory burn prevents a zero-cost delay-grief sybil attack where claimer and challenger are the same entity.
+
+### Challenge
+
+During the challenge period, anyone can challenge a claim by leaving a deposit. The native bridge is then used to resolve the disputed claim, and the honest party receives half the dishonest party's deposit.
+
+---
+
+## Censorship Resistance
+
+Vea's failure mode involves censorship of honest challengers. The challenge period is calibrated based on statistical analysis of block producer behavior on the destination chain. Two types of censorship are considered:
+
+- **Weak censorship**: Block producers refuse to include transactions. If X% of producers censor, transactions take roughly 1/(1-X) times longer. Eventually a non-censoring producer is selected.
+- **Strong censorship**: Block producers are themselves censored and reorged out.
+
+ETH proof-of-stake consensus chains (Ethereum mainnet, Gnosis Chain) contain information in block headers to make statistical conclusions about censorship levels, which informs safe challenge period parameters.
+
+---
+
+## Bridge Types
+
+| Type | Use Case | Mechanism |
+| --- | --- | --- |
+| **Native Bridge** | Canonical rollup bridge | Owned and operated by the rollup/side-chain provider. Examples: Ethereum/Arbitrum, Ethereum/GnosisChain. |
+| **Safe Bridge** | Fallback layer | Thin wrapper around the native bridge. Requires a relayer. |
+| **Fast Bridge** | Ruling relay (Home to Foreign) | Trust-minimized with fraud-proof game. Happy path avoids native bridge. Unhappy path uses Safe Bridge(s). Can be implemented as an extension of SafeBridge. |
+| **Simple Bridge** | Dispute creation (Foreign to Home) | Fast Bridge without fraud-proof game. Used for dispute creation because an attacker relaying arbitrary disputes only hurts themselves. Implemented directly via Gateway to Relayer to Gateway. |
+
+### Multi-hop (Arbitrum to Gnosis Chain)
+
+No direct native bridge exists between Arbitrum and Gnosis Chain. In the unhappy path, challenges are resolved using two Safe Bridges: Arbitrum to Ethereum Mainnet, then Ethereum Mainnet to Gnosis Chain.
+
+---
+
+## Griefing Considerations
+
+Vea is an inclusive, permissionless system. This exposes it to griefing attacks that introduce delays. Mitigations:
+
+- Only one claim attempt per message hash is allowed. This prevents an attacker from making many concurrent claims to deplete Challengers' available ETH ("Challengers liquidity attack").
+- The deposit and burn mechanism makes griefing costly.
+
+---
+
+## Key Interfaces
+
+### IFastBridge
+
+```solidity
+// Called by HomeGateway.rule() to initiate bridging
+function sendFast(bytes calldata _calldata) external;
+
+// Bridger makes a deposit-backed claim
+function claim(bytes32 messageHash) external payable;
+
+// View the challenge period for a message
+function challengePeriod(bytes32 messageHash) external view returns (uint start, uint end);
+
+// View the required claim deposit
+function claimDeposit() external view returns (uint depositInWei);
+
+// Withdraw claim deposit after challenge period passes
+function withdrawClaimDeposit(bytes32 _messageHash) external;
+```
+
+<Warning>
+`messageHash` is not the same as `disputeHash`. The message hash is app-agnostic and managed by the Fast Bridge. The dispute hash is Kleros-specific and managed by the Gateway.
+</Warning>
+
+---
+
+## Further Reading
+
+<CardGroup cols={2}>
+  <Card title="Full Vea Documentation" icon="book" href="https://docs.vea.ninja">
+    Complete protocol specification, technical deep-dive, and integration guides
+  </Card>
+  <Card title="Vea FAQ" icon="circle-question" href="https://docs.vea.ninja/introduction/faq">
+    Common questions about Vea security, design, and comparison with other bridges
+  </Card>
+  <Card title="Developers: Vea Bridge" icon="code" href="/developers/crosschain/vea-bridge">
+    Practical integration guide for developers
+  </Card>
+  <Card title="Vea GitHub" icon="github" href="https://github.com/kleros/vea">
+    Source code
+  </Card>
+</CardGroup>

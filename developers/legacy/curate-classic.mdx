@@ -1,0 +1,90 @@
+---
+title: "Curate Classic Integration"
+description: "Developer guide for integrating with Kleros Curate Classic (V1 on-chain storage)"
+---
+
+# Curate Classic: Integration for Devs
+
+<Note>
+This covers Curate Classic (V1) with on-chain storage. For the newer Light Curate with subgraph-based storage, see [Light Curate Integration](/developers/legacy/light-curate). For V2 Curate, see the [Developers Curate section](/developers/products/curate/overview).
+</Note>
+
+---
+
+## Overview
+
+Curate Classic is the original version of Kleros Curate. All item data (apart from files/images) is stored on-chain in contract storage. This means other contracts can query the TCR for field values directly, but deployment and operation costs are higher.
+
+Key characteristics:
+- Item data stored on-chain as encoded bytes
+- Requires `@kleros/gtcr-encoder` to encode/decode items
+- Client must sync by downloading every item and decoding it
+- Higher gas costs (O(n) storage)
+- Other contracts can read item fields directly
+
+---
+
+## Reading Data
+
+### Using the Subgraph
+
+Use the `items` entity (not `litems`, which is for Light Curate):
+
+```graphql
+{
+  items(
+    first: 10
+    where: {
+      status: Registered
+      registryAddress: "0xYOUR_REGISTRY_LOWERCASE"
+    }
+  ) {
+    itemID
+    data
+    status
+  }
+}
+```
+
+The `data` field contains encoded bytes. Decode using `@kleros/gtcr-encoder`.
+
+### Using the Encoder
+
+```bash
+npm install @kleros/gtcr-encoder
+```
+
+```javascript
+const { gtcrDecode } = require("@kleros/gtcr-encoder");
+const columns = [/* column definitions from the TCR meta evidence */];
+const decodedItem = gtcrDecode({ columns, values: item.data });
+```
+
+---
+
+## Writing Data
+
+### Submitting an Item
+
+Encode the item fields and call `addItem()` on the GeneralizedTCR contract with the required deposit.
+
+### Challenging an Item
+
+Call `challengeRequest()` on the contract with a deposit. The challenge creates a dispute in Kleros Court.
+
+### Executing Requests
+
+Call `executeRequest()` after the challenge period passes without a challenge.
+
+---
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Curate Classic Contracts" icon="github" href="https://github.com/kleros/tcr">
+    Source code
+  </Card>
+  <Card title="Subgraph" icon="database" href="https://thegraph.com/hosted-service/subgraph/kleros/curate">
+    Curate subgraph on The Graph
+  </Card>
+</CardGroup>

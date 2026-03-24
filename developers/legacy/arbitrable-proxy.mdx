@@ -1,0 +1,76 @@
+---
+title: "Arbitrable Proxy"
+description: "Generic proxy contract for creating disputes in Kleros Court without building a custom arbitrable"
+---
+
+
+
+<Note>
+This covers the V1 ArbitrableProxy. For V2, the [Dispute Resolver](/integrate/tools/dispute-resolver) provides a web UI for standalone dispute creation, and the `IDisputeResolver` interface serves a similar role for custom contracts.
+</Note>
+
+---
+
+## Overview
+
+The ArbitrableProxy is a generic contract that implements the ERC-792 Arbitrable interface. It allows anyone to create disputes in Kleros Court without building a custom arbitrable contract.
+
+It handles:
+- Dispute creation with configurable court and juror count
+- Evidence submission by any party
+- Crowdfunded appeal funding
+- Reward/fee withdrawal after resolution
+
+---
+
+## When to Use
+
+- You need standalone disputes without a custom contract
+- You want to add dispute creation to an existing system with minimal development
+- Your arbitrable contract needs crowdfunded appeal support and you don't want to implement it yourself
+
+---
+
+## Key Functions
+
+```solidity
+// Create a dispute
+function createDispute(
+    bytes calldata _arbitratorExtraData,
+    string calldata _metaevidenceURI,
+    uint256 _numberOfRulingOptions
+) external payable returns (uint256 disputeID);
+
+// Submit evidence
+function submitEvidence(
+    uint256 _localDisputeID,
+    string calldata _evidenceURI
+) external;
+
+// Fund an appeal for a specific ruling
+function fundAppeal(
+    uint256 _localDisputeID,
+    uint256 _ruling
+) external payable;
+
+// Withdraw rewards after resolution
+function withdrawFeesAndRewards(
+    uint256 _localDisputeID,
+    address payable _beneficiary,
+    uint256 _round,
+    uint256 _ruling
+) external;
+```
+
+---
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="ERC-792 Standard" icon="file-contract" href="/developers/legacy/erc-792">
+    Arbitration interface specification
+  </Card>
+  <Card title="Dispute Resolver (V2)" icon="gavel" href="/integrate/tools/dispute-resolver">
+    Web-based dispute creation tool for V2
+  </Card>
+</CardGroup>

@@ -1,0 +1,184 @@
+---
+title: "Insurance Claim"
+description: "Build a decentralized insurance claim contract with Kleros V2 arbitration for disputed claims."
+---
+
+## Overview
+
+This example demonstrates a parametric insurance contract that uses Kleros Court V2 to arbitrate disputed claims. The contract covers a specific insured event (e.g., flight delay, crop failure) and pays out when jurors confirm the event occurred.
+
+---
+
+## Contract
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+import {IArbitrableV2, IArbitratorV2} from "@kleros/kleros-v2-contracts/interfaces/IArbitrableV2.sol";
+import {IDisputeTemplateRegistry} from "@kleros/kleros-v2-contracts/interfaces/IDisputeTemplateRegistry.sol";
+
+contract InsuranceClaim is IArbitrableV2 {
+    enum ClaimStatus { None, Filed, Disputed, Resolved }
+
+    struct Policy {
+        address payable insured;
+        uint256 premium;
+        uint256 coverage;
+        uint256 expiresAt;
+        string termsURI; // IPFS URI to the policy document
+    }
+
+    struct Claim {
+        uint256 policyID;
+        string evidenceURI;
+        ClaimStatus status;
+        uint256 disputeID;
+        uint256 ruling;
+    }
+
+    IArbitratorV2 public immutable arbitrator;
+    bytes public arbitratorExtraData;
+    uint256 public templateId;
+
+    mapping(uint256 => Policy) public policies;
+    mapping(uint256 => Claim) public claims;
+    mapping(uint256 => uint256) public disputeIDtoClaimID;
+    uint256 public policyCount;
+    uint256 public claimCount;
+
+    // Ruling: 1 = Approve claim, 2 = Deny claim
+    uint256 constant APPROVE = 1;
+    uint256 constant DENY = 2;
+
+    constructor(
+        IArbitratorV2 _arbitrator,
+        bytes memory _arbitratorExtraData,
+        IDisputeTemplateRegistry _templateRegistry,
+        string memory _templateData,
+        string memory _templateDataMappings
+    ) {
+        arbitrator = _arbitrator;
+        arbitratorExtraData = _arbitratorExtraData;
+        templateId = _templateRegistry.setDisputeTemplate(
+            "", _templateData, _templateDataMappings
+        );
+    }
+
+    /// @dev Purchase an insurance policy.
+    function purchasePolicy(
+        uint256 _coverage,
+        uint256 _duration,
+        string calldata _termsURI
+    ) external payable returns (uint256 policyID) {
+        require(msg.value > 0, "Premium required");
+        require(_coverage <= address(this).balance, "Insufficient pool");
+
+        policyID = policyCount++;
+        policies[policyID] = Policy({
+            insured: payable(msg.sender),
+            premium: msg.value,
+            coverage: _coverage,
+            expiresAt: block.timestamp + _duration,
+            termsURI: _termsURI
+        });
+    }
+
+    /// @dev File a claim against a policy.
+    function fileClaim(
+        uint256 _policyID,
+        string calldata _evidenceURI
+    ) external payable returns (uint256 claimID) {
+        Policy storage policy = policies[_policyID];
+        require(msg.sender == policy.insured, "Only insured");
+        require(block.timestamp <= policy.expiresAt, "Policy expired");
+
+        uint256 cost = arbitrator.arbitrationCost(arbitratorExtraData);
+        require(msg.value >= cost, "Insufficient arbitration fee");
+
+        claimID = claimCount++;
+        uint256 disputeID = arbitrator.createDispute{value: msg.value}(
+            2,
+            arbitratorExtraData
+        );
+
+        claims[claimID] = Claim({
+            policyID: _policyID,
+            evidenceURI: _evidenceURI,
+            status: ClaimStatus.Disputed,
+            disputeID: disputeID,
+            ruling: 0
+        });
+        disputeIDtoClaimID[disputeID] = claimID;
+
+        emit DisputeRequest(
+            arbitrator,
+            disputeID,
+            claimID,
+            templateId,
+            ""
+        );
+    }
+
+    /// @dev Called by arbitrator when ruling is final.
+    function rule(uint256 _disputeID, uint256 _ruling) external override {
+        require(msg.sender == address(arbitrator), "Only arbitrator");
+        uint256 claimID = disputeIDtoClaimID[_disputeID];
+        Claim storage claim = claims[claimID];
+        require(claim.status == ClaimStatus.Disputed, "Not disputed");
+
+        claim.status = ClaimStatus.Resolved;
+        claim.ruling = _ruling;
+
+        if (_ruling == APPROVE) {
+            Policy storage policy = policies[claim.policyID];
+            policy.insured.transfer(policy.coverage);
+        }
+        // If DENY or refuse to rule, no payout
+
+        emit Ruling(arbitrator, _disputeID, _ruling);
+    }
+
+    /// @dev Fund the insurance pool.
+    receive() external payable {}
+}
+```
+
+---
+
+## How It Works
+
+1. **Policy purchase**: A user pays a premium and receives a policy with defined coverage amount, duration, and terms document (stored on IPFS)
+2. **Claim filing**: The insured submits a claim with evidence and pays the arbitration fee, which immediately creates a dispute in Kleros Court
+3. **Juror evaluation**: Kleros jurors review the evidence against the policy terms and vote to approve or deny
+4. **Payout or denial**: If approved, the coverage amount is transferred to the insured. If denied, no payout occurs
+
+---
+
+## Dispute Template
+
+```json
+{
+  "title": "Insurance Claim #{{ claimID }}",
+  "description": "The insured has filed a claim. Evaluate whether the insured event occurred according to the policy terms.",
+  "question": "Should this insurance claim be approved?",
+  "answers": [
+    { "title": "Refuse to Rule", "id": "0x0" },
+    { "title": "Approve Claim", "id": "0x1" },
+    { "title": "Deny Claim", "id": "0x2" }
+  ],
+  "policyURI": "{{ termsURI }}"
+}
+```
+
+---
+
+## Production Considerations
+
+This example omits several features needed for production use:
+
+- **Appeal support**: Allow either party to fund additional rounds
+- **Claim period**: Add a review period before disputes are raised, allowing the insurer to approve claims without arbitration
+- **Multi-claim policies**: Support multiple claims against a single policy
+- **Pool solvency**: Add mechanisms to ensure the insurance pool can cover all outstanding policies
+- **Premium pricing**: Calculate premiums based on risk models rather than fixed amounts

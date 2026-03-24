@@ -1,0 +1,154 @@
+---
+title: "Integration Guide"
+description: "Integrate Proof of Humanity V2 for Sybil-resistant identity verification in your application."
+---
+
+## Basic Identity Check
+
+The simplest integration queries whether an address belongs to a verified human:
+
+```solidity
+import {IProofOfHumanity} from "./interfaces/IProofOfHumanity.sol";
+
+contract GatedApp {
+    IProofOfHumanity public immutable poh;
+
+    constructor(address _pohAddress) {
+        poh = IProofOfHumanity(_pohAddress);
+    }
+
+    modifier onlyHuman() {
+        require(poh.isHuman(msg.sender), "Not a verified human");
+        _;
+    }
+
+    function protectedAction() external onlyHuman {
+        // Only verified humans can call this
+    }
+}
+```
+
+The `isHuman()` function automatically checks both V2 native registrations and V1 legacy registrations through the Fork Module.
+
+---
+
+## Working with Humanity IDs
+
+PoH V2 uses `bytes20` humanity IDs that persist across wallet changes. Store user data by `humanityId` instead of `address` to maintain continuity when users change wallets:
+
+```solidity
+contract SoulboundProfile {
+    IProofOfHumanity public immutable poh;
+
+    struct Profile {
+        uint256 reputation;
+        string username;
+        bool exists;
+    }
+
+    // Key by humanityId, not address
+    mapping(bytes20 => Profile) public profiles;
+
+    function createProfile(string calldata _username) external {
+        require(poh.isHuman(msg.sender), "Must be verified human");
+
+        bytes20 humanityId = poh.humanityOf(msg.sender);
+        require(humanityId != bytes20(0), "No humanity ID");
+        require(!profiles[humanityId].exists, "Profile exists");
+
+        profiles[humanityId] = Profile({
+            reputation: 0,
+            username: _username,
+            exists: true
+        });
+    }
+
+    function getProfile(address _user) external view returns (Profile memory) {
+        bytes20 humanityId = poh.humanityOf(_user);
+        return profiles[humanityId];
+    }
+}
+```
+
+---
+
+## Detecting V1 vs V2 Registrations
+
+V1 users have a humanity ID equal to their original registration address. You can use this to detect registration version:
+
+```solidity
+function isV1Registration(address _user) public view returns (bool) {
+    if (!poh.isHuman(_user)) return false;
+    bytes20 humanityId = poh.humanityOf(_user);
+    return humanityId == bytes20(_user);
+}
+```
+
+---
+
+## Cross-Chain Verification
+
+If your application is deployed on a chain different from PoH's home chain (Gnosis), use the `CrossChainProofOfHumanity` contract:
+
+```solidity
+interface ICrossChainProofOfHumanity {
+    function isHuman(address _account) external view returns (bool);
+    function humanityOf(address _account) external view returns (bytes20);
+    function boundTo(bytes20 _humanityId) external view returns (address);
+    function isClaimed(bytes20 _humanityId) external view returns (bool);
+}
+
+contract CrossChainDApp {
+    IProofOfHumanity public immutable pohMain;
+    ICrossChainProofOfHumanity public immutable pohCrossChain;
+
+    constructor(address _pohMain, address _pohCrossChain) {
+        pohMain = IProofOfHumanity(_pohMain);
+        pohCrossChain = ICrossChainProofOfHumanity(_pohCrossChain);
+    }
+
+    function isVerifiedHuman(address _account) public view returns (bool) {
+        return pohMain.isHuman(_account) || pohCrossChain.isHuman(_account);
+    }
+}
+```
+
+<Warning>
+  Cross-chain state synchronization is not instant. There is a delay between when a registration is confirmed on the home chain and when it becomes visible on foreign chains. Design your application to handle this propagation delay.
+</Warning>
+
+---
+
+## Use Cases
+
+**Sybil-resistant voting**: Gate governance participation to verified humans. Use `isHuman()` as a modifier on vote functions to prevent one-person-multiple-vote attacks.
+
+**Airdrop distribution**: Distribute tokens to unique humans rather than addresses. Query `humanityOf()` to deduplicate claims.
+
+**Reputation systems**: Store reputation by `humanityId` so users retain their standing across wallet migrations.
+
+**Access control**: Restrict access to platform features, DAOs, or communities to verified humans only.
+
+---
+
+## Subgraph
+
+PoH V2 data is indexed via a subgraph for frontend queries. Use the subgraph to list registrations, query profile status, and display challenge history without direct contract calls.
+
+```graphql
+{
+  humanities(where: { registered: true }, first: 10) {
+    id
+    owner
+    expirationTime
+    requests {
+      status
+      challenger
+    }
+  }
+}
+```
+
+<Note>
+  Subgraph endpoints and schema are subject to change during beta. Check the [PoH V2 GitHub repository](https://github.com/kleros/proof-of-humanity-v2-contracts) for the latest subgraph configuration.
+</Note>

@@ -1,0 +1,104 @@
+---
+title: "Stake Curate"
+description: "Continuous verification through permanent economic incentives"
+---
+
+# Stake Curate
+
+**Stake Curate** is a verification tool that provides continuous compliance monitoring through permanent economic incentives. Unlike traditional Curate where deposits are returned after verification, Stake Curate locks deposits indefinitely creating ongoing incentives for both submitters to stay compliant and challengers to monitor quality.
+
+<Info>
+**Launch Status**: Deployed on Gnosis Chain in August 2025. First major implementation with DAMM Capital in September 2025.
+</Info>
+
+---
+
+## How It Works
+
+### Actors
+
+1. **Submitters**: Propose items and attach a permanent deposit as accountability
+2. **Challengers/Curators**: Monitor compliance and challenge non-compliant items to earn rewards
+
+### Submitting Items
+
+<Steps>
+  <Step title="Review Policy">
+    Check the registry's requirements for compliance.
+  </Step>
+  <Step title="Submit + Deposit">
+    Place a deposit in ERC20 tokens (can stake more than minimum to deter challenges).
+  </Step>
+  <Step title="Acceptance Period">
+    Community reviews the submission.
+  </Step>
+  <Step title="Verified">
+    Item is listed as verified and compliant.
+  </Step>
+  <Step title="Continuous Monitoring">
+    Item remains challengeable indefinitely. The deposit acts as both a bounty for challengers and an incentive for the submitter to stay compliant.
+  </Step>
+</Steps>
+
+### Challenging Items
+
+Challengers must place:
+- **Challenge Stake (ERC20)** Percentage of the item's current stake. Lost if challenge fails.
+- **Arbitration Fee (ETH)** Covers dispute resolution costs.
+
+If the challenge succeeds, the challenger recovers their deposit and earns the item's entire stake. If it fails, the challenger's stake is added to the item's deposit, making future challenges more expensive (**Progressive Protection**).
+
+---
+
+## Key Features
+
+- **Permanent Deposits**: Locked indefinitely, creating continuous compliance incentives
+- **Progressive Protection**: Each failed challenge increases the item's stake, deterring frivolous attacks
+- **Safe Withdrawal**: Time-delayed withdrawal process allows community to challenge before funds are returned
+- **Incentive-Driven Enforcement**: No external funding needed for ongoing quality maintenance
+
+---
+
+## Stake Curate vs Traditional Curate
+
+| Aspect | Traditional Curate | Stake Curate |
+|---|---|---|
+| **Deposit** | Returned after verification | Locked indefinitely |
+| **Monitoring** | No ongoing incentives | Permanent economic incentives |
+| **Challenge Cost** | Arbitration fees only | Stake + arbitration fees |
+| **Best For** | One-time verification | Items requiring continuous compliance |
+| **Post-Verification** | No economic consequence for non-compliance | Submitter risks losing entire deposit |
+
+---
+
+## Use Cases
+
+- **Content Moderation**: Verified creator registries, social media whitelists
+- **Credential Verification**: Academic journals, professional certifications
+- **Financial Monitoring**: Fund strategy compliance, treasury transparency
+- **Quality Assurance**: Software security registries, product authenticity
+- **Gaming & Communities**: Anti-cheat registries, verified streamer lists
+
+---
+
+## Creating a Registry
+
+Registry creators have full control over:
+- Deposit amounts and token type
+- Challenger deposit percentage
+- Withdrawal waiting period
+- Number of jurors for disputes
+- Registry policy and update authority
+
+---
+
+## Learn More
+
+<CardGroup cols={2}>
+  <Card title="Full Blog Post" href="https://blog.kleros.io/cut-compliance-costs-with-stake-curate-the-high-quality-verification-tool/" icon="newspaper">
+    Detailed explanation with examples and flow diagrams
+  </Card>
+  <Card title="Curate Product" href="/products/curate" icon="list-check">
+    Learn about the traditional Curate product
+  </Card>
+</CardGroup>

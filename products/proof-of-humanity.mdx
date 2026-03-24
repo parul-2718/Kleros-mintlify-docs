@@ -1,0 +1,76 @@
+---
+title: "Proof of Humanity"
+description: "Sybil-resistant identity registry combining video verification, social vouching, and dispute resolution"
+---
+
+# Proof of Humanity
+
+<img src="/images/poh-hero.png" alt="Proof of Humanity Interface" />
+
+<Warning>
+Proof of Humanity uses the **Kleros V1 protocol** for dispute resolution even the "PoH 2.0" product version. The "2.0" refers to product improvements (cross-chain support, improved UX), not the underlying Kleros arbitration protocol version.
+</Warning>
+
+**Proof of Humanity (PoH)** is a Sybil-resistant registry of verified humans. It combines video verification, social vouching, and Kleros dispute resolution to create a decentralized identity system where each registered person is cryptographically linked to a unique Ethereum address.
+
+PoH serves as the foundation for applications that need to distinguish real humans from bots and duplicate accounts enabling fairer airdrops, one-person-one-vote governance, and universal basic income distribution.
+
+---
+
+## How It Works
+
+<Steps>
+  <Step title="Submit a Profile">
+    Register by submitting a video of yourself holding your Ethereum address, along with a name and photo. A deposit is required to deter spam.
+  </Step>
+  <Step title="Get Vouched">
+    An already-registered human must vouch for you. Vouching is a web-of-trust mechanism: the voucher stakes their reputation on your legitimacy.
+  </Step>
+  <Step title="Challenge Period">
+    Your submission enters a challenge period. Anyone can challenge your registration (e.g., claiming you're a duplicate or the video doesn't meet requirements) by paying a challenge deposit. Challenges are resolved by Kleros Court.
+  </Step>
+  <Step title="Registration">
+    If unchallenged (or if you win the dispute), you're registered as a verified human. Registration has an expiration period after which you must re-verify.
+  </Step>
+</Steps>
+
+---
+
+## PoH 2.0 (Product Update)
+
+The PoH 2.0 product update introduced several improvements to the registration experience:
+
+**Cross-chain profiles**: Profiles can exist on multiple chains (Ethereum, Gnosis Chain), enabling use across different ecosystems.
+
+**Improved UX**: Simplified registration flow, better video guidance, and clearer status tracking.
+
+**Enhanced vouching**: Refined vouching mechanics to strengthen the web-of-trust.
+
+<Note>
+These are product-level improvements. The underlying dispute resolution still uses Kleros V1 contracts on Ethereum mainnet.
+</Note>
+
+---
+
+## Use Cases
+
+**Sybil-Resistant Governance**: PoH-gated voting ensures one person = one vote, preventing token-whale domination. The Kleros yellow paper describes a future court mode where juror selection requires PoH registration.
+
+**Universal Basic Income**: The UBI token project distributes a universal basic income stream to every registered PoH human.
+
+**Fair Airdrops**: Projects can use PoH to ensure airdrop tokens go to unique humans rather than bots farming with multiple wallets.
+
+**Identity Verification**: Any application that needs to verify a user is a unique human without relying on centralized KYC providers.
+
+---
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Register on PoH" icon="user-check" href="https://v2.proofofhumanity.id/">
+    Start your Proof of Humanity registration
+  </Card>
+  <Card title="PoH Integration Guide" icon="code" href="/developers/products/poh">
+    Verify human users in your application
+  </Card>
+</CardGroup>

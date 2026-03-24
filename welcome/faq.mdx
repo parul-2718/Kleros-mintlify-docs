@@ -1,0 +1,48 @@
+---
+title: "Kleros FAQ"
+description: "Frequently asked questions about Kleros"
+---
+
+
+
+<AccordionGroup>
+  <Accordion title="What is Kleros?">
+    Kleros is a decentralized dispute resolution protocol on Ethereum (currently running on Arbitrum One). It uses game-theoretic incentives and randomly selected jurors to resolve disputes in a trustless, affordable, and fast way.
+  </Accordion>
+
+  <Accordion title="How does Kleros select jurors?">
+    Jurors self-select by staking PNK tokens in courts they want to serve in. When a dispute is created, jurors are drawn randomly with probability proportional to their stake. This prevents Sybil attacks while ensuring skin-in-the-game.
+  </Accordion>
+
+  <Accordion title="What is PNK?">
+    PNK (Pinakion) is the native token of Kleros. It serves two functions: (1) it's used for staking to become a juror, and (2) it provides incentive alignment incoherent jurors lose PNK to coherent ones.
+  </Accordion>
+
+  <Accordion title="How do jurors get paid?">
+    Jurors receive arbitration fees (in ETH) for each dispute they participate in. Additionally, jurors who vote coherently (in line with the final ruling) receive PNK redistributed from incoherent jurors.
+  </Accordion>
+
+  <Accordion title="What prevents jurors from voting dishonestly?">
+    Game theory. Jurors are incentivized to vote as they expect the majority to vote (Schelling point). Dishonest jurors lose their staked PNK, while honest jurors gain from the redistribution. The appeal system further protects against initial misjudgments.
+  </Accordion>
+
+  <Accordion title="Can a ruling be appealed?">
+    Yes. Any party can appeal a ruling by funding the appeal cost. Each appeal round increases the number of jurors. Appeals can escalate up the court hierarchy until the General Court. This makes attacks exponentially expensive.
+  </Accordion>
+
+  <Accordion title="What happens if a juror doesn't vote?">
+    Jurors who fail to vote during the voting period are treated as incoherent and lose a portion of their staked PNK. This incentivizes active participation.
+  </Accordion>
+
+  <Accordion title="What blockchain does Kleros run on?">
+    Kleros V2 runs on **Arbitrum One** (an Ethereum L2 rollup). Cross-chain disputes from Ethereum mainnet and Gnosis Chain are supported via the Vea bridge and Gateway system.
+  </Accordion>
+
+  <Accordion title="How is Kleros different from traditional arbitration?">
+    Traditional arbitration relies on trusted institutions and is expensive and slow. Kleros is decentralized (no single point of control), affordable (fees are a fraction of traditional costs), fast (days instead of months), and transparent (all evidence and votes are on-chain).
+  </Accordion>
+
+  <Accordion title="How is Kleros governed?">
+    PNK holders govern the protocol through Snapshot voting. Governance proposals (KIPs) are submitted on the [Kleros Forum](https://forum.kleros.io) and voted on by the community. On-chain execution uses the KlerosGovernor contract.
+  </Accordion>
+</AccordionGroup>

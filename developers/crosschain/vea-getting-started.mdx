@@ -1,0 +1,161 @@
+---
+title: "Build with Vea"
+description: "Integrate Vea cross-chain messaging into your application"
+---
+
+# Build with Vea
+
+This page covers how to integrate Vea into a cross-chain application. For protocol-level details, see the [Vea Bridge overview](/developers/crosschain/vea-bridge).
+
+---
+
+## Integration Pattern
+
+To integrate Vea, you deploy two gateway contracts:
+
+1. **Sender Gateway** on the sending chain, which interfaces with VeaInbox
+2. **Receiver Gateway** on the receiving chain, which interfaces with VeaOutbox
+
+```
+Sender Gateway (Chain A) -> VeaInbox -> [Vea Bridge] -> VeaOutbox -> Receiver Gateway (Chain B)
+```
+
+For each sending-receiving chain pair supported by Vea, there is a separate set of Vea contract deployments. For each chain, there is exactly one deployed contract.
+
+---
+
+## 1. Sender Gateway
+
+The Sender Gateway calls `sendMessage()` on VeaInbox to initiate cross-chain communication.
+
+```solidity
+interface IVeaInbox {
+    function sendMessage(
+        address _to,        // address of Receiver Gateway on destination chain
+        bytes4 _fnSelector, // function selector to call on Receiver Gateway
+        bytes memory _data  // encoded parameters
+    ) external;
+}
+```
+
+You specify:
+- The target contract address on the receiving chain (`_to`)
+- The function to call on the target (`_fnSelector`)
+- The encoded parameters (`_data`)
+
+### Example: Sender Gateway
+
+```solidity
+contract SenderGateway {
+    IVeaInbox public immutable veaInbox;
+    address public immutable receiverGateway;
+
+    constructor(IVeaInbox _veaInbox, address _receiverGateway) {
+        veaInbox = _veaInbox;
+        receiverGateway = _receiverGateway;
+    }
+
+    function sendMyMessage(uint256 _data) external {
+        bytes4 selector = IReceiverGateway.receiveMessage.selector;
+        bytes memory data = abi.encode(_data);
+        veaInbox.sendMessage(receiverGateway, selector, data);
+    }
+}
+```
+
+---
+
+## 2. Receiver Gateway
+
+The Receiver Gateway receives the relayed message on the destination chain. Vea passes the `msg.sender` from the sending chain as the first argument of any cross-chain call.
+
+```solidity
+interface IReceiverGateway {
+    function veaOutbox() external view returns (address);
+    function senderGateway() external view returns (address);
+}
+```
+
+Your receiver function must always include `address msgSender` as the first parameter:
+
+```solidity
+contract ReceiverGateway is IReceiverGateway {
+    address public override veaOutbox;
+    address public override senderGateway;
+
+    modifier onlyFromVea() {
+        require(msg.sender == veaOutbox, "Only VeaOutbox");
+        _;
+    }
+
+    function receiveMessage(address msgSender, uint256 _data) external onlyFromVea {
+        require(msgSender == senderGateway, "Only SenderGateway");
+        // Process _data
+    }
+}
+```
+
+<Warning>
+The `msgSender` parameter is inserted by Vea for security. Your interface must always have `address msgSender` as the first argument. The actual parameters you sent follow after it.
+</Warning>
+
+---
+
+## 3. Relaying Messages
+
+After the challenge period passes, a relayer calls `verifyAndRelay()` on VeaOutbox to deliver the message to the Receiver Gateway.
+
+The Vea SDK provides utility functions to calculate merkle inclusion proofs and fetch message data for relaying:
+
+```typescript
+import VeaSdk from "@kleros/vea-sdk";
+
+// Create client for a specific route
+const vea = VeaSdk.ClientFactory.arbitrumGoerliToChiadoDevnet(
+  "https://rpc.goerli.eth.gateway.fm",
+  "https://rpc.chiado.gnosis.gateway.fm"
+);
+
+// Get message info by ID
+const messageInfo = await vea.getMessageInfo(messageId);
+
+// Calculate proof and relay
+// ... relay logic using proof data
+```
+
+<Note>
+The SDK is under active development. Check the [Vea SDK package](https://github.com/kleros/vea) for the latest API.
+</Note>
+
+---
+
+## Lightbulb Demo
+
+The [Vea Lightbulb Demo](https://docs.vea.ninja/build-xchain-dapps/lightbulb-demo) is a minimal cross-chain application where a switch on one chain controls a lightbulb on another chain via Vea. The [tutorial repository](https://github.com/kleros/vea-lightbulb-tutorial) walks through deploying the contracts for each chain pair.
+
+Bridge status can be tracked on [VeaScan](https://veascan.io).
+
+---
+
+## Deployment Addresses
+
+See [Vea Deployment Addresses](/developers/crosschain/vea-deployment-addresses) for contract addresses on each supported route.
+
+---
+
+## Further Reading
+
+<CardGroup cols={2}>
+  <Card title="Full Build Guide" icon="book" href="https://docs.vea.ninja/build-xchain-dapps/getting-started">
+    Complete integration guide on docs.vea.ninja
+  </Card>
+  <Card title="Lightbulb Demo" icon="lightbulb" href="https://docs.vea.ninja/build-xchain-dapps/lightbulb-demo">
+    Interactive cross-chain demo application
+  </Card>
+  <Card title="Run a Validator" icon="server" href="https://docs.vea.ninja/run-a-validator/getting-started">
+    Run a Vea bridge validator node
+  </Card>
+  <Card title="Vea Bridge Architecture" icon="sitemap" href="/developers/crosschain/vea-bridge">
+    Protocol architecture and bridge types
+  </Card>
+</CardGroup>

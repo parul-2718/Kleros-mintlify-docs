@@ -1,0 +1,175 @@
+---
+title: "Escrow Contract"
+description: "Build a simple escrow contract with Kleros V2 dispute resolution."
+---
+
+## Overview
+
+This example demonstrates how to build an escrow contract that uses Kleros Court V2 as an external arbitrator. The contract holds funds in escrow until both parties agree on payment, or a dispute is raised and resolved by Kleros jurors.
+
+This is a simplified version of the [Escrow V2 product](/developers/products/escrow/overview) to illustrate the core integration pattern.
+
+---
+
+## Contract
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+import {IArbitrableV2, IArbitratorV2} from "@kleros/kleros-v2-contracts/interfaces/IArbitrableV2.sol";
+import {IDisputeTemplateRegistry} from "@kleros/kleros-v2-contracts/interfaces/IDisputeTemplateRegistry.sol";
+
+contract SimpleEscrow is IArbitrableV2 {
+    enum Status { Created, Reclaimed, Disputed, Resolved }
+
+    struct Transaction {
+        address payable sender;
+        address payable receiver;
+        uint256 amount;
+        uint256 disputeID;
+        Status status;
+    }
+
+    IArbitratorV2 public immutable arbitrator;
+    bytes public arbitratorExtraData;
+    uint256 public immutable feeTimeout;
+    uint256 public templateId;
+
+    mapping(uint256 => Transaction) public transactions;
+    mapping(uint256 => uint256) public disputeIDtoTxID;
+    uint256 public txCount;
+
+    // Ruling options: 0 = Refuse, 1 = Pay Sender, 2 = Pay Receiver
+    uint256 constant SENDER_WINS = 1;
+    uint256 constant RECEIVER_WINS = 2;
+
+    constructor(
+        IArbitratorV2 _arbitrator,
+        bytes memory _arbitratorExtraData,
+        uint256 _feeTimeout,
+        IDisputeTemplateRegistry _templateRegistry,
+        string memory _templateData,
+        string memory _templateDataMappings
+    ) {
+        arbitrator = _arbitrator;
+        arbitratorExtraData = _arbitratorExtraData;
+        feeTimeout = _feeTimeout;
+        templateId = _templateRegistry.setDisputeTemplate(
+            "", _templateData, _templateDataMappings
+        );
+    }
+
+    /// @dev Create an escrow transaction.
+    function createTransaction(address payable _receiver) external payable returns (uint256 txID) {
+        require(msg.value > 0, "Must send ETH");
+        txID = txCount++;
+        transactions[txID] = Transaction({
+            sender: payable(msg.sender),
+            receiver: _receiver,
+            amount: msg.value,
+            disputeID: 0,
+            status: Status.Created
+        });
+    }
+
+    /// @dev Receiver releases payment to themselves (both parties agree).
+    function pay(uint256 _txID) external {
+        Transaction storage tx_ = transactions[_txID];
+        require(msg.sender == tx_.sender, "Only sender");
+        require(tx_.status == Status.Created, "Wrong status");
+        tx_.status = Status.Resolved;
+        tx_.receiver.transfer(tx_.amount);
+    }
+
+    /// @dev Raise a dispute with Kleros Court.
+    function raiseDispute(uint256 _txID) external payable {
+        Transaction storage tx_ = transactions[_txID];
+        require(tx_.status == Status.Created, "Wrong status");
+        require(
+            msg.sender == tx_.sender || msg.sender == tx_.receiver,
+            "Only parties"
+        );
+
+        uint256 cost = arbitrator.arbitrationCost(arbitratorExtraData);
+        require(msg.value >= cost, "Insufficient fee");
+
+        tx_.status = Status.Disputed;
+        tx_.disputeID = arbitrator.createDispute{value: msg.value}(
+            2, // number of ruling options
+            arbitratorExtraData
+        );
+        disputeIDtoTxID[tx_.disputeID] = _txID;
+
+        emit DisputeRequest(
+            arbitrator,
+            tx_.disputeID,
+            _txID,
+            templateId,
+            ""
+        );
+    }
+
+    /// @dev Called by the arbitrator when a ruling is final.
+    function rule(uint256 _disputeID, uint256 _ruling) external override {
+        require(msg.sender == address(arbitrator), "Only arbitrator");
+        uint256 txID = disputeIDtoTxID[_disputeID];
+        Transaction storage tx_ = transactions[txID];
+        require(tx_.status == Status.Disputed, "Not disputed");
+
+        tx_.status = Status.Resolved;
+
+        if (_ruling == SENDER_WINS) {
+            tx_.sender.transfer(tx_.amount);
+        } else if (_ruling == RECEIVER_WINS) {
+            tx_.receiver.transfer(tx_.amount);
+        } else {
+            // Refuse to rule or no ruling split equally
+            uint256 half = tx_.amount / 2;
+            tx_.sender.transfer(half);
+            tx_.receiver.transfer(tx_.amount - half);
+        }
+
+        emit Ruling(arbitrator, _disputeID, _ruling);
+    }
+}
+```
+
+---
+
+## Key Integration Points
+
+**`createDispute()`**: Sends the arbitration fee to KlerosCore and receives a `disputeID`. The `arbitratorExtraData` encodes the court ID and juror count.
+
+**`rule()`**: KlerosCore calls this when the dispute is resolved. The ruling is enforced immediately by transferring funds.
+
+**`DisputeRequest` event**: Emitted to link the dispute with a display template in the Court V2 UI. The `templateId` references a template registered in the `DisputeTemplateRegistry`.
+
+---
+
+## Dispute Template
+
+The dispute template tells the Court UI how to display this dispute:
+
+```json
+{
+  "title": "Escrow Payment Dispute: {{ amount }} ETH",
+  "description": "Should the funds be released to the receiver or returned to the sender?",
+  "question": "Which party should receive the escrowed funds?",
+  "answers": [
+    { "title": "Refuse to Rule", "id": "0x0" },
+    { "title": "Return to Sender", "id": "0x1" },
+    { "title": "Release to Receiver", "id": "0x2" }
+  ],
+  "policyURI": "/ipfs/QmEscrowPolicy..."
+}
+```
+
+---
+
+## Next Steps
+
+- Add appeal support for losing parties to fund additional rounds
+- Add ERC20 token support alongside native ETH
+- Add settlement negotiation before disputes reach court
+- See the full [Escrow V2 product](/developers/products/escrow/overview) for a production implementation with all these features

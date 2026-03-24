@@ -1,0 +1,44 @@
+---
+title: "KlerosGovernor"
+description: "On-chain governance contract for executing community decisions"
+---
+
+
+
+KlerosGovernor executes governance decisions made through off-chain voting (Snapshot). It uses Kleros arbitration to resolve disputes when multiple competing transaction lists are submitted.
+
+## How It Works
+
+1. **Submission Period**: Anyone can submit a list of transactions to execute, with a deposit
+2. **Approval Period**: If only one list is submitted, it's approved automatically. If multiple lists compete, a dispute is created on Kleros Court
+3. **Execution**: The approved list's transactions are executed on-chain
+
+## Key Methods
+
+### `submitList(address[] _targets, uint256[] _values, bytes _data, uint256[] _dataLengths, string _description)`
+Submit a list of transactions for governance execution.
+
+### `executeTransactionList(uint256 _listID, uint256 _cursor, uint256 _count)`
+Execute transactions from an approved list. Can be called in parts for gas management.
+
+### `executeSubmissions()`
+Trigger the approval process. If one list: approve it. If multiple: create a dispute.
+
+## Parameters
+
+| Parameter | Description |
+|---|---|
+| `submissionBaseDeposit` | Base deposit required per list submission |
+| `submissionTimeout` | Duration of the submission period |
+| `executionTimeout` | Time window for executing approved transactions |
+| `withdrawTimeout` | Grace period for withdrawing execution deposits |
+
+## Events
+
+| Event | Description |
+|---|---|
+| `SessionCreated` | New governance session started |
+| `ListSubmitted` | Transaction list submitted |
+| `Ruling` | Dispute resolved, winning list determined |
+
+[View Source](https://github.com/kleros/kleros-v2/blob/dev/contracts/src/arbitration/KlerosGovernor.sol)

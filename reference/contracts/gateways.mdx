@@ -1,0 +1,65 @@
+---
+title: "Gateway Contracts"
+description: "Cross-chain Foreign and Home Gateway contracts for multi-chain arbitration"
+---
+
+
+
+Gateways enable cross-chain arbitration between Kleros Court on Arbitrum and Arbitrable contracts on foreign chains.
+
+## Home Gateway (Arbitrum)
+
+Located on Arbitrum, the Home Gateway:
+- Receives dispute creation messages from the Vea bridge
+- Creates disputes on KlerosCore
+- Sends rulings back through the bridge
+
+From KlerosCore's perspective, the Home Gateway behaves as an Arbitrable contract.
+
+## Foreign Gateway (Foreign Chain)
+
+Located on Ethereum mainnet, Gnosis Chain, etc., the Foreign Gateway:
+- Accepts `createDispute()` calls from Arbitrable contracts
+- Relays dispute creation through the Vea bridge to the Home Gateway
+- Receives rulings from the bridge and calls `rule()` on the Arbitrable
+
+From the Arbitrable's perspective, the Foreign Gateway behaves as an Arbitrator.
+
+### Key Methods
+ 
+#### `createDispute(uint256 _choices, bytes _extraData) payable → uint256`
+Creates a cross-chain dispute. Caller must send ETH equal to the arbitration cost.
+ 
+#### `arbitrationCost(bytes _extraData) view → uint256`
+Returns `feeForJuror[courtID] × minJurors` in ETH.
+ 
+#### `relayRule(address _messageSender, bytes32 _disputeHash, uint256 _ruling, address _relayer)`
+Called by the Vea outbox once a ruling is relayed from Arbitrum. Forwards the ruling to the Arbitrable.
+ 
+#### `withdrawFees(bytes32 _disputeHash)`
+Pays the relayer's fee after a ruling has been delivered.
+ 
+### Governance Methods (Governor Only)
+ 
+#### `changeCourtJurorFee(uint96 _courtID, uint256 _feeForJuror)`
+Updates the per-juror fee stored in the ForeignGateway for a specific court. This must be called to keep gateway fees in sync when KlerosCore court fees change on Arbitrum. **Fee drift is a known operational risk** — if this is not updated after a governance change to `feeForJuror` on Arbitrum, arbitration cost on the foreign chain will be incorrect.
+ 
+#### `changeVea(address _veaOutbox, uint256 _gracePeriod)`
+Updates the Vea outbox address. Supports a grace period for deprecated bridge transitions.
+ 
+## ERC-20 Fee Limitation
+ 
+<Warning>
+The `ForeignGateway` does **not** support ERC-20 arbitration fees. Calling the ERC-20 overload of `createDispute` on the ForeignGateway will revert with `"Not supported"`.
+ 
+ERC-20 fee payments (WETH, DAI, etc.) are only available when integrating **directly with KlerosCore** on Arbitrum. Cross-chain arbitrables using the gateway must always pay fees in ETH.
+</Warning>
+ 
+
+## Vea Bridge
+
+The underlying message transport. Uses optimistic verification with claim/challenge mechanics for security.
+
+See [Vea Bridge Architecture](/reference/architecture/vea-overview) for details.
+
+[Foreign Gateway Source](https://github.com/kleros/kleros-v2/blob/master/contracts/src/gateway/ForeignGateway.sol) | [Home Gateway Source](https://github.com/kleros/kleros-v2/blob/master/contracts/src/gateway/HomeGateway.sol)

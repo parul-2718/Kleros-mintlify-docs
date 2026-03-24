@@ -1,0 +1,84 @@
+---
+title: "Tokenomics"
+description: "How PNK staking, rewards, and penalties create a self-sustaining dispute resolution economy"
+---
+
+
+
+The **PNK token** (pinakion) serves two functions in the Kleros protocol: it is the staking token used for juror selection, and it is the governance token used for voting on protocol changes.
+
+---
+
+## Why a Native Token?
+
+Kleros uses PNK rather than ETH for staking because a dedicated token provides stronger security guarantees against 51% attacks.
+
+If jurors staked ETH, an attacker could acquire enough to dominate a court by tapping into Ethereum's deep global liquidity. With PNK, the attacker faces a much thinner market, as they buy PNK, supply becomes scarce and the price rises sharply. The token's market depth is naturally bounded by the Kleros ecosystem, making attacks progressively more expensive.
+
+This is the same principle behind why blockchains use native tokens for consensus: the security budget is proportional to the value of the native asset, not to external liquidity.
+
+---
+
+## PNK Supply
+
+The total supply of PNK is **764,626,704 tokens**. This supply can only be modified through a DAO governance vote, there is no minting function controlled by the team.
+
+In Kleros V2, PNK on Arbitrum (the home chain) uses the standard bridge token rather than the complex Minime token used on Ethereum mainnet. This makes PNK transfers cheaper and simpler.
+
+---
+
+## How Staking Works
+
+### V1 vs V2 Staking
+
+In Kleros V1, staking was a "virtual" operation, PNK stayed in your wallet, and the contract tracked your staked amount.
+
+In Kleros V2, staking **transfers PNK to the KlerosCore contract**. Your staked tokens are held by the contract and returned when you unstake (minus any penalties from incoherent voting). This is similar to how DeFi staking protocols work and requires a standard ERC-20 `approve()` transaction before staking.
+
+### The Staking Economy
+
+When you stake PNK in a court:
+- Your **chance of being drawn** as a juror is proportional to your stake relative to the total stake in that court
+- When drawn, a portion of your stake is **locked** as collateral (determined by the court's `alpha` parameter)
+- If you vote **coherently** (with the majority), you receive arbitration fees (ETH) and PNK from incoherent jurors
+- If you vote **incoherently**, you lose your locked PNK, which is redistributed to coherent jurors
+
+### Staking Rewards (KIP-66)
+
+KIP-66 is a community-approved governance proposal that introduces additional staking rewards beyond traditional arbitration fee earnings. The reward mechanism is implemented in the V2 smart contracts. Check the [Kleros blog](https://blog.kleros.io) or [Snapshot](https://snapshot.box/#/s:kleros.eth) for current activation status.
+
+---
+
+## Revenue Sources
+
+Jurors earn from two independent streams:
+
+**Arbitration fees**: Paid by dispute creators in ETH or whitelisted ERC-20 tokens. These are the "wages" for jury duty. The fee per juror is set per court and can be adjusted through governance.
+
+**PNK redistribution**: Tokens lost by incoherent jurors are redistributed to coherent ones. This is the "penalty/reward" mechanism that enforces honest voting. The amount at risk per vote is `minStake × alpha / 10000`.
+
+When all jurors in a round are incoherent (no majority exists), both the fees and PNK penalties are sent to the protocol governor rather than being distributed.
+
+---
+
+## Governance
+
+PNK holders vote on protocol changes through [Kleros Snapshot governance](/governance/snapshot). Voting power is proportional to PNK holdings. Governance decisions include:
+
+- Adding or modifying courts and their parameters
+- Adjusting fee structures and token whitelists
+- Approving protocol upgrades through the [Governor](/products/governor) contract
+- Approving Kleros Improvement Proposals (KIPs)
+
+---
+
+## Further Reading
+
+<CardGroup cols={2}>
+  <Card title="PNK Token Page" icon="coins" href="https://kleros.io/pnk-token">
+    Where to buy PNK and current market information
+  </Card>
+  <Card title="Game Theory" icon="chess" href="/concepts/game-theory">
+    The incentive mechanics behind honest voting
+  </Card>
+</CardGroup>

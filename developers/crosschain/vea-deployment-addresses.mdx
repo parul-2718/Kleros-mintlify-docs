@@ -1,0 +1,71 @@
+---
+title: "Vea Deployment Addresses"
+description: "Contract addresses for Vea bridge deployments on each supported route"
+---
+
+# Vea Deployment Addresses
+
+<Warning>
+Always verify addresses against the [official Vea repository](https://github.com/kleros/vea) before use. The canonical source for deployment addresses is the [Vea docs deployment page](https://docs.vea.ninja/introduction/deployment-addresses).
+</Warning>
+
+---
+
+## Devnet Deployments
+
+The Vea devnet is intended for developers testing smart contract integrations with the Vea bridge. The devnet is permissioned and operated by Kleros Cooperative.
+
+**Operator address:** `0x407DDEC61d69b212498B140a26da70AE1C879f5a`
+
+### Arbitrum Goerli to Chiado (Devnet)
+
+| Contract | Address |
+| --- | --- |
+| VeaInbox (ArbToGnosisDevnet) | `0x660daB9A6436A814a6ae3a6f27b309356a4bE78c` |
+| Router (ArbToGnosisDevnet) | `0xD4847f86Ed2E9D03839B15fd0818759861c063a8` |
+| VeaOutbox (ArbToGnosisDevnet) | `0xdFd7aDEb43d46FA3f16FB3e27F7fe85c3f5BD89D` |
+
+### Arbitrum Goerli to Goerli (Devnet)
+
+| Contract | Address |
+| --- | --- |
+| VeaInbox (ArbToEthDevnet) | Check [Vea docs](https://docs.vea.ninja/introduction/deployment-addresses) |
+| VeaOutbox (ArbToEthDevnet) | Check [Vea docs](https://docs.vea.ninja/introduction/deployment-addresses) |
+
+---
+
+## Mainnet Deployments
+
+For production mainnet contract addresses across all supported routes (Arbitrum to Ethereum, Arbitrum to Gnosis), refer to the canonical source:
+
+- [Vea Deployment Addresses on docs.vea.ninja](https://docs.vea.ninja/introduction/deployment-addresses)
+- [Vea GitHub repository deployment artifacts](https://github.com/kleros/vea)
+
+<Note>
+Mainnet addresses should be pulled from the Vea repository's deployment artifacts. This page will be updated as mainnet deployments are finalized and verified.
+</Note>
+
+---
+
+## How to Find Addresses
+
+Clone the Vea repository to inspect deployment artifacts:
+
+```bash
+git clone https://github.com/kleros/vea.git
+cd vea
+# Check contracts/deployments/ for per-chain deployment JSONs
+```
+
+---
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Kleros V2 Deployment Addresses" icon="file-contract" href="/reference/contracts/deployment-addresses">
+    KlerosCore, SortitionModule, DisputeKit, and Gateway contract addresses
+  </Card>
+  <Card title="Vea Bridge Architecture" icon="sitemap" href="/developers/crosschain/vea-bridge">
+    How Vea works and supported routes
+  </Card>
+</CardGroup>

@@ -1,0 +1,57 @@
+---
+title: "Building on Kleros Products"
+description: "Integrate with Kleros products to add dispute resolution, curation, identity verification, and oracle capabilities to your application."
+---
+
+## Overview
+
+Kleros provides a suite of products built on top of Kleros Court V2. Each product implements the arbitration standard and can be integrated into third-party applications through smart contract calls, subgraph queries, or frontend SDKs.
+
+All products use Kleros Court on Arbitrum One as the arbitration backend. Disputes raised through any product follow the same resolution flow: juror drawing, evidence submission, voting, appeal, and ruling enforcement.
+
+---
+
+## Products
+
+<CardGroup cols={2}>
+  <Card title="Curate V2" icon="list-check" href="/developers/products/curate/overview">
+    Decentralized token-curated registries for maintaining community-governed lists. Supports challenge-based curation with deposit and reward mechanics.
+  </Card>
+  <Card title="Escrow V2" icon="handshake" href="/developers/products/escrow/overview">
+    Peer-to-peer escrow transactions with ETH and ERC20 support, settlement negotiations, and deadline-based execution.
+  </Card>
+  <Card title="Proof of Humanity" icon="fingerprint" href="/developers/products/poh/overview">
+    Sybil-resistant identity registry using soulbound humanity IDs. Verify unique human identities on-chain with cross-chain state synchronization.
+  </Card>
+  <Card title="Reality (Oracle)" icon="crystal-ball" href="/developers/products/reality/overview">
+    Subjective oracle system combining Reality.eth bond escalation with Kleros arbitration for on-chain verification of real-world events.
+  </Card>
+</CardGroup>
+
+---
+
+## Integration Approaches
+
+Kleros products can be integrated in two ways:
+
+**Direct smart contract integration**: Your contract calls the product's contract functions directly. This is the recommended path for on-chain applications that need trustless dispute resolution or curation.
+
+**Recognition of jurisdiction**: Your platform uses Kleros products through an off-chain agreement, where the dispute is escalated to Kleros Court and the ruling is enforced by your platform's own mechanisms. This is suitable when full smart contract integration is not yet feasible.
+
+For both approaches, refer to the individual product guides for contract addresses, interface specifications, and working code examples.
+
+---
+
+## Shared Infrastructure
+
+All Kleros V2 products share these components:
+
+| Component | Role |
+| --- | --- |
+| **KlerosCore** | Central arbitrator contract on Arbitrum One |
+| **SortitionModule** | Stake-weighted random juror selection |
+| **DisputeKitClassic** | Default voting and appeal logic |
+| **DisputeTemplateRegistry** | Stores dispute display metadata for Court UI |
+| **Vea** | Cross-chain message bridge for relaying disputes and rulings |
+
+For the full architecture, see the [Architecture guide](/developers/architecture).

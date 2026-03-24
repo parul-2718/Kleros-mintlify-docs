@@ -1,0 +1,64 @@
+---
+title: "Overview"
+description: "Decentralized arbitration for your smart contracts"
+---
+
+## What is Kleros V2?
+
+Kleros is a decentralized dispute resolution protocol. Think of it as a **court system for smart contracts** when parties disagree, Kleros provides a trustless way to reach an enforceable ruling.
+
+**V2** brings major upgrades: cross-chain support, modular dispute resolution, and improved scalability by operating on Arbitrum.
+
+## Why Integrate?
+
+<CardGroup cols={2}>
+  <Card title="Trustless Enforcement" icon="gavel">
+    No central authority. Rulings are cryptoeconomically secured by staked jurors.
+  </Card>
+  <Card title="Flexible Resolution" icon="puzzle-piece">
+    Binary yes/no, multiple choice, or nuanced rulings your contract defines the options.
+  </Card>
+  <Card title="Cross-Chain Ready" icon="link">
+    Disputes can originate from Ethereum mainnet or other chains via the gateway system.
+  </Card>
+  <Card title="Battle-Tested" icon="shield-check">
+    Over $50M in value secured through Kleros arbitration since 2018.
+  </Card>
+</CardGroup>
+
+## Use Cases
+
+| Application | Example |
+|-------------|---------|
+| **Escrow** | Release funds only when both parties agree, or let jurors decide |
+| **Insurance** | Decentralized claims processing |
+| **Curation** | Token-curated registries with dispute resolution |
+| **Oracles** | Human-powered verification for subjective data |
+| **DAOs** | Governance dispute resolution |
+
+## How It Works (30-second version)
+
+```
+Your Contract → Creates Dispute → Jurors Vote → Ruling Returned → Your Contract Enforces
+```
+
+1. Your contract implements `IArbitrableV2` interface
+2. When a dispute arises, call `createDispute()` with arbitration fees
+3. Random jurors are drawn (weighted by staked PNK)
+4. Jurors vote, with appeals possible
+5. Final ruling is passed back to your contract via `rule()`
+
+
+
+
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/developers/quick-start">
+    Get your first integration running in minutes
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/developers/architecture">
+    Understand the protocol components
+  </Card>
+</CardGroup>

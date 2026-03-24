@@ -1,0 +1,68 @@
+---
+title: "Dispute Templates"
+description: "Format specification for dispute templates that define what jurors see"
+---
+
+
+
+Dispute templates define the question, answer options, and metadata presented to jurors. They are registered on-chain via the `DisputeTemplateRegistry` contract.
+
+## Template Structure
+
+```json
+{
+  "title": "Should this item be accepted into the registry?",
+  "description": "Evaluate whether the submitted item meets the registry policy.",
+  "question": "Does this item comply with the registry requirements?",
+  "answers": [
+    {
+      "id": "0x1",
+      "title": "Accept",
+      "description": "The item meets all requirements and should be included"
+    },
+    {
+      "id": "0x2",
+      "title": "Reject",
+      "description": "The item does not meet the requirements"
+    }
+  ],
+  "policyURI": "/ipfs/Qm...",
+  "frontendUrl": "https://your-app.com/disputes/{id}",
+  "arbitratorChainID": "42161",
+  "arbitratorAddress": "0x...",
+  "category": "Curation",
+  "lang": "en_US"
+}
+```
+
+## Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `title` | string | Yes | Main question for jurors |
+| `description` | string | Yes | Context and additional details |
+| `question` | string | Yes | Specific question to answer |
+| `answers` | array | Yes | Possible ruling options |
+| `policyURI` | string | No | IPFS URI to the dispute policy |
+| `frontendUrl` | string | No | URL template for viewing the dispute |
+| `arbitratorChainID` | string | Yes | Chain ID where KlerosCore is deployed |
+| `arbitratorAddress` | string | Yes | Address of KlerosCore |
+| `category` | string | No | Dispute category label |
+| `lang` | string | No | Language code |
+| `aliases` | object | No | Human-readable names for addresses |
+
+## Data Mappings
+
+The `templateDataMappings` parameter allows dynamic population of template fields from on-chain data at dispute creation time.
+
+## Registration
+
+```solidity
+uint256 templateId = templateRegistry.setDisputeTemplate(
+    "myTag",
+    templateDataJSON,
+    templateDataMappingsJSON
+);
+```
+
+The `templateId` is emitted in the `DisputeTemplate` event and should be stored for reference.

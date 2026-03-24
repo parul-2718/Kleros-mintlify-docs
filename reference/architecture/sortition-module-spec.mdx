@@ -1,0 +1,29 @@
+---
+title: "Sortition Module Specification"
+description: "Juror selection mechanism specification"
+---
+
+
+
+The Sortition Module handles juror selection through weighted random draws based on staked PNK.
+
+## Phase System
+
+1. **Staking Phase**: Jurors update stakes. Stake changes queued.
+2. **Generating Phase**: Random number requested from RNG source.
+3. **Drawing Phase**: Jurors drawn using the random number and stake weights.
+
+## Drawing Mechanism
+
+Uses a sortition sum tree where each leaf represents a juror's stake. Drawing probability is proportional to stake:
+
+- A juror with 10% of total staked PNK in a court has ~10% chance per draw
+- Multiple draws per dispute (one per juror slot)
+- Same juror can be drawn multiple times (gets multiple votes)
+
+## Stake Management
+
+- Stakes are organized per court in the tree
+- Jurors can stake in multiple courts simultaneously
+- Minimum stake requirement per court (`minStake`)
+- Stake changes may be delayed when in Drawing phase

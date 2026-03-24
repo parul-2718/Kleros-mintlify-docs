@@ -1,0 +1,93 @@
+---
+title: "KlerosCore"
+description: "Core arbitrator contract disputes, appeals, juror management, rulings"
+---
+
+
+
+Central arbitrator contract of Kleros V2. Manages dispute creation, juror drawing, period transitions, appeals, and ruling execution.
+
+**Version**: 0.10.0 | **Proxy**: UUPS Upgradeable
+
+## Key Methods
+
+### `createDispute(uint256 _numberOfChoices, bytes _extraData) payable → uint256`
+Creates a new dispute. Caller must send sufficient ETH (or approved ERC-20) for arbitration cost. The `extraData` encodes the target `courtID` (as `uint96`) and `minJurors` (as `uint256`).
+
+### `arbitrationCost(bytes _extraData) view → uint256`
+Returns current arbitration fee (in ETH) for the specified court/juror configuration.
+
+### `appeal(uint256 _disputeID, uint256 _numberOfChoices, bytes _extraData) payable`
+Handles appeals including court jumps and dispute kit jumps.
+
+### `execute(uint256 _disputeID, uint256 _round, uint256 _iterations)`
+Distributes PNK stakes and fees to jurors based on vote coherence.
+
+### `executeRuling(uint256 _disputeID)`
+Finalizes dispute and calls `rule()` on the Arbitrable contract.
+
+### `currentRuling(uint256 _disputeID) view → (uint256 ruling, bool tied, bool overridden)`
+Gets current ruling state.
+
+### `setStake(uint96 _courtID, uint256 _newStake)`
+Juror staking — requires prior PNK approval. In the Neo deployment, staking also requires the juror to hold the `KlerosV2NeoEarlyUser` NFT.
+ 
+## Initialization Parameters
+ 
+The contract is initialized with the following key parameters (relevant for integrators and governance proposals):
+ 
+| Parameter | Description |
+|---|---|
+| `_governor` | Address with full governance rights (pause, upgrade, parameter changes) |
+| `_guardian` | Emergency address — can pause only |
+| `_pinakion` | PNK token contract address |
+| `_jurorProsecutionModule` | Address authorized to trigger juror penalty execution outside normal dispute flow |
+| `_disputeKit` | Initial dispute kit registered on the root court |
+| `_sortitionModuleAddress` | SortitionModule contract address |
+| `_wNative` | Wrapped native token address (WETH on Arbitrum) — used for ERC-20 fee conversions |
+
+## Governance Roles
+
+- **Governor** Pause/unpause, change parameters, upgrade, change roles
+- **Guardian** Can only pause (emergency response)
+
+When paused: staking and rewards blocked. Dispute creation, voting, and appeals continue.
+
+## ERC-20 Fee Support
+ 
+V2 supports paying arbitration fees in accepted ERC-20 tokens (e.g., WETH, DAI) in addition to ETH:
+ 
+```solidity
+// Pay arbitration fees with ERC-20
+IERC20 feeToken = IERC20(wethAddress);
+uint256 cost = arbitrator.arbitrationCost(extraData, feeToken);
+feeToken.approve(address(arbitrator), cost);
+arbitrator.createDispute(choices, extraData, feeToken, cost);
+```
+ 
+<Warning>
+ERC-20 fee support is only available when interacting directly with KlerosCore on Arbitrum. The `ForeignGateway` (used for cross-chain arbitration from Ethereum/Gnosis) does **not** support ERC-20 fees — only ETH is accepted through the gateway.
+</Warning>
+ 
+## Dispute Kits
+ 
+The General Court supports all four dispute kits. The active kit is selected via `extraData` at dispute creation. Current kits on Arbitrum One:
+ 
+| Kit ID | Name | Description |
+|---|---|---|
+| 1 | DisputeKitClassic | Standard plurality voting |
+| 2 | DisputeKitShutter | Commit-reveal with Shutter encryption |
+| 3 | DisputeKitGated | Gated by eligibility token (SBT) |
+| 4 | DisputeKitGatedShutter | Gated + Shutter commit-reveal |
+
+## Events
+
+| Event | Description |
+|---|---|
+| `DisputeCreation` | New dispute created |
+| `AppealDecision` | Dispute appealed |
+| `CourtJump` | Dispute escalated to parent court |
+| `Ruling` | Final ruling executed |
+| `TokenAndETHShift` | Reward/penalty applied to juror |
+
+[View Source](https://github.com/kleros/kleros-v2/blob/master/contracts/src/arbitration/KlerosCore.sol)

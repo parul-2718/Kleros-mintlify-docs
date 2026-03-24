@@ -1,0 +1,204 @@
+---
+title: "Migrating to V2"
+description: "Step-by-step guide for migrating existing Kleros V1 integrations to V2 on Arbitrum."
+---
+
+## Overview
+
+Kleros V2 introduces a new arbitration standard, dispute template system, and cross-chain architecture. This guide covers the contract-level changes required to migrate an existing V1 (ERC-792 + ERC-1497) integration to V2.
+
+---
+
+## Interface Changes
+
+### Arbitrable Interface
+
+<Tabs>
+  <Tab title="V1 (ERC-792)">
+    ```solidity
+    import {IArbitrable} from "@kleros/erc-792/contracts/IArbitrable.sol";
+    import {IEvidence} from "@kleros/erc-792/contracts/erc-1497/IEvidence.sol";
+
+    contract MyContract is IArbitrable, IEvidence {
+        function rule(uint256 _disputeID, uint256 _ruling) external override;
+    }
+    ```
+  </Tab>
+  <Tab title="V2">
+    ```solidity
+    import {IArbitrableV2} from "@kleros/kleros-v2-contracts/interfaces/IArbitrableV2.sol";
+
+    contract MyContract is IArbitrableV2 {
+        function rule(uint256 _disputeID, uint256 _ruling) external override;
+    }
+    ```
+  </Tab>
+</Tabs>
+
+Key change: `IArbitrableV2` combines the arbitrable and evidence interfaces. There is no separate `IEvidence` interface in V2.
+
+### Arbitrator Interface
+
+<Tabs>
+  <Tab title="V1">
+    ```solidity
+    IArbitrator public arbitrator;
+    // Appeals are part of the interface
+    arbitrator.appeal{value: cost}(disputeID, extraData);
+    arbitrator.appealCost(disputeID, extraData);
+    ```
+  </Tab>
+  <Tab title="V2">
+    ```solidity
+    IArbitratorV2 public arbitrator;
+    // Appeals are NOT part of the interface
+    // Appeal logic is handled internally by KlerosCore
+    // Arbitrable contracts do not call appeal()
+    ```
+  </Tab>
+</Tabs>
+
+Key change: V2 removes appeals from the arbitrator interface. Appeals are managed internally by KlerosCore and funded through the Court UI. Your contract no longer needs appeal-related code.
+
+---
+
+## Evidence and MetaEvidence → Dispute Templates
+
+### V1: MetaEvidence + Dispute Event
+
+```solidity
+// V1: Emit MetaEvidence at deployment
+emit MetaEvidence(0, "/ipfs/QmMetaEvidence...");
+
+// V1: Link dispute to MetaEvidence
+emit Dispute(arbitrator, disputeID, metaEvidenceID, evidenceGroupID);
+
+// V1: Submit evidence
+emit Evidence(arbitrator, evidenceGroupID, msg.sender, "/ipfs/QmEvidence...");
+```
+
+### V2: Dispute Templates + DisputeRequest Event
+
+```solidity
+// V2: Register a template at deployment
+IDisputeTemplateRegistry templateRegistry = IDisputeTemplateRegistry(registryAddress);
+uint256 templateId = templateRegistry.setDisputeTemplate(
+    "",             // template tag
+    templateData,   // JSON template with Mustache variables
+    templateDataMappings // maps variables to on-chain data
+);
+
+// V2: Link dispute to template
+emit DisputeRequest(arbitrator, disputeID, externalDisputeID, templateId, "");
+
+// V2: Submit evidence (same event signature, different import)
+// Evidence can be submitted from either home or foreign chain
+```
+
+---
+
+## extraData Format
+
+<Tabs>
+  <Tab title="V1">
+    ```solidity
+    // Two uint256 values, ABI-packed
+    bytes memory extraData = abi.encodePacked(
+        uint256(subcourtID),    // e.g., 0 for General Court
+        uint256(numberOfJurors) // e.g., 3
+    );
+    ```
+  </Tab>
+  <Tab title="V2">
+    ```solidity
+    // courtID as uint96 + numberOfJurors as uint256
+    bytes memory extraData = abi.encodePacked(
+        uint96(courtID),        // e.g., 1 for General Court
+        uint256(numberOfJurors) // e.g., 3
+    );
+    ```
+  </Tab>
+</Tabs>
+
+Key changes:
+- **Court IDs are renumbered**: V1 uses 0-based court IDs (General Court = `0`). 
+V2 uses 1-based IDs (General Court = `1`, Forking Court = `0` — reserved). Hardcoded V1 court IDs will silently route disputes to the wrong court.
+- `courtID` is encoded as `uint96` instead of `uint256`
+
+<Warning>
+**Breaking change for hardcoded court IDs.** If your V1 contract hardcoded `subcourtID = 0` for General Court, you must change this to `courtID = 1` for V2. Using `courtID = 0` on V2 targets the reserved Forking Court and will revert.
+</Warning>
+
+---
+
+## Event Changes
+
+| V1 Event | V2 Replacement |
+| --- | --- |
+| `MetaEvidence(metaEvidenceID, evidence)` | `DisputeTemplate` registered in `DisputeTemplateRegistry` |
+| `Dispute(arbitrator, disputeID, metaEvidenceID, evidenceGroupID)` | `DisputeRequest(arbitrator, disputeID, externalDisputeID, templateId, templateUri)` |
+| `Evidence(arbitrator, evidenceGroupID, party, evidence)` | Same event, but now in `IArbitrableV2` |
+| `Ruling(arbitrator, disputeID, ruling)` | Same event, now in `IArbitrableV2` |
+
+---
+
+## Chain Migration
+
+V1 contracts live on Ethereum Mainnet (or Gnosis/Polygon). V2 contracts live on Arbitrum One.
+
+**If your arbitrable is on Arbitrum:** Integrate directly with KlerosCore.
+
+**If your arbitrable stays on another chain:** Use the [Foreign Gateway](/developers/crosschain/l2-integration) as your arbitrator. The gateway handles cross-chain dispute creation and ruling relay via [Vea](/developers/crosschain/vea-bridge).
+
+---
+
+## Fee Token Support
+
+V2 adds ERC-20 fee token support. You can pay arbitration fees in accepted ERC-20 tokens instead of only ETH, **when integrating directly with KlerosCore on Arbitrum**:
+
+```solidity
+// V2: Create dispute with ERC20 fee (direct KlerosCore only)
+IERC20 feeToken = IERC20(wethAddress);
+uint256 cost = arbitrator.arbitrationCost(extraData, feeToken);
+feeToken.approve(address(arbitrator), cost);
+arbitrator.createDispute(choices, extraData, feeToken, cost);
+```
+
+<Warning>
+ERC-20 fees are **not available** when using the `ForeignGateway` for cross-chain arbitration. The gateway's ERC-20 `createDispute` overload reverts with `"Not supported"`. Cross-chain arbitrables must always pay fees in ETH.
+</Warning>
+
+---
+
+## Migration Checklist
+
+<Steps>
+  <Step title="Update imports">
+    Replace `@kleros/erc-792` with `@kleros/kleros-v2-contracts`. Change `IArbitrable` + `IEvidence` to `IArbitrableV2`.
+  </Step>
+  <Step title="Remove appeal code">
+    Delete any `appeal()`, `appealCost()`, or `appealPeriod()` calls from your contract. V2 handles appeals internally.
+  </Step>
+  <Step title="Replace MetaEvidence with Dispute Templates">
+    Create a dispute template JSON and register it with `DisputeTemplateRegistry`. Replace `MetaEvidence` and `Dispute` events with `DisputeRequest`.
+  </Step>
+  <Step title="Update extraData encoding">
+    Change from `abi.encodePacked(uint256, uint256)` to `abi.encodePacked(uint96, uint256)` and use V2 court IDs.
+  </Step>
+  <Step title="Deploy on Arbitrum or use Foreign Gateway">
+    Deploy your arbitrable on Arbitrum for direct integration, or use the Foreign Gateway on your current chain for cross-chain disputes.
+  </Step>
+  <Step title="Test on Arbitrum Sepolia">
+    Deploy and test against the V2 testnet contracts on Arbitrum Sepolia before going to production.
+  </Step>
+</Steps>
+
+---
+
+## Reference Contracts
+
+| Contract | Purpose | Repository |
+| --- | --- | --- |
+| ArbitrableExample | Minimal V2 arbitrable implementation | [kleros-v2/contracts/](https://github.com/kleros/kleros-v2) |
+| DisputeTemplateRegistry | Template registration | [kleros-v2/contracts/](https://github.com/kleros/kleros-v2) |
+| ForeignGateway | Cross-chain arbitrator | [kleros-v2/contracts/](https://github.com/kleros/kleros-v2) |

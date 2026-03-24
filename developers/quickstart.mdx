@@ -1,0 +1,177 @@
+---
+title: "Quick Start"
+description: "Integrate Kleros arbitration in your smart contract"
+---
+
+## Installation
+
+<CodeGroup>
+```bash npm
+npm install @kleros/kleros-v2-contracts
+```
+
+```bash yarn
+yarn add @kleros/kleros-v2-contracts
+```
+
+```bash forge
+forge install kleros/kleros-v2-contracts
+```
+</CodeGroup>
+
+## Contract Addresses (Arbitrum One)
+
+```solidity
+// Core contracts
+address constant KLEROS_CORE = 0x33d0b8879368acD8ca868e656Ade97bBcfeB12BA;
+address constant DISPUTE_KIT_CLASSIC = 0x9c1dB86677E43Be2E1Af6D3b68D8B276D7E9b6E8;
+
+// For cross-chain disputes
+address constant HOME_GATEWAY = 0x9c1dB86677E43Be2E1Af6D3b68D8B276D7E9b6E8;
+```
+
+<Warning>
+Always verify addresses on the [official repository](https://github.com/kleros/kleros-v2) before deploying to production.
+</Warning>
+
+## Minimal Integration
+
+### Step 1: Implement IArbitrableV2
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@kleros/kleros-v2-contracts/arbitration/interfaces/IArbitrableV2.sol";
+import "@kleros/kleros-v2-contracts/arbitration/interfaces/IArbitratorV2.sol";
+
+contract MyArbitrable is IArbitrableV2 {
+    IArbitratorV2 public immutable arbitrator;
+    
+    mapping(uint256 => uint256) public externalIDtoLocalID;
+    mapping(uint256 => bool) public resolved;
+    
+    constructor(IArbitratorV2 _arbitrator) {
+        arbitrator = _arbitrator;
+    }
+    
+    function createDispute(
+        bytes calldata _extraData
+    ) external payable returns (uint256 disputeID) {
+        uint256 cost = arbitrator.arbitrationCost(_extraData);
+        require(msg.value >= cost, "Insufficient fee");
+        
+        disputeID = arbitrator.createDispute{value: cost}(
+            2,          // numberOfChoices (e.g., 2 for binary)
+            _extraData  // court parameters
+        );
+        
+        // Map arbitrator's ID to your local tracking
+        externalIDtoLocalID[disputeID] = /* your local ID */;
+        
+        emit DisputeRequest(arbitrator, disputeID, /* params */);
+    }
+    
+    function rule(uint256 _disputeID, uint256 _ruling) external override {
+        require(msg.sender == address(arbitrator), "Only arbitrator");
+        require(!resolved[_disputeID], "Already resolved");
+        
+        resolved[_disputeID] = true;
+        
+        // Execute your business logic based on _ruling
+        // 0 = refused to rule, 1+ = actual ruling choices
+        
+        emit Ruling(arbitrator, _disputeID, _ruling);
+    }
+}
+```
+
+### Step 2: Encode Extra Data
+
+The `extraData` parameter specifies which court and how many jurors:
+
+```solidity
+function getExtraData(
+    uint96 courtID,
+    uint256 minJurors
+) public pure returns (bytes memory) {
+    return abi.encodePacked(courtID, minJurors);
+}
+
+// Example: General Court (ID 1) with 3 jurors
+bytes memory extraData = getExtraData(1, 3);
+```
+
+### Step 3: Get Arbitration Cost
+
+```solidity
+function getArbitrationCost(bytes calldata extraData) external view returns (uint256) {
+    return arbitrator.arbitrationCost(extraData);
+}
+```
+
+## Court IDs
+
+| Court | ID | Min Stake | Use Case |
+|-------|-----|-----------|----------|
+| General | 1 | 200 PNK | Default, broad disputes |
+| Blockchain Technical | Higher | Smart contract disputes |
+| Curation  | Varies | Registry disputes |
+
+<Tip>
+Start with **General Court (ID: 1)** for testing. Use `minJurors = 3` for most cases.
+</Tip>
+
+## Dispute Templates
+
+Jurors need context. Create a template that describes the dispute:
+
+```json
+{
+  "title": "Payment Dispute: Order #1234",
+  "description": "Buyer claims goods not delivered...",
+  "question": "Should the escrowed funds be released to the seller?",
+  "answers": [
+    { "id": "0x1", "title": "Yes", "description": "Release to seller" },
+    { "id": "0x2", "title": "No", "description": "Refund to buyer" }
+  ]
+}
+```
+
+Register templates on-chain or reference via IPFS URI.
+
+## Testing
+
+<Steps>
+  <Step title="Use Arbitrum Sepolia">
+    Deploy to testnet first. Faucets available at [arbitrum.io/faucet](https://arbitrum.io/faucet)
+  </Step>
+  <Step title="Get Test PNK">
+    Testnet PNK is available from the Kleros faucet
+  </Step>
+  <Step title="Create a Test Dispute">
+    Call `createDispute()` with test ETH for fees
+  </Step>
+</Steps>
+
+## SDK (Optional)
+
+For frontend integration, use the Kleros SDK:
+
+```typescript
+import { KlerosSDK } from '@kleros/kleros-v2-sdk';
+
+const sdk = new KlerosSDK({ chainId: 42161 });
+
+// Get dispute details
+const dispute = await sdk.getDispute(disputeID);
+
+// Submit evidence
+await sdk.submitEvidence(disputeID, evidenceURI);
+```
+
+## Next Steps
+
+<Card title="Architecture Deep Dive" icon="sitemap" href="/developers/architecture">
+  Understand how KlerosCore, Dispute Kits, and Sortition Module work together
+</Card>

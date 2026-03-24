@@ -1,0 +1,106 @@
+---
+title: "Smart Contract Workflow"
+description: "Review, audit, bounty, and deployment process for Kleros smart contracts"
+---
+
+
+The process for developing, reviewing, auditing, and deploying Kleros smart contracts.
+
+---
+
+## Task Lifecycle
+
+Smart contract tasks follow the general [development workflow](/contributing/dev-workflow) with additional stages:
+
+1. **Specification**: Define the contract behavior, interfaces, and edge cases
+2. **Implementation**: Write the Solidity code with tests
+3. **Internal Review**: At least one other developer reviews the code
+4. **Audit**: External security review (see RAB process below)
+5. **Deployment**: Deploy to testnet, then mainnet
+6. **Monitoring**: Post-deployment monitoring for unexpected behavior
+
+---
+
+## RAB: Review, Audit, Bounty
+
+The RAB process ensures smart contract security before deployment:
+
+### Review
+
+Internal code review by Kleros developers. Reviewers check:
+- Correctness against the specification
+- Edge case handling
+- Gas optimization
+- Adherence to [Solidity style guidelines](/contributing/code-style)
+- Test coverage
+
+### Audit
+
+External security audit by a third-party firm. Kleros has worked with auditors including Certora. The audit process:
+
+1. Submit contracts for review
+2. Receive findings report
+3. Address all critical and high-severity findings
+4. Re-submit for verification
+5. Publish the audit report
+
+### Bounty
+
+Bug bounty programs for post-deployment security. Kleros has previously used Hats Finance for bounty vaults. The team is evaluating alternatives including HackenProof and Code4rena.
+
+---
+
+## RABd: Review, Audit, Bounty + Deploy
+
+The full RABd process adds the deployment step:
+
+1. Complete RAB (Review, Audit, Bounty)
+2. Deploy to testnet and run integration tests
+3. Deploy to mainnet via the deployment scripts in the repository
+4. Verify contracts on block explorers
+5. Update deployment artifacts in the repository
+6. Update documentation with new addresses
+
+---
+
+## Reporting Vulnerabilities
+
+If you discover a security vulnerability in Kleros contracts:
+
+1. Do NOT open a public GitHub issue
+2. Check the repository's `SECURITY.md` file for reporting instructions
+3. The kleros-v2 repo has a [SECURITY.md](https://github.com/kleros/kleros-v2/blob/dev/SECURITY.md) with disclosure guidelines
+4. Contact the team via the channels listed in that file
+5. Allow reasonable time for the team to address the issue before public disclosure
+
+---
+
+## Testing
+
+Kleros contracts use Hardhat for testing. The kleros-v2 repo also supports Foundry.
+
+```bash
+# Run Hardhat tests
+yarn workspace @kleros/kleros-v2-contracts test
+
+# Run with gas reporting
+yarn workspace @kleros/kleros-v2-contracts test --gas
+```
+
+All contract changes must include corresponding test updates. CI runs tests automatically on pull requests.
+
+---
+
+## Deployment
+
+Deployment scripts are maintained in each repository. For kleros-v2:
+
+```bash
+# Deploy to local Hardhat network
+yarn workspace @kleros/kleros-v2-contracts deploy-local
+
+# Deploy to Arbitrum Sepolia (testnet)
+yarn workspace @kleros/kleros-v2-contracts deploy --network arbitrumSepolia
+```
+
+Deployment artifacts (addresses, ABIs) are committed to `contracts/deployments/` in the repository.

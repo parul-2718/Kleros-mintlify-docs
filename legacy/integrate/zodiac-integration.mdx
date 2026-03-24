@@ -1,0 +1,93 @@
+---
+title: "Safe Zodiac Integration"
+description: "Integrate Kleros as the arbitrator for DAO governance using Gnosis Safe, Snapshot, and Zodiac"
+---
+
+# Safe Zodiac Integration
+
+This guide covers how to make your DAO governance fully decentralized using Gnosis Safe, Snapshot, Zodiac, and Kleros Court.
+
+---
+
+## Components
+
+| Component | Role |
+| --- | --- |
+| [Gnosis Safe](https://gnosis-safe.io/) | Multi-signature wallet managing DAO treasury and contracts |
+| [Snapshot](https://snapshot.org/) | Off-chain vote signaling platform |
+| [Zodiac Reality Module](https://gnosis.github.io/zodiac/docs/tutorial-module-reality/get-started) | Enables trustless on-chain execution of off-chain votes using Reality.eth |
+| [Kleros Court](https://court.kleros.io) | Arbitrates disputed proposals via the Reality.eth-Kleros proxy |
+
+This creates a separation of powers: token holders vote (legislative), the multisig executes (executive), and Kleros arbitrates disputed proposals (judiciary).
+
+---
+
+## Setup
+
+### Prerequisites
+
+- A Gnosis Safe multisig
+- An ENS domain for your DAO's Snapshot space
+
+### Steps
+
+1. **Set up Zodiac Reality Module** following the [Zodiac documentation](https://gnosis.github.io/zodiac/docs/tutorial-module-reality/get-started). When setting parameters, select **Kleros** in the arbitrator field.
+2. **Add the SafeSnap plugin to Snapshot** following the [Snapshot integration guide](https://gnosis.github.io/zodiac/docs/tutorial-module-reality/integrate-snapshot).
+3. **Test proposals**: Create executable proposals on Snapshot and process them after voting ends.
+
+<Warning>
+If no arbitrator is set, Reality.eth resolves disputed proposals in favor of the highest bond submitted, without third-party arbitration. Always set Kleros as the arbitrator.
+</Warning>
+
+---
+
+## Adding Kleros to an Existing DAO
+
+If your DAO already uses Zodiac but no arbitrator has been set:
+
+1. Go to the Zodiac module in the Gnosis Safe UI
+2. Under "Write Contract", select `setArbitrator`
+3. Paste the Realitio Arbitration Proxy contract address:
+   - **Ethereum Mainnet**: `0xf72CfD1B34a91A64f9A98537fe63FBaB7530AdcA`
+4. Execute the transaction
+
+This proxy supports the Reality.eth interface and adds features like crowdfunded appeals.
+
+---
+
+## DAO Requirements Document
+
+Set up a `daorequirements` record on your DAO's ENS to define proposal acceptance criteria. Jurors reference this document when arbitrating disputed proposals.
+
+1. Write an acceptance document (plain text, PDF, or similar)
+2. Upload to IPFS
+3. In the ENS frontend, add a text record with key `daorequirements` and value set to the IPFS identifier
+
+For reference: [gnosis.eth ENS record](https://app.ens.domains/gnosis.eth) has a `daorequirements` record pointing to a plaintext acceptance criteria file.
+
+Without a `daorequirements` document, disputed proposals may be resolved as "No" (requirements cannot be matched if no document exists).
+
+---
+
+## Removing Gnosis Safe Signers
+
+To make the DAO fully decentralized, remove the multisig signers so that only the Zodiac module can interact with the Safe:
+
+1. Go to Settings > Owners in the Safe UI
+2. Remove all signers except one
+3. Replace the remaining signer with the Zodiac module address
+
+After this, the only way to interact with the DAO's Safe is through governance proposals via the Zodiac module.
+
+---
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Zodiac Documentation" icon="book" href="https://gnosis.github.io/zodiac/docs/tutorial-module-reality/get-started">
+    Full Zodiac setup guide
+  </Card>
+  <Card title="Kleros Governance Blog Post" icon="newspaper" href="https://blog.kleros.io/kleros-x-safesnap/">
+    Background on Kleros + SafeSnap integration
+  </Card>
+</CardGroup>

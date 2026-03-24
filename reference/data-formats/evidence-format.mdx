@@ -1,0 +1,38 @@
+---
+title: "Evidence Format"
+description: "Standard for submitting and organizing evidence in Kleros disputes"
+---
+
+
+
+Evidence in Kleros V2 is stored off-chain (IPFS/Arweave) and referenced on-chain via URIs.
+
+## Evidence JSON Structure
+
+```json
+{
+  "title": "Delivery Confirmation",
+  "description": "Screenshot showing the package was delivered on time",
+  "fileURI": "/ipfs/QmFileHash...",
+  "fileTypeExtension": "png",
+  "fileHash": "0x..."
+}
+```
+
+## Fields
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `title` | string | Yes | Brief title of the evidence |
+| `description` | string | Yes | Description of what the evidence shows |
+| `fileURI` | string | No | URI to the evidence file |
+| `fileTypeExtension` | string | No | File extension (pdf, png, etc.) |
+| `fileHash` | string | No | Hash of the file for integrity verification |
+
+## Submission
+
+Evidence is submitted by calling the appropriate method on the Arbitrable contract or evidence module, passing the IPFS URI of the evidence JSON.
+
+## Moderated Evidence
+
+The `ModeratedEvidenceModule` contract provides spam protection for evidence submission through a bonded challenge mechanism. This is particularly useful for disputes on L2 chains where gas costs are low and spam is cheap.

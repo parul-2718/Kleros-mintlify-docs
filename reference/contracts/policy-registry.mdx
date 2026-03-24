@@ -1,0 +1,24 @@
+---
+title: "PolicyRegistry"
+description: "Contract for storing court policies on IPFS"
+---
+
+
+
+Stores IPFS URIs for court policies. Governed by the protocol governor.
+
+## Methods
+
+### `setPolicy(uint96 _courtID, string _courtName, string _policyURI)`
+Sets the policy for a court. Only callable by the governor.
+
+### `policies(uint96 _courtID) → string`
+Returns the IPFS URI for a court's policy.
+
+## Events
+
+| Event | Description |
+|---|---|
+| `PolicyUpdate(courtID, courtName, policyURI)` | Policy updated for a court |
+
+[View Source](https://github.com/kleros/kleros-v2/blob/dev/contracts/src/arbitration/PolicyRegistry.sol)

@@ -1,0 +1,25 @@
+---
+title: "DisputeTemplateRegistry"
+description: "On-chain registry of dispute templates"
+---
+
+
+
+Stores dispute templates that define the question, answer options, and metadata presented to jurors. Templates are referenced by ID when creating disputes.
+
+## Methods
+
+### `setDisputeTemplate(string _templateTag, string _templateData, string _templateDataMappings) → uint256`
+Registers a new dispute template. Returns the template ID.
+
+- `_templateTag`  Optional tag for categorization
+- `_templateData`  JSON template string (see [Dispute Template format](/reference/data-formats/dispute-templates))
+- `_templateDataMappings`  JSON mapping for dynamic data population
+
+## Events
+
+| Event | Description |
+|---|---|
+| `DisputeTemplate(templateId, templateTag, templateData, templateDataMappings)` | New template registered |
+
+[View Source](https://github.com/kleros/kleros-v2/blob/dev/contracts/src/arbitration/DisputeTemplateRegistry.sol)

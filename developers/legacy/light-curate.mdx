@@ -1,0 +1,123 @@
+---
+title: "Light Curate Integration"
+description: "Developer guide for integrating with Kleros Light Curate (V1 with subgraph-based storage)"
+---
+
+# Light Curate: Integration for Devs
+
+<Note>
+This covers Light Curate (V1). For V2 Curate, see the [Developers Curate section](/developers/products/curate/overview).
+</Note>
+
+---
+
+## Overview
+
+Light Curate significantly decreases deployment and operation costs compared to Curate Classic by changing the data storage strategy:
+
+- Item data is NOT stored in contract storage. Only the IPFS multihash is stored on-chain. Storage cost is O(1) instead of O(n).
+- Item fields are stored in the subgraph via The Graph's IPFS API. No need for `@kleros/gtcr-encoder`.
+- Uses EIP-1167 minimal proxy for deployments. Deployment cost dropped from ~7M gas to ~700K gas.
+
+Tradeoff: other contracts cannot query the TCR for field values on-chain (only the IPFS hash is available).
+
+---
+
+## Reading Data
+
+### Fetching Items via Subgraph
+
+Light Curate uses `litems` entities (prefixed with `l`). Pass the TCR address to filter:
+
+```graphql
+{
+  litems(
+    first: 10
+    where: {
+      status: Registered
+      registryAddress: "0xYOUR_LIST_ADDRESS_LOWERCASE"
+    }
+    orderBy: latestRequestResolutionTime
+    orderDirection: desc
+  ) {
+    itemID
+    data
+    props {
+      type
+      label
+      description
+      value
+    }
+  }
+}
+```
+
+The `props` field contains decoded item fields directly. No encoder library needed.
+
+### Fetching a Specific Item
+
+Item entities have IDs in the format `<itemID>@<listAddress>`:
+
+```typescript
+const compoundId = `${itemID}@${tcrAddress.toLowerCase()}`;
+const result = useQuery(ITEM_DETAILS_QUERY, { variables: { id: compoundId } });
+```
+
+### View Contract
+
+A view contract is available for fetching all relevant info in a single call.
+
+Gnosis Chain deployment: `0x08e58Bc26CFB0d346bABD253A1799866F269805a`
+
+---
+
+## Writing Data
+
+### Submitting an Item
+
+1. Upload item data to IPFS (use both The Graph's IPFS endpoint and Kleros IPFS node)
+2. Call `addItem()` on the LightGeneralizedTCR contract with the IPFS URI and required deposit
+
+```
+REACT_APP_IPFS_GATEWAY=https://cdn.kleros.link
+REACT_APP_HOSTED_GRAPH_IPFS_ENDPOINT=https://api.thegraph.com/ipfs
+```
+
+Pin data to IPFS nodes you control in addition to The Graph's and Kleros' nodes.
+
+### Challenging and Executing Requests
+
+- Challenge: call `challengeRequest()` with a deposit
+- Execute: call `executeRequest()` after the challenge period passes unchallenged
+
+---
+
+## Subgraph Conventions
+
+| Entity Prefix | Version |
+| --- | --- |
+| `litems`, `lrequests`, etc. | Light Curate |
+| `items`, `requests`, etc. | Curate Classic |
+
+Addresses must be **lowercase** in queries. The subgraph does not understand checksummed addresses.
+
+The hosted service has a **1000 item limit** per query. For larger registries, paginate using `skip` or `id_gt`.
+
+---
+
+## Subgraph Deployment
+
+If you deployed a list using the factory, it already has a subgraph deployed and available. For custom deployments, see [The Graph documentation](https://thegraph.com/docs/).
+
+---
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Light Curate Contracts" icon="github" href="https://github.com/kleros/tcr">
+    Source code
+  </Card>
+  <Card title="Query Examples" icon="magnifying-glass" href="/developers/subgraph/queries">
+    More GraphQL query examples
+  </Card>
+</CardGroup>

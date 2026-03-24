@@ -1,0 +1,51 @@
+---
+title: "Policy Writing Guide"
+description: "How to write dispute policies that jurors can use to make fair decisions"
+---
+
+# Policy Writing Guide
+
+The dispute policy is the primary document presented to jurors when they evaluate a case. It functions like a piece of legislation: it defines the rules jurors apply to the evidence and arguments before them.
+
+Jurors use three categories of information to decide their vote:
+
+1. **Evidence** submitted by the disputing parties and any third parties
+2. **The dispute policy** written by the integrator (you)
+3. **The court policy** of the court handling the case (if the above two are insufficient)
+
+A well-written dispute policy leads to faster resolution, fewer appeals, and more predictable outcomes.
+
+---
+
+## What to Include
+
+| Section | Description |
+| --- | --- |
+| **Parties** | Who are the parties involved? How are they identified? |
+| **Subject matter** | What is the nature of the service, product, or agreement? |
+| **Conditions** | What specific conditions must be met for each ruling option? |
+| **Evidence requirements** | What types of evidence should jurors consider? What format should evidence be in? |
+| **Edge cases** | What happens in ambiguous situations? What is the default ruling? |
+| **Definitions** | Define any technical terms or domain-specific language |
+
+---
+
+## Tips
+
+- Be specific. Vague policies lead to inconsistent rulings and more appeals.
+- Cover the "what if" scenarios. Think about what happens when evidence is missing, incomplete, or contradictory.
+- State the default ruling explicitly. If jurors cannot determine the correct answer from the evidence, what should they choose?
+- Test your policy by asking someone unfamiliar with your project to read it and explain what they would rule in a sample scenario.
+- Review policies of existing Kleros courts on [court.kleros.io](https://court.kleros.io) for examples.
+
+---
+
+## Policy Storage
+
+Policies are uploaded to IPFS and registered on-chain via the `PolicyRegistry` contract. Child courts inherit policies from their parent courts, so General Court policies apply as a fallback everywhere.
+
+---
+
+## Get Help
+
+The Kleros team has experience writing policies for oracle use cases, curation registries, and escrow disputes. Contact [integrations@kleros.io](mailto:integrations@kleros.io) for review and guidance.

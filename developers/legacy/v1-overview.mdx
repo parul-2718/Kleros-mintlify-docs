@@ -1,0 +1,65 @@
+---
+title: "V1 Overview"
+description: "Overview of Kleros Court V1 architecture, contracts, and deployment status."
+---
+
+## Status
+
+Kleros Court V1 is deployed on Ethereum Mainnet, Gnosis Chain, and Polygon. It remains operational for existing integrations. New integrations should use [Kleros V2 on Arbitrum One](/developers/overview).
+
+---
+
+## Architecture
+
+V1 uses a single `KlerosLiquid` contract that combines arbitration, staking, juror drawing, voting, and appeal logic:
+
+| Contract | Role |
+| --- | --- |
+| **KlerosLiquid** | Core court contract handling disputes, juror selection, and ruling enforcement |
+| **PNK** | ERC-20 token used for staking and juror incentives |
+| **PolicyRegistry** | Stores court policies describing juror guidelines |
+| **Arbitrable Contracts** | Implement ERC-792 to interact with KlerosLiquid |
+
+### V1 vs V2 Differences
+
+| Feature | V1 | V2 |
+| --- | --- | --- |
+| Home chain | Ethereum Mainnet | Arbitrum One |
+| Arbitration standard | ERC-792 | IArbitratorV2 (no appeal in interface) |
+| Evidence standard | ERC-1497 | Dispute Templates + cross-chain evidence |
+| Dispute kits | None (monolithic) | Modular (DisputeKitClassic, specialized kits) |
+| Voting | Commit-reveal | Commit-reveal (default); Shutter encryption available in testing |
+| Cross-chain | Limited (xDAI bridge) | Vea bridge (Ethereum, Gnosis, extensible) |
+| Staking | Direct in KlerosLiquid | SortitionModule (sortition tree) |
+
+---
+
+## V1 Deployment Addresses
+
+### Ethereum Mainnet
+
+| Contract | Address |
+| --- | --- |
+| KlerosLiquid | `0x988b3A538b618C7A603e1c11Ab82Cd16dbE28069` |
+| PNK | `0x93ED3FBe21207Ec2E8f2d3c3de6e058Cb73Bc04d` |
+
+### Gnosis Chain
+
+| Contract | Address |
+| --- | --- |
+| xKlerosLiquid | See the [kleros-v2 repository](https://github.com/kleros/kleros-v2/tree/master/contracts/deployments) for current addresses |
+
+---
+
+## V1 Standards
+
+V1 integrations use two ERC standards:
+
+- **[ERC-792](/developers/legacy/erc-792)**: Arbitration Standard defining the `IArbitrable` and `IArbitrator` interfaces
+- **[ERC-1497](/developers/legacy/erc-1497)**: Evidence Standard defining `MetaEvidence`, `Evidence`, and `Dispute` events for sharing dispute context
+
+---
+
+## Migration
+
+If you have an existing V1 integration and want to migrate to V2, see the [Migration Guide](/developers/legacy/migrating-to-v2).

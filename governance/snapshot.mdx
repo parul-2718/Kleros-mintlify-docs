@@ -1,0 +1,76 @@
+---
+title: "Snapshot"
+description: "Off-chain voting for Kleros governance proposals"
+---
+
+# Snapshot Voting
+
+Kleros uses [Snapshot](https://snapshot.box/#/s:kleros.eth) for off-chain governance voting. Snapshot allows PNK holders to vote on proposals using signed messages no gas fees are required.
+
+---
+
+## How Voting Works
+
+Snapshot voting uses your PNK balance at a specific block height to determine voting power. This means:
+
+- You do **not** need to lock or transfer tokens to vote
+- PNK held in your wallet at the snapshot block determines your voting weight
+- Voting is gasless you only sign a message with your wallet
+- Results are publicly verifiable through on-chain signatures
+
+<Warning>
+If your PNK is held in a smart contract wallet (e.g., a multisig like Gnosis Safe), you need to **delegate** your voting power to another address in order to vote on Snapshot.
+</Warning>
+
+---
+
+## How to Vote
+
+<Steps>
+  <Step title="Go to Snapshot">
+    Visit [snapshot.box/#/s:kleros.eth](https://snapshot.box/#/s:kleros.eth)
+  </Step>
+  <Step title="Connect Wallet">
+    Connect the wallet holding your PNK tokens
+  </Step>
+  <Step title="Select a Proposal">
+    Browse active proposals and click one to review
+  </Step>
+  <Step title="Cast Your Vote">
+    Choose your preferred option and sign the message no gas fee required
+  </Step>
+</Steps>
+
+---
+
+## Kleros Snapshot Space
+
+The Kleros governance Snapshot space is **kleros.eth**. It is the official space for all protocol governance votes.
+
+Proposals on this space can cover any governance topic parameter changes, treasury allocations, new court creation, incentive programs, protocol upgrades, and more.
+
+---
+
+## After a Vote Passes
+
+Once a Snapshot vote concludes with approval, the decision is enforced through [Kleros Governor](/products/governor):
+
+1. Anyone can submit a transaction list to Governor that implements the approved changes
+2. A submission period allows community members to verify the list matches the vote
+3. If only one correct list is submitted, it executes automatically
+4. If conflicting lists are submitted, Kleros Court arbitrates
+
+This creates a fully decentralized governance pipeline: propose on the forum, vote on Snapshot, execute via Governor all without centralized intermediaries.
+
+---
+
+## Links
+
+<CardGroup cols={2}>
+  <Card title="Vote on Snapshot" icon="check-to-slot" href="https://snapshot.box/#/s:kleros.eth">
+    Browse and vote on active Kleros proposals
+  </Card>
+  <Card title="Kleros Forum" icon="comments" href="https://forum.kleros.io">
+    Discuss proposals before they go to vote
+  </Card>
+</CardGroup>

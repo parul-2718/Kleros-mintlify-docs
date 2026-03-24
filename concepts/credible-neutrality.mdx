@@ -1,0 +1,80 @@
+---
+title: "Credible Neutrality"
+description: "Why Kleros decisions can be trusted by all parties in a dispute"
+---
+
+
+
+A dispute resolution system is only useful if all parties trust its outcomes. Kleros achieves this through **credible neutrality**, the property that the system's design makes bias structurally difficult, not just promised.
+
+---
+
+## What Makes a System Credibly Neutral?
+
+A mechanism is credibly neutral when its rules don't systematically favor any participant. Participants don't need to trust the operator, they can verify from the design itself that the system treats everyone fairly.
+
+Kleros achieves this through four design properties:
+
+### 1. Random Juror Selection
+
+Jurors are drawn randomly, weighted by PNK stake. No party to a dispute can choose or influence who reviews their case. The randomness is generated through Chainlink VRF with on-chain verification, ensuring neither Kleros nor any participant controls the selection.
+
+### 2. Independent Voting
+
+Jurors vote without knowing how others have voted (commit-reveal or encrypted voting). They evaluate evidence independently and are incentivized to reach the truthful answer through the Schelling point mechanism, not to coordinate or follow a leader.
+
+### 3. Open Participation
+
+Anyone can become a juror by staking PNK there is no permission, application process, or credential requirement. Anyone can submit evidence. Anyone can fund an appeal. The system is permissionless at every level.
+
+### 4. Deterministic Enforcement
+
+Rulings are enforced by smart contracts, not by human administrators. Once the voting and appeal process concludes, the outcome is executed automatically. No intermediary can override, delay, or selectively enforce a ruling.
+
+---
+
+## Comparison with Traditional Systems
+
+| Property | Traditional Arbitration | Kleros |
+|----------|----------------------|--------|
+| **Arbitrator selection** | Parties negotiate or institution assigns | Random, stake-weighted, verifiable |
+| **Neutrality guarantee** | Reputation and regulation | Cryptographic and economic |
+| **Transparency** | Often confidential | Fully on-chain and auditable |
+| **Enforcement** | Legal system | Smart contract execution |
+| **Appeal** | Varies by jurisdiction | Permissionless, crowdfunded |
+| **Cost** | Often high fixed fees | Scales with dispute complexity |
+
+---
+
+## The Role of Transparency
+
+Every aspect of a Kleros dispute is publicly auditable:
+
+- The dispute creation and parameters are on-chain
+- Evidence submissions are publicly accessible
+- Vote commitments and reveals are recorded
+- Fee distributions and PNK movements are traceable
+- Court parameters and policies are published
+
+This transparency means any party can independently verify that the process was conducted according to the protocol rules. Unlike opaque arbitration proceedings, Kleros disputes can be audited by anyone after the fact.
+
+---
+
+## Limitations
+
+Credible neutrality is a **design property**, not a guarantee of correct outcomes. Kleros is neutral in the sense that its rules don't favor any party but jurors are still human and can make mistakes. The appeals system is the protocol's answer to this: if the first jury gets it wrong, progressively larger juries can correct the error.
+
+The system also depends on the quality of court policies. A poorly written policy that leaves too much room for interpretation weakens the Schelling point, making it harder for jurors to converge on the correct answer. Well-designed policies strengthen credible neutrality by providing clear evaluation criteria.
+
+---
+
+## Further Reading
+
+<CardGroup cols={2}>
+  <Card title="Game Theory" icon="chess" href="/concepts/game-theory">
+    The incentive mechanics that enforce neutral behavior
+  </Card>
+  <Card title="Dispute Resolution" icon="scale-balanced" href="/concepts/dispute-resolution">
+    How the overall system works end-to-end
+  </Card>
+</CardGroup>

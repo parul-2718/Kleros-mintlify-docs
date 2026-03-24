@@ -1,0 +1,364 @@
+---
+title: "Testing"
+description: "Test your arbitrable integration before mainnet"
+---
+
+## Testing Strategy
+
+Testing arbitrable contracts requires simulating the full dispute lifecycle. You can't just unit test you need to interact with Kleros contracts.
+
+```mermaid
+graph TB
+    subgraph Testing Layers
+        direction TB
+        L1["1. Unit Tests<br/>Your contract logic in isolation<br/>with MockArbitrator"]
+        L2["2. Integration Tests<br/>With mock arbitrator + dispute lifecycle"]
+        L3["3. Testnet<br/>With real Kleros on Arbitrum Sepolia"]
+        L4["4. Mainnet Fork<br/>Simulate with production KlerosCore state"]
+    end
+    L1 --> L2 --> L3 --> L4
+    style L1 fill:#e8e0f0,stroke:#7b5ea7
+    style L2 fill:#d8ccf0,stroke:#7b5ea7
+    style L3 fill:#c4b0e8,stroke:#7b5ea7
+    style L4 fill:#7b5ea7,color:#fff,stroke:#5a3d8a
+```
+
+## Unit Testing with Mock Arbitrator
+
+Create a minimal mock to test your contract's logic:
+
+```solidity
+// test/mocks/MockArbitrator.sol
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.18;
+
+import "@kleros/kleros-v2-contracts/arbitration/interfaces/IArbitratorV2.sol";
+
+contract MockArbitrator is IArbitratorV2 {
+    uint256 public disputeCount;
+    uint256 public fixedCost = 0.01 ether;
+    
+    mapping(uint256 => address) public disputeArbitrable;
+    mapping(uint256 => uint256) public disputeChoices;
+    
+    function arbitrationCost(bytes calldata) external view override returns (uint256) {
+        return fixedCost;
+    }
+    
+    function createDispute(
+        uint256 _choices,
+        bytes calldata
+    ) external payable override returns (uint256 disputeID) {
+        require(msg.value >= fixedCost, "Insufficient fee");
+        
+        disputeID = disputeCount++;
+        disputeArbitrable[disputeID] = msg.sender;
+        disputeChoices[disputeID] = _choices;
+        
+        emit DisputeCreation(disputeID, IArbitrableV2(msg.sender));
+    }
+    
+    // Test helper: manually deliver ruling
+    function giveRuling(uint256 _disputeID, uint256 _ruling) external {
+        IArbitrableV2(disputeArbitrable[_disputeID]).rule(_disputeID, _ruling);
+    }
+    
+    function currentRuling(uint256) external pure override returns (uint256, bool, bool) {
+        return (0, false, false);
+    }
+}
+```
+
+### Foundry Test Example
+
+```solidity
+// test/Escrow.t.sol
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.18;
+
+import "forge-std/Test.sol";
+import "../src/Escrow.sol";
+import "./mocks/MockArbitrator.sol";
+
+contract EscrowTest is Test {
+    Escrow escrow;
+    MockArbitrator arbitrator;
+    
+    address buyer = address(0x1);
+    address seller = address(0x2);
+    
+    function setUp() public {
+        arbitrator = new MockArbitrator();
+        escrow = new Escrow(
+            IArbitratorV2(address(arbitrator)),
+            abi.encodePacked(uint96(1), uint256(3)), // court 1, 3 jurors
+            "/ipfs/QmTemplate"
+        );
+        
+        vm.deal(buyer, 10 ether);
+        vm.deal(seller, 10 ether);
+    }
+    
+    function testCreateTransaction() public {
+        vm.prank(buyer);
+        uint256 txID = escrow.createTransaction{value: 1 ether}(seller);
+        
+        (address _buyer, address _seller, uint256 amount,,) = escrow.transactions(txID);
+        assertEq(_buyer, buyer);
+        assertEq(_seller, seller);
+        assertEq(amount, 1 ether);
+    }
+    
+    function testRaiseDispute() public {
+        vm.prank(buyer);
+        uint256 txID = escrow.createTransaction{value: 1 ether}(seller);
+        
+        uint256 cost = escrow.getArbitrationCost();
+        
+        vm.prank(buyer);
+        escrow.raiseDispute{value: cost}(txID);
+        
+        (,,,Escrow.Status status,) = escrow.transactions(txID);
+        assertEq(uint256(status), uint256(Escrow.Status.Disputed));
+    }
+    
+    function testRulingPaysSeller() public {
+        // Setup
+        vm.prank(buyer);
+        uint256 txID = escrow.createTransaction{value: 1 ether}(seller);
+        
+        vm.prank(buyer);
+        escrow.raiseDispute{value: 0.01 ether}(txID);
+        
+        // Get dispute ID
+        (,,,,uint256 disputeID) = escrow.transactions(txID);
+        
+        uint256 sellerBalanceBefore = seller.balance;
+        
+        // Arbitrator delivers ruling: 1 = PaySeller
+        arbitrator.giveRuling(disputeID, 1);
+        
+        assertEq(seller.balance, sellerBalanceBefore + 1 ether);
+    }
+    
+    function testRulingRefundsBuyer() public {
+        vm.prank(buyer);
+        uint256 txID = escrow.createTransaction{value: 1 ether}(seller);
+        
+        vm.prank(buyer);
+        escrow.raiseDispute{value: 0.01 ether}(txID);
+        
+        (,,,,uint256 disputeID) = escrow.transactions(txID);
+        
+        uint256 buyerBalanceBefore = buyer.balance;
+        
+        // Ruling: 2 = RefundBuyer
+        arbitrator.giveRuling(disputeID, 2);
+        
+        assertEq(buyer.balance, buyerBalanceBefore + 1 ether);
+    }
+    
+    function testOnlyArbitratorCanRule() public {
+        vm.prank(buyer);
+        uint256 txID = escrow.createTransaction{value: 1 ether}(seller);
+        
+        vm.prank(buyer);
+        escrow.raiseDispute{value: 0.01 ether}(txID);
+        
+        (,,,,uint256 disputeID) = escrow.transactions(txID);
+        
+        vm.prank(address(0xBAD));
+        vm.expectRevert("Only arbitrator");
+        escrow.rule(disputeID, 1);
+    }
+    
+    function testCannotRuleTwice() public {
+        vm.prank(buyer);
+        uint256 txID = escrow.createTransaction{value: 1 ether}(seller);
+        
+        vm.prank(buyer);
+        escrow.raiseDispute{value: 0.01 ether}(txID);
+        
+        (,,,,uint256 disputeID) = escrow.transactions(txID);
+        
+        arbitrator.giveRuling(disputeID, 1);
+        
+        vm.expectRevert("Not disputed");
+        arbitrator.giveRuling(disputeID, 2);
+    }
+}
+```
+
+Run with:
+```bash
+forge test -vvv
+```
+
+## Testnet Testing (Arbitrum Sepolia)
+
+### Setup
+
+1. **Get testnet ETH**
+   ```bash
+   # Arbitrum Sepolia faucet
+   https://faucet.quicknode.com/arbitrum/sepolia
+   ```
+
+2. **Deploy your contract**
+   ```bash
+   forge script script/Deploy.s.sol --rpc-url arbitrum_sepolia --broadcast
+   ```
+
+3. **Verify contract addresses**
+   
+   Check [kleros-v2 deployments](https://github.com/kleros/kleros-v2/tree/dev/contracts/deployments) for testnet addresses.
+
+### Creating a Test Dispute
+
+```javascript
+// scripts/createTestDispute.js
+const { ethers } = require("hardhat");
+
+async function main() {
+    const escrow = await ethers.getContractAt("Escrow", ESCROW_ADDRESS);
+    
+    // 1. Create transaction
+    const tx = await escrow.createTransaction(SELLER_ADDRESS, {
+        value: ethers.parseEther("0.001")
+    });
+    await tx.wait();
+    console.log("Transaction created");
+    
+    // 2. Get arbitration cost
+    const cost = await escrow.getArbitrationCost();
+    console.log("Arbitration cost:", ethers.formatEther(cost), "ETH");
+    
+    // 3. Raise dispute
+    const disputeTx = await escrow.raiseDispute(0, { value: cost });
+    const receipt = await disputeTx.wait();
+    
+    // 4. Find dispute ID from events
+    const event = receipt.logs.find(log => 
+        log.topics[0] === ethers.id("DisputeRequest(address,uint256,uint256,uint256,string)")
+    );
+    console.log("Dispute created! Check Kleros Court UI");
+}
+```
+
+### Monitoring Dispute Progress
+
+```javascript
+// Track dispute status
+async function checkDispute(escrow, txID) {
+    const [ruling, tied, overridden] = await escrow.getDisputeStatus(txID);
+    console.log({
+        ruling: ruling.toString(),
+        tied,
+        overridden
+    });
+}
+```
+
+## Test Scenarios Checklist
+
+### Happy Path
+- [ ] Create transaction
+- [ ] Raise dispute with correct fee
+- [ ] Evidence submission emits event
+- [ ] Ruling executes correct outcome
+- [ ] Funds transfer to correct party
+
+### Edge Cases
+- [ ] Insufficient arbitration fee reverts
+- [ ] Non-party cannot raise dispute
+- [ ] Cannot dispute already-disputed transaction
+- [ ] Cannot rule on non-existent dispute
+- [ ] Ruling `0` (refuse to rule) handled correctly
+- [ ] Excess fee is refunded
+
+### Security
+- [ ] Only arbitrator can call `rule()`
+- [ ] Cannot call `rule()` twice
+- [ ] Invalid ruling value reverts
+- [ ] Reentrancy protection works
+
+### Gas Optimization
+- [ ] Measure gas for `createDispute()`
+- [ ] Measure gas for `rule()` with transfer
+- [ ] Compare with/without evidence submission
+
+## Debugging Tips
+
+### Common Issues
+
+<AccordionGroup>
+  <Accordion title="'Insufficient fee' on createDispute">
+    Arbitration cost changes. Always fetch fresh:
+    ```solidity
+    uint256 cost = arbitrator.arbitrationCost(extraData);
+    ```
+  </Accordion>
+  
+  <Accordion title="Ruling never arrives">
+    - Dispute may still be in voting/appeal period
+    - Check dispute status on Kleros Court UI
+    - Testnet disputes can take days if no jurors
+  </Accordion>
+  
+  <Accordion title="Wrong arbitrator address">
+    Verify you're using the correct network's KlerosCore address. Testnet ≠ mainnet.
+  </Accordion>
+  
+  <Accordion title="Evidence not showing in UI">
+    - Check `Evidence` event was emitted with correct `_evidenceGroupID`
+    - Verify JSON is valid
+    - IPFS content may take time to propagate
+  </Accordion>
+</AccordionGroup>
+
+### Event Debugging
+
+```javascript
+// Listen for all relevant events
+escrow.on("DisputeRequest", (arbitrator, disputeID, externalID, templateId, templateUri) => {
+    console.log("Dispute created:", { disputeID, externalID });
+});
+
+escrow.on("Ruling", (arbitrator, disputeID, ruling) => {
+    console.log("Ruling received:", { disputeID, ruling });
+});
+
+escrow.on("Evidence", (arbitrator, evidenceGroupID, party, evidence) => {
+    console.log("Evidence submitted:", { evidenceGroupID, party });
+});
+```
+
+## Mainnet Fork Testing
+
+Test against production state without spending real ETH:
+
+```bash
+# Foundry
+forge test --fork-url https://arb1.arbitrum.io/rpc -vvv
+
+# Hardhat
+npx hardhat test --network hardhat --fork https://arb1.arbitrum.io/rpc
+```
+
+```solidity
+function testWithRealKleros() public {
+    // Use actual mainnet KlerosCore address
+    IArbitratorV2 realArbitrator = IArbitratorV2(0x33d0b8879368acD8ca868e656Ade97bBcfeB12BA);
+    
+    uint256 cost = realArbitrator.arbitrationCost(extraData);
+    // Verify cost is reasonable
+    assertGt(cost, 0);
+    assertLt(cost, 1 ether);
+}
+```
+
+## Next Steps
+
+<Card title="Production Checklist" icon="clipboard-check" href="/developers/arbitrable/production">
+  Pre-deployment security and operational checklist
+</Card>

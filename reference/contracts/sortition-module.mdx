@@ -1,0 +1,33 @@
+---
+title: "Sortition Module"
+description: "Juror selection via weighted random draws based on staked PNK"
+---
+
+
+
+Manages juror selection through stake-weighted random drawing. Uses a sum tree data structure for efficient proportional selection.
+
+## Phase System
+
+The sortition module operates in phases:
+
+1. **Staking**: Jurors can update stakes. No draws happening.
+2. **Generating**: RNG is requested from the random number source.
+3. **Drawing**: Jurors are drawn for disputes using the generated random number.
+
+## Key Methods
+
+### `createDisputeHook(uint256 _disputeID, uint256 _roundID)`
+Called by KlerosCore when a dispute is created. Prepares the drawing parameters.
+
+### `draw(uint256 _disputeID, uint256 _roundID, uint256 _nonce) → address`
+Draws a juror for the dispute based on staked PNK weights and the random number.
+
+### `setStake(address _account, uint96 _courtID, uint256 _newStake, bool _alreadyTransferred) → (uint256, uint256, uint256, bool)`
+Updates a juror's stake in the sum tree.
+
+## Stake Tree
+
+Uses a sortition sum tree where each leaf represents a juror's stake in a court. Drawing probability is proportional to stake: a juror with 10% of total staked PNK in a court has a 10% chance of being drawn for each juror slot.
+
+[View Source](https://github.com/kleros/kleros-v2/blob/dev/contracts/src/arbitration/SortitionModuleBase.sol)

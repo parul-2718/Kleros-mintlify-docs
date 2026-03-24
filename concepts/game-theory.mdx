@@ -1,0 +1,108 @@
+---
+title: "Game Theory"
+description: "Why jurors are incentivized to vote honestly in Kleros Court"
+---
+
+# Game Theory & Incentives
+
+Kleros is designed so that honest voting is the **dominant strategy** for jurors. This page explains the game-theoretic foundations that make decentralized dispute resolution work.
+
+---
+
+## The Schelling Point Mechanism
+
+Kleros draws on Thomas Schelling's insight that people who cannot communicate tend to coordinate on "focal points", the most obvious or natural answer to a question.
+
+In Kleros, jurors are randomly selected, cannot communicate, and must vote independently. They know that:
+- Other jurors are also trying to answer honestly
+- Voting with the majority earns rewards
+- Voting against the majority loses PNK
+
+Given these conditions, the rational strategy for each juror is to vote for what they believe to be the **objectively correct answer**, because that's the answer they expect other honest jurors to also pick. The honest answer becomes the Schelling point.
+
+---
+
+## The Incentive Structure
+
+Kleros uses two types of economic incentives:
+
+### Arbitration Fees (ETH)
+
+Dispute creators pay fees that are distributed among coherent jurors. If you vote with the final winning answer, you earn a share of the total fees for that round:
+
+```
+jurorFeeReward = totalFees / numberOfCoherentVotes
+```
+
+### PNK Redistribution
+
+Incoherent jurors lose a portion of their staked PNK (determined by the `alpha` parameter). This PNK is redistributed to coherent jurors:
+
+```
+jurorPNKReward = totalPenalties / numberOfCoherentVotes
+```
+
+The combination creates a system where honest voting is rewarded from **two independent sources**, while dishonest voting is penalized.
+
+---
+
+## Attack Resistance
+
+### The 51% Attack Problem
+
+For an attacker to control the outcome of a dispute, they would need to control the majority of drawn jurors. Since jurors are drawn proportionally to staked PNK, this requires controlling a majority of PNK staked in the relevant court.
+
+This is expensive for three reasons:
+
+**Market liquidity defense** PNK is a purpose-built token. As an attacker buys PNK, supply becomes scarce and the price rises sharply. Unlike attacking with ETH (which has deep global liquidity), buying enough PNK to dominate a court becomes progressively more expensive.
+
+**Appeals escalation** Even if an attacker wins one round, the honest side can appeal. Each appeal roughly doubles the jury, requiring the attacker to control an ever-larger majority. The cost of sustaining an attack grows exponentially with each round.
+
+**The "Lone Voice of Reason" effect** If every other juror in a round voted dishonestly, a single honest juror who voted correctly would receive *all* the penalties and fees from that round. This creates a strong incentive for at least some participants to vote honestly even under attack conditions.
+
+### Vote Buying and Collusion
+
+Kleros V2 addresses vote manipulation through several mechanisms:
+
+**Hidden votes** Commit-reveal voting prevents jurors from proving how they voted, making vote buying unenforceable (the bribed juror can simply lie about their committed vote).
+
+**Juror fraud protection** Anyone who detects that a juror revealed their vote before the reveal phase can challenge them and claim a portion of their stake.
+
+**Random selection** Because jurors are drawn randomly, an attacker cannot predict or control which jurors are selected, making targeted bribery difficult.
+
+---
+
+## Why Honest Jurors Win Long-Term
+
+An honest juror who consistently votes for the truthful answer will, over many disputes, earn more than they lose. The system is designed so that:
+
+- On average, honest jurors are coherent (they agree with the majority)
+- The fees and PNK redistributed from incoherent jurors flow to coherent ones
+- The expected return from honest voting exceeds the expected return from random or strategic voting
+
+This doesn't mean honest jurors never lose they may be in the minority in any single round. But the appeals system ensures that persistent minorities can escalate until the truthful answer prevails.
+
+---
+
+## Limitations and Honest Acknowledgments
+
+**Kleros does not guarantee perfect outcomes.** It guarantees that honest voting is economically optimal under the protocol's game-theoretic assumptions. In practice:
+
+- Small disputes with few jurors have higher variance
+- Jurors may lack expertise for highly technical disputes (this is why specialized courts exist)
+- Disputes with genuinely ambiguous evidence may not have a clear Schelling point
+
+The system mitigates these through court specialization, appeals, and the exponentially growing jury size across rounds.
+
+---
+
+## Further Reading
+
+<CardGroup cols={2}>
+  <Card title="Kleros Yellow Paper" icon="file" href="https://kleros.io/yellowpaper.pdf">
+    Formal analysis of incentive mechanisms, voting systems, and attack resistance (Sections 4.7-4.11)
+  </Card>
+  <Card title="Dispute Resolution" icon="scale-balanced" href="/concepts/dispute-resolution">
+    The overall dispute resolution process
+  </Card>
+</CardGroup>

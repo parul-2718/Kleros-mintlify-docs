@@ -1,0 +1,84 @@
+---
+title: "Scout"
+description: "Community-curated safety information for smart contracts, tokens, and dApps"
+---
+
+# Scout
+
+<img src="/images/scout-hero.png" alt="Kleros Scout Interface" />
+<Note>Scout currently uses **V1 Curate registries**. Scout V2 redesign (frontend) is complete, with underlying registry migration to V2 planned.</Note>
+
+**Kleros Scout** is a frontend application that displays community-curated safety and metadata information for smart contracts, tokens, and dApps. It aggregates data from multiple [Curate](/products/curate) registries to give users a unified view of address tags, contract labels, and token information.
+
+Scout is the public-facing layer on top of Curate's decentralized registries think of it as a read-only explorer that makes registry data accessible to wallets, block explorers, and end users.
+
+---
+
+## Key Capabilities
+
+<CardGroup cols={3}>
+  <Card title="Address Tagging" icon="tag">
+    Community-curated labels for smart contract addresses across multiple chains
+  </Card>
+  <Card title="Token Verification" icon="shield-check">
+    Verified token metadata including names, logos, and contract details
+  </Card>
+  <Card title="Multi-Chain Coverage" icon="link">
+    Supports Ethereum Mainnet, Arbitrum, Base, Gnosis, Polygon, and other EVM chains
+  </Card>
+</CardGroup>
+
+---
+
+## How Scout Works
+
+Scout itself does not manage submissions or disputes those happen in [Curate](/products/curate). Scout reads from four main Curate registries:
+
+**Address Tags Registry (ATR)**: Maps contract addresses to human-readable labels (e.g., "Uniswap V3 Router"). These tags appear in block explorers like Blockscout and wallet interfaces like MetaMask.
+
+**Address Tags Query (ATQ)**: Handles removal requests and quality checks for the ATR.
+
+**Token Registry**: Curated list of verified ERC-20 tokens with metadata (name, symbol, logo, decimals).
+
+**CDN Registry**: Stores additional metadata like project logos and descriptions served to dApps.
+
+### Integrations
+
+Scout data powers labels and safety information in several major products:
+
+- **Blockscout**: Address labels from Scout registries
+- **MetaMask Snaps**: Contract verification data
+- **Otterscan**: Contract tags
+- **Uniswap, Zerion**: Token metadata
+
+---
+
+## Earning Rewards Through Curation
+
+Kleros runs active incentive programs for Scout registry contributors. Curators earn PNK rewards for submitting accurate address tags and successfully challenging incorrect ones.
+
+Current incentive details (updated monthly via blog posts):
+
+- Submission and removal reward pools are distributed proportionally among successful participants
+- Specific chains are eligible for rewards each month
+- ERC-20, ERC-721, and EIP-1167 contract submissions may have different reward eligibility rules
+
+<Tip>
+Check the [Kleros Blog](https://blog.kleros.io) for the latest monthly Scout incentive parameters and eligible chains.
+</Tip>
+
+---
+
+## What's Next?
+
+<CardGroup cols={3}>
+  <Card title="Explore Scout" icon="magnifying-glass" href="https://klerosscout.eth.limo/">
+    Browse community-curated address tags and token data
+  </Card>
+  <Card title="Curate" icon="list-check" href="/products/curate">
+    Learn about the registry system that powers Scout
+  </Card>
+  <Card title="Build on Scout" icon="code" href="/developers/products/curate">
+    Query Scout registry data for your application
+  </Card>
+</CardGroup>

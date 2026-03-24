@@ -1,0 +1,56 @@
+---
+title: "V2 Architecture"
+description: "Detailed system architecture of Kleros V2"
+---
+
+
+
+## Design Principles
+
+Kleros V2 was designed around six key principles:
+
+1. **Modularity**: Dispute resolution logic is separated into pluggable Dispute Kits
+2. **Multi-Dispute-Kit Support**: Different courts can use different voting, incentive, and appeal mechanisms
+3. **Fork-Friendly**: The protocol supports forking to reduce attack payoffs
+4. **Lightweight PNK**: Simple ERC-20 token (replacing the complex Minime token from V1)
+5. **Juror Fraud Protection**: Mechanisms to detect and penalize pre-reveal, bribery, and cartelling
+6. **Evidence Spam Protection**: Deposit-based evidence submission on L2 where gas is cheap
+
+## Component Map
+
+| Component | Responsibility |
+|---|---|
+| **KlerosCore** | Dispute creation, period management, appeals, ruling execution, juror rewards |
+| **DisputeKitClassic** | Plurality voting, commit-reveal, equal-split incentives, asymmetric appeal funding |
+| **SortitionModule** | Stake-weighted random juror selection via sum trees |
+| **DisputeTemplateRegistry** | On-chain registry of dispute question/answer templates |
+| **PolicyRegistry** | Court policy storage (IPFS URIs) |
+| **KlerosGovernor** | On-chain governance execution (Snapshot → transactions) |
+| **Home/Foreign Gateways** | Cross-chain dispute relay |
+| **Vea Bridge** | Optimistic cross-chain message transport |
+
+## Multi-Chain Vision
+
+The long-term architecture supports Arbitrables on any EVM chain:
+- Users interact primarily with the Home chain (Arbitrum) for most operations
+- Evidence can be submitted from foreign chains for convenience
+- Gateways and the Vea bridge abstract away bridging complexity
+- Each supported foreign chain has its own Foreign Gateway deployment
+
+## Dispute Kit System
+
+Courts can support multiple dispute kits, enabling different:
+- **Drawing methods**: PNK-weighted, Proof-of-Humanity-based, etc.
+- **Voting systems**: Plurality, Condorcet-IRV, etc.
+- **Incentive models**: Equal split, weighted functions, etc.
+- **Appeal systems**: Fund-2-only, fund-multiple, stake-based, etc.
+
+Currently, `DisputeKitClassic` (PNK drawing + plurality voting + equal split + fund-2-only appeals) is the only deployed kit and is mandatorily supported by all courts.
+
+## Security Model
+
+- **Cryptoeconomic**: Jurors stake PNK; incoherent voters lose stake
+- **Random Selection**: Prevents manipulation of juror composition
+- **Appeal Escalation**: Exponentially increasing cost to sustain an attack
+- **Emergency Controls**: Guardian pause + Governor unpause for rapid response
+- **Fork Mechanism**: Ultimate defense: honest minority can fork the protocol

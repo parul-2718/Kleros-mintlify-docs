@@ -1,0 +1,21 @@
+---
+title: "ModeratedEvidenceModule"
+description: "Spam-protected evidence submission via bonded moderation"
+---
+
+
+
+Provides spam protection for evidence submission through a bonded challenge mechanism. On L2 chains where gas is cheap, spam evidence is a real concern this module requires deposits that can be challenged.
+
+## How It Works
+
+1. Evidence submitter posts evidence with a deposit
+2. During the moderation period, anyone can challenge the evidence
+3. If challenged, a dispute is created to determine if the evidence is spam
+4. Spam evidence submitters lose their deposit; legitimate evidence is accepted
+
+## Use Case
+
+Particularly useful for disputes on Arbitrum where gas costs are low enough that malicious actors could flood a dispute with irrelevant evidence to confuse jurors.
+
+[View Source](https://github.com/kleros/kleros-v2/blob/dev/contracts/src/evidence/ModeratedEvidenceModule.sol)

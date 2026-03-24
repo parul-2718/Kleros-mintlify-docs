@@ -1,0 +1,76 @@
+---
+title: "Governance Overview"
+description: "How the Kleros protocol is governed by PNK token holders"
+---
+
+# Governance
+
+The Kleros Protocol Governance process is the decision-making and enforcement mechanism for changes in parameters, contract deployments, policy specifications, incentives, and improvements that make up the Kleros protocol. PNK token holders collectively act as governors of the protocol.
+
+---
+
+## How Governance Works
+
+The governance lifecycle follows four steps:
+
+<Steps>
+  <Step title="Create a KIP">
+    Draft a Kleros Improvement Proposal (KIP) post in the **Votes** section of the [Kleros Forum](https://forum.kleros.io). Include the rationale, technical details, and implementation plan.
+  </Step>
+  <Step title="Community Feedback">
+    Receive community feedback and iterate on the proposal. Update the KIP until it can be considered non-contentious and well-specified.
+  </Step>
+  <Step title="Snapshot Vote">
+    Publish a proposal on the [Kleros Snapshot space](https://snapshot.box/#/s:kleros.eth) for PNK token holders to vote on. Snapshot uses off-chain voting secured by signatures no gas fees for voters.
+  </Step>
+  <Step title="Governor Execution">
+    If the proposal passes, submit a list of transactions implementing the approved changes to Kleros Governor. If no one successfully challenges this list, Governor enacts the changes by sending the transactions on-chain.
+  </Step>
+</Steps>
+
+---
+
+## Key Components
+
+**PNK Token**: The governance token. Holders vote on proposals proportional to their PNK balance at the relevant Snapshot block height. PNK also serves as the staking token for jurors.
+
+**Kleros Forum**: Where KIP proposals are drafted, discussed, and refined before going to vote. All governance discussions are public.
+
+**Snapshot**: The off-chain voting platform. Voting is gasless (signature-based), making it accessible to all PNK holders regardless of holdings size.
+
+**Kleros Governor**: The on-chain enforcement contract. Accepted proposals are submitted as transaction lists. If only one valid list is submitted during the submission period, it executes automatically. If multiple conflicting lists are submitted, a Kleros Court dispute determines which list correctly implements what was voted.
+
+---
+
+## What Can Be Governed?
+
+Governance proposals can cover a wide range of protocol changes:
+
+- Court parameters (minimum stakes, juror fees, time periods, alpha values)
+- New court creation or court tree restructuring  
+- Contract deployments and upgrades
+- Policy specifications for courts
+- Incentive programs and reward structures
+- PNK supply modifications (minting or burning)
+- Protocol integrations and partnerships
+- Treasury and DAO fund allocations
+
+<Note>
+Recent governance innovations include **KIP-76**, which introduced futarchy-based governance rules for PNK minting proposals, and **KIP-74**, which proposed a comprehensive governance analytics dashboard.
+</Note>
+
+---
+
+## Get Involved
+
+<CardGroup cols={3}>
+  <Card title="Forum" icon="comments" href="https://forum.kleros.io">
+    Read and participate in governance discussions
+  </Card>
+  <Card title="Snapshot" icon="check-to-slot" href="https://snapshot.box/#/s:kleros.eth">
+    Vote on active proposals
+  </Card>
+  <Card title="Governor" icon="landmark" href="https://governor.kleros.io">
+    View and submit execution lists
+  </Card>
+</CardGroup>

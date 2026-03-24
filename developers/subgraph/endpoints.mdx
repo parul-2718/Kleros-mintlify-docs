@@ -1,0 +1,88 @@
+---
+title: "Subgraph Endpoints"
+description: "GraphQL endpoints for all Kleros subgraphs"
+---
+
+
+
+All Kleros subgraphs are deployed on The Graph. Use these endpoints to query Kleros data via GraphQL.
+
+<Warning>
+Subgraph endpoints may migrate between The Graph's hosted service and decentralized network. Check the [kleros-v2 subgraph README](https://github.com/kleros/kleros-v2/tree/dev/subgraph) for the latest V2 endpoints.
+</Warning>
+
+---
+
+## V2 Core Subgraph (Arbitrum One)
+
+| Network | Endpoint |
+| --- | --- |
+| Arbitrum One | Check [subgraph/README.md#deployments](https://github.com/kleros/kleros-v2/tree/dev/subgraph) |
+| Arbitrum Sepolia (testnet) | Check subgraph README |
+
+Source: [kleros-v2/subgraph](https://github.com/kleros/kleros-v2/tree/dev/subgraph)
+
+---
+
+## V1 Arbitrable App Subgraphs
+
+The following subgraphs index V1 Kleros products. Endpoints are sourced from the GitBook docs (updated September 2024).
+
+### Curate
+
+| Network | Type | Endpoint |
+| --- | --- | --- |
+| Ethereum Mainnet | Classic + Light Curate | `https://thegraph.com/hosted-service/subgraph/kleros/curate` |
+| Gnosis Chain | Legacy Curate | `https://thegraph.com/hosted-service/subgraph/kleros/legacy-curate-xdai` |
+
+### Proof of Humanity
+
+| Network | Endpoint |
+| --- | --- |
+| Ethereum Mainnet | `https://thegraph.com/hosted-service/subgraph/kleros/proof-of-humanity-mainnet` |
+
+You can also query the PoH contract directly at `0xC5E9dDebb09Cd64DfaCab4011A0D5cEDaf7c9BDb` on Ethereum Mainnet. To check if an address is registered, call `isRegistered(address)`.
+
+### Other Products
+
+For subgraph endpoints for Escrow, Linguo, Tokens, and other Kleros apps, check the [Kleros subgraph list on GitHub](https://github.com/orgs/kleros/repositories?q=subgraph).
+
+If no subgraph exists for the application you need, you can request one from the Kleros team or deploy your own using [The Graph](https://thegraph.com/docs/).
+
+---
+
+## Querying Subgraphs
+
+All subgraphs expose a GraphQL API. You can query them using:
+
+- The Graph's hosted Explorer UI (click "Playground" on any subgraph page)
+- Any GraphQL client (`fetch`, Apollo, urql, etc.)
+- The [Kleros SDK](/reference/sdk/kleros-sdk)
+
+```typescript
+const response = await fetch(SUBGRAPH_ENDPOINT, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    query: `{ courts(first: 10) { id policy { policy } stake } }`
+  })
+});
+const { data } = await response.json();
+```
+
+<Note>
+Addresses in subgraphs are stored as lowercase hex bytes. Always lowercase Ethereum addresses when querying, or the subgraph will not find them.
+</Note>
+
+---
+
+## Further Reading
+
+<CardGroup cols={2}>
+  <Card title="Query Examples" icon="magnifying-glass" href="/developers/subgraph/queries">
+    Common GraphQL queries
+  </Card>
+  <Card title="Subgraph Overview" icon="database" href="/developers/subgraph/overview">
+    Architecture and local development
+  </Card>
+</CardGroup>

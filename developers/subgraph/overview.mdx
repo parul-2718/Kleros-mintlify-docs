@@ -1,0 +1,76 @@
+---
+title: "Subgraph Overview"
+description: "Query Kleros protocol data using The Graph subgraphs"
+---
+
+# Subgraph & Data
+
+Kleros V2 uses [The Graph](https://thegraph.com/) for indexing on-chain data. The `subgraph` package in the [kleros-v2 monorepo](https://github.com/kleros/kleros-v2/tree/dev/subgraph) indexes KlerosCore, SortitionModule, DisputeKitClassic, and related contracts on Arbitrum.
+
+For V1 products (Curate, PoH, Escrow, Linguo), separate subgraphs exist on Ethereum and Gnosis Chain.
+
+---
+
+## When to Use Subgraphs
+
+- Fetching dispute data (status, rulings, evidence, rounds)
+- Querying court statistics (stakes, juror counts, parameters)
+- Listing Curate registry items with field data
+- Checking PoH registration status
+- Building dashboards or analytics tools
+- Displaying dispute history in your frontend
+
+---
+
+## V2 Subgraph (Arbitrum)
+
+The V2 core subgraph indexes all court activity on Arbitrum One. It is maintained in the kleros-v2 monorepo.
+
+**Source code**: [kleros-v2/subgraph](https://github.com/kleros/kleros-v2/tree/dev/subgraph)
+
+### Local Development
+
+To run the V2 subgraph locally:
+
+```bash
+# Start a local Hardhat node with contracts deployed
+yarn workspace @kleros/kleros-v2-contracts start-local
+
+# Start a local Graph Node (requires Docker)
+yarn workspace @kleros/kleros-v2-subgraph start-local-indexer
+
+# Deploy the subgraph to the local Graph Node
+yarn workspace @kleros/kleros-v2-subgraph rebuild-deploy:local
+```
+
+The local GraphQL endpoint will be available at:
+```
+http://localhost:8000/subgraphs/name/kleros/kleros-v2-core-local
+```
+
+---
+
+## Key Entities (V2)
+
+| Entity | Description |
+| --- | --- |
+| `Court` | Court parameters, stake totals, dispute counts |
+| `Dispute` | Dispute status, court, ruling, rounds, template |
+| `Round` | Per-round data: juror draws, votes, appeal funding |
+| `Draw` | Individual juror draw records |
+| `TokenAndETHShift` | Reward/penalty records per juror per round |
+| `JurorTokensPerCourt` | Staked PNK per juror per court |
+| `DisputeKit` | Registered dispute kit contracts |
+
+---
+
+## Further Reading
+
+<CardGroup cols={2}>
+  <Card title="Subgraph Endpoints" icon="link" href="/developers/subgraph/endpoints">
+    Full list of subgraph URLs for V1 and V2
+  </Card>
+  <Card title="Query Examples" icon="magnifying-glass" href="/developers/subgraph/queries">
+    Common GraphQL queries for disputes, courts, and registries
+  </Card>
+</CardGroup>

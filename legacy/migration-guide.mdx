@@ -1,0 +1,91 @@
+---
+title: "Migration Guide"
+description: "How to migrate from Kleros V1 to V2"
+---
+
+# Migration Guide: V1 to V2
+
+This guide covers the key differences between Kleros V1 and V2 and what changes are needed for jurors, developers, and users migrating to the new protocol.
+
+---
+
+## For Jurors
+
+### What Changed
+
+| Aspect | V1 (Ethereum) | V2 (Arbitrum) |
+|--------|---------------|---------------|
+| **Network** | Ethereum Mainnet (+ xDAI) | Arbitrum One |
+| **PNK Staking** | PNK stays in wallet | PNK transfers to KlerosCore contract |
+| **Gas Costs** | High (Ethereum gas) | Low (Arbitrum gas) |
+| **Minimum Stake** | Varies (e.g., 1,000 PNK for Onboarding) | Varies per court (check live court UI) |
+| **Vote Privacy** | Basic commit-reveal | Commit-reveal (Shutter encryption in development) |
+
+### Migration Steps
+
+<Steps>
+  <Step title="Bridge PNK to Arbitrum">
+    Use the [Arbitrum Bridge](https://bridge.arbitrum.io) or a cross-chain bridge to move PNK from Ethereum to Arbitrum One.
+  </Step>
+  <Step title="Bridge ETH for gas">
+    You need a small amount of ETH on Arbitrum for transaction fees. Bridge or send ETH to your Arbitrum address.
+  </Step>
+  <Step title="Stake in V2 Court">
+    Visit [court.kleros.io](https://court.kleros.io), connect your wallet on Arbitrum, and stake PNK in your chosen court. You will need to approve PNK spending first.
+  </Step>
+</Steps>
+
+<Note>
+In V2, staking PNK **transfers tokens to the KlerosCore contract**. This is different from V1 where PNK remained in your wallet. Your staked PNK is still yours and can be unstaked, but it is held by the contract while staked.
+</Note>
+
+---
+
+## For Developers
+
+### Key Architecture Changes
+
+V2 significantly simplifies integration compared to V1:
+
+| Responsibility | V1 | V2 |
+|---------------|----|----|
+| **Evidence handling** | Arbitrable contract | Handled by Court |
+| **Appeal logic** | Arbitrable contract | Handled by Court |
+| **Crowdfunding appeals** | Complex arbitrable logic | Built into Court |
+| **Dispute creation** | Direct call to arbitrator | Direct call to KlerosCore |
+| **Ruling reception** | Same (`rule()` callback) | Same (`rule()` callback) |
+
+The core change for developers: **evidence submission and appeal management are now handled entirely by the Court**. Your arbitrable contract no longer needs to implement these.
+
+### Interface Changes
+
+V1 used the **ERC-792** arbitration standard. V2 uses an updated interface:
+
+- `IArbitrableV2` replaces `IArbitrable`
+- `DisputeTemplate` replaces `MetaEvidence` for defining dispute context
+- Evidence is submitted directly to the Court, not logged by the arbitrable
+- `extraData` encoding includes court ID and number of jurors
+
+For detailed integration guidance, see the [Developers section](/developers/overview).
+
+### Cross-Chain Support
+
+V2 supports disputes from any EVM chain via the **VEA bridge**. If your application is on Ethereum Mainnet or another chain, disputes can be bridged to Arbitrum for resolution, with rulings bridged back. Applications natively on Arbitrum interact directly with KlerosCore without bridging.
+
+---
+
+## For Product Users
+
+Most Kleros products now have V2 versions:
+
+- **Court**: Use [court.kleros.io](https://court.kleros.io) (V2 on Arbitrum)
+- **Escrow**: Use [escrow.kleros.io](https://escrow.kleros.io) (V2 on Arbitrum)
+- **Curate**: Use [curate.kleros.io](https://curate.kleros.io) (V2 on Arbitrum)
+
+Products that still use V1 (Scout, Reality, PoH) will provide migration paths when their V2 versions are ready.
+
+---
+
+## Need Help?
+
+For migration support, contact the Kleros team at **integrations@kleros.io** or ask in the [Discord](https://discord.gg/kleros).
