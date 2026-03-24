@@ -1,68 +1,422 @@
 ---
 title: "Dispute Templates"
-description: "Format specification for dispute templates that define what jurors see"
+description: "Full specification for dispute templates and data mappings — what jurors see and how template variables are populated from on-chain data"
 ---
 
-
-
-Dispute templates define the question, answer options, and metadata presented to jurors. They are registered on-chain via the `DisputeTemplateRegistry` contract.
+Dispute templates define the question, answer options, and metadata presented to jurors. They are registered on-chain via the `DisputeTemplateRegistry` contract and can contain dynamic placeholders populated at dispute-creation time via the data mappings system.
 
 ## Template Structure
 
+A complete dispute template is a JSON object. Fields marked `{{variable}}` are placeholders resolved by the data mappings at dispute time. Fields marked `{{{variable}}}` (triple-brace) are treated as raw/unescaped values (e.g. URIs).
+
 ```json
 {
+  "$schema": "../NewDisputeTemplate.schema.json",
   "title": "Should this item be accepted into the registry?",
-  "description": "Evaluate whether the submitted item meets the registry policy.",
+  "description": "Evaluate whether {{itemName}} meets the registry criteria.",
   "question": "Does this item comply with the registry requirements?",
   "answers": [
     {
-      "id": "0x1",
-      "title": "Accept",
-      "description": "The item meets all requirements and should be included"
+      "id": "0x00",
+      "title": "Refuse to Arbitrate / Invalid",
+      "description": "The dispute is invalid or the question cannot be answered."
     },
     {
-      "id": "0x2",
+      "id": "0x01",
+      "title": "Accept",
+      "description": "The item meets all requirements and should be included."
+    },
+    {
+      "id": "0x02",
       "title": "Reject",
-      "description": "The item does not meet the requirements"
+      "description": "The item does not meet the requirements."
     }
   ],
-  "policyURI": "/ipfs/Qm...",
-  "frontendUrl": "https://your-app.com/disputes/{id}",
+  "policyURI": "/ipfs/QmPolicyHash...",
+  "attachment": {
+    "label": "Item Details",
+    "uri": "{{{itemUri}}}"
+  },
+  "frontendUrl": "https://your-app.com/disputes/{{externalDisputeID}}",
   "arbitratorChainID": "42161",
-  "arbitratorAddress": "0x...",
+  "arbitratorAddress": "0x9C1dA9A04925bDfDedf0f6421bC7EEa8305F9002",
+  "metadata": {
+    "requester": "{{requester}}",
+    "challenger": "{{challenger}}"
+  },
   "category": "Curation",
-  "lang": "en_US"
+  "lang": "en_US",
+  "specification": "KIP-99",
+  "aliases": {
+    "Requester": "{{requester}}",
+    "Challenger": "{{challenger}}"
+  },
+  "version": "1.0"
 }
 ```
 
-## Fields
+## Fields Reference
 
 | Field | Type | Required | Description |
 |---|---|---|---|
-| `title` | string | Yes | Main question for jurors |
-| `description` | string | Yes | Context and additional details |
-| `question` | string | Yes | Specific question to answer |
-| `answers` | array | Yes | Possible ruling options |
-| `policyURI` | string | No | IPFS URI to the dispute policy |
-| `frontendUrl` | string | No | URL template for viewing the dispute |
-| `arbitratorChainID` | string | Yes | Chain ID where KlerosCore is deployed |
-| `arbitratorAddress` | string | Yes | Address of KlerosCore |
-| `category` | string | No | Dispute category label |
-| `lang` | string | No | Language code |
-| `aliases` | object | No | Human-readable names for addresses |
+| `$schema` | string | No | JSON schema reference for validation |
+| `title` | string | Yes | Short title displayed to jurors |
+| `description` | string | Yes | Context and background for the dispute |
+| `question` | string | Yes | The specific question jurors must answer |
+| `answers` | array | Yes | Possible ruling options (see below) |
+| `policyURI` | string | No | IPFS URI to the full dispute policy document |
+| `attachment` | object | No | A labelled URI attachment (e.g. transaction terms). Has `label` and `uri` keys |
+| `frontendUrl` | string | No | URL to the dispute in the integrating app. Use `{{externalDisputeID}}` as placeholder |
+| `arbitratorChainID` | string | Yes | Chain ID (as string) where KlerosCore is deployed |
+| `arbitratorAddress` | string | Yes | Address of the KlerosCore contract |
+| `metadata` | object | No | Arbitrary product-specific key-value pairs (buyer, seller, amount, etc.) |
+| `category` | string | No | Dispute category label (e.g. "Escrow", "Curation") |
+| `lang` | string | No | BCP 47 language tag, default `"en_US"` |
+| `specification` | string | No | KIP or spec reference this template follows |
+| `aliases` | object | No | Maps human-readable role names to address placeholders |
+| `version` | string | No | Semantic version of this template, e.g. `"1.0"` |
+
+### Answer IDs
+
+Answer IDs are hex-encoded ruling values:
+
+| ID | Meaning |
+|---|---|
+| `"0x00"` | **Always reserved for "Refuse to Arbitrate / Invalid"** — jurors use this when the dispute is malformed or unanswerable |
+| `"0x01"` | First substantive answer |
+| `"0x02"` | Second substantive answer |
+| `"0x03"`, ... | Additional answers |
+
+The `0x00` ruling is handled specially by KlerosCore — if a majority selects it, no party is considered to have won.
+
+---
 
 ## Data Mappings
 
-The `templateDataMappings` parameter allows dynamic population of template fields from on-chain data at dispute creation time.
+The `templateDataMappings` parameter is a **JSON array** that defines how template `{{variable}}` placeholders are populated from external data sources at dispute creation time. The system resolves mappings sequentially — later mappings can reference values populated by earlier ones.
+
+Each mapping object has a `type` field that determines its structure, plus `seek` (list of data paths to extract) and `populate` (list of template variable names to fill, in the same order as `seek`).
+
+### Mapping Types
+
+#### 1. `graphql` — Subgraph Query
+
+Fetches data from a TheGraph subgraph endpoint.
+
+```json
+{
+  "type": "graphql",
+  "endpoint": "https://gateway.thegraph.com/api/{{{graphApiKey}}}/subgraphs/id/<SUBGRAPH_ID>",
+  "query": "query GetTransaction($transactionId: ID!) { escrow(id: $transactionId) { buyer seller amount token deadline transactionUri } }",
+  "variables": {
+    "transactionId": "{{externalDisputeID}}"
+  },
+  "seek": [
+    "escrow.transactionUri",
+    "escrow.buyer",
+    "escrow.seller",
+    "escrow.amount",
+    "escrow.token",
+    "escrow.deadline"
+  ],
+  "populate": [
+    "transactionUri",
+    "buyer",
+    "seller",
+    "amount",
+    "token",
+    "deadline"
+  ]
+}
+```
+
+- `endpoint`: The Graph gateway URL. `{{{graphApiKey}}}` is injected at runtime by the SDK.
+- `query`: A standard GraphQL query string.
+- `variables`: Query variables; can reference already-populated `{{template_vars}}`.
+- `seek`: Dot-notation paths into the GraphQL response data.
+- `populate`: Template variable names to set, positionally matching `seek`.
+
+#### 2. `fetch/ipfs/json` — IPFS JSON Fetch
+
+Retrieves a JSON file from IPFS and extracts fields.
+
+```json
+{
+  "type": "fetch/ipfs/json",
+  "ipfsUri": "{{{transactionUri}}}",
+  "seek": ["title", "description", "extraDescriptionUri"],
+  "populate": ["escrowTitle", "deliverableText", "extraDescriptionUri"]
+}
+```
+
+- `ipfsUri`: An IPFS URI, typically populated by a prior mapping step. Triple-brace `{{{...}}}` means the value is used as a raw URI without HTML-escaping.
+- `seek`: JSON field paths within the fetched document.
+- `populate`: Template variable names to fill.
+
+#### 3. `abi/call` — Smart Contract Call
+
+Calls a view function on a contract and extracts return values.
+
+```json
+{
+  "type": "abi/call",
+  "abi": "function getPayoutMessages(uint256) returns (string, string, string)",
+  "functionName": "getPayoutMessages",
+  "address": "0xViewContractAddress",
+  "args": ["0"],
+  "seek": ["0", "1", "2"],
+  "populate": ["noWinner", "buyerWins", "sellerWins"]
+}
+```
+
+- `abi`: Human-readable ABI string for the function.
+- `functionName`: The function to call.
+- `address`: Contract address.
+- `args`: Arguments to pass to the function. Can reference `{{template_vars}}`.
+- `seek`: Indices (as strings) into the returned tuple, or named return values.
+- `populate`: Template variable names to fill.
+
+#### 4. `abi/event` — On-Chain Event Data
+
+Extracts data from a previously emitted on-chain event.
+
+```json
+{
+  "type": "abi/event",
+  "abi": "event Disputed(uint256 indexed disputeId, address indexed party, uint256 amount)",
+  "eventName": "Disputed",
+  "address": "0xContractAddress",
+  "seek": ["party", "amount"],
+  "populate": ["disputingParty", "disputedAmount"]
+}
+```
+
+- `abi`: Human-readable ABI string for the event.
+- `eventName`: The event to look up.
+- `address`: Contract address that emitted the event.
+- `seek`: Event parameter names to extract.
+- `populate`: Template variable names to fill.
+
+#### 5. `json` — Hardcoded Values
+
+Injects hardcoded values directly into template variables.
+
+```json
+{
+  "type": "json",
+  "value": {
+    "registryName": "Kleros Token List",
+    "policyVersion": "v2"
+  },
+  "seek": ["registryName", "policyVersion"],
+  "populate": ["registryName", "policyVersion"]
+}
+```
+
+Useful for injecting static configuration values that differ per deployment.
+
+---
+
+### Chaining Mappings
+
+Mappings execute in array order. A variable populated in step 1 can be used in step 2. For example:
+
+```json
+[
+  {
+    "type": "graphql",
+    "endpoint": "https://gateway.thegraph.com/api/{{{graphApiKey}}}/subgraphs/id/96vpnRJbRVkzF6usMNYMMoziSZEfSwGEDpXNi2h9WBSW",
+    "query": "query($id: ID!) { escrow(id: $id) { transactionUri buyer seller } }",
+    "variables": { "id": "{{externalDisputeID}}" },
+    "seek": ["escrow.transactionUri", "escrow.buyer", "escrow.seller"],
+    "populate": ["transactionUri", "buyer", "seller"]
+  },
+  {
+    "type": "fetch/ipfs/json",
+    "ipfsUri": "{{{transactionUri}}}",
+    "seek": ["title", "description"],
+    "populate": ["escrowTitle", "deliverableText"]
+  }
+]
+```
+
+Here `transactionUri` is populated in step 1 and used as `{{{transactionUri}}}` in step 2.
+
+---
+
+## Real-World Examples
+
+### Escrow V2
+
+```json
+{
+  "$schema": "../NewDisputeTemplate.schema.json",
+  "title": "Escrow dispute: {{escrowTitle}}",
+  "description": "{{deliverableText}}",
+  "question": "Which party abided by the terms of the contract?",
+  "answers": [
+    { "id": "0x00", "title": "Refuse to Arbitrate / Invalid", "description": "{{noWinner}}" },
+    { "id": "0x01", "title": "Refund the Buyer", "description": "{{buyerWins}}" },
+    { "id": "0x02", "title": "Pay the Seller", "description": "{{sellerWins}}" }
+  ],
+  "policyURI": "/ipfs/QmTaZuQjJT9NZCYsqyRmEwLb1Vt3gme1a6BS4NQLiWXtH2",
+  "attachment": {
+    "label": "Transaction Terms",
+    "uri": "{{{extraDescriptionUri}}}"
+  },
+  "frontendUrl": "https://escrow-v2.kleros.builders/#/transactions/{{externalDisputeID}}",
+  "arbitratorChainID": "42161",
+  "arbitratorAddress": "0x9C1dA9A04925bDfDedf0f6421bC7EEa8305F9002",
+  "metadata": {
+    "buyer": "{{buyer}}",
+    "seller": "{{seller}}",
+    "amount": "{{amount}}",
+    "token": "{{token}}",
+    "deadline": "{{deadline}}",
+    "transactionUri": "{{{transactionUri}}}"
+  },
+  "category": "Escrow",
+  "aliases": {
+    "Buyer": "{{buyer}}",
+    "Seller": "{{seller}}"
+  },
+  "version": "1.0"
+}
+```
+
+With mappings:
+
+```json
+[
+  {
+    "type": "graphql",
+    "endpoint": "https://gateway.thegraph.com/api/{{{graphApiKey}}}/subgraphs/id/96vpnRJbRVkzF6usMNYMMoziSZEfSwGEDpXNi2h9WBSW",
+    "query": "query GetTransaction($transactionId: ID!) { escrow(id: $transactionId) { transactionUri buyer seller amount token deadline } }",
+    "variables": { "transactionId": "{{externalDisputeID}}" },
+    "seek": ["escrow.transactionUri","escrow.buyer","escrow.seller","escrow.amount","escrow.token","escrow.deadline"],
+    "populate": ["transactionUri","buyer","seller","amount","token","deadline"]
+  },
+  {
+    "type": "fetch/ipfs/json",
+    "ipfsUri": "{{{transactionUri}}}",
+    "seek": ["title","description","extraDescriptionUri"],
+    "populate": ["escrowTitle","deliverableText","extraDescriptionUri"]
+  },
+  {
+    "type": "abi/call",
+    "abi": "function getPayoutMessages(uint256) returns (string, string, string)",
+    "functionName": "getPayoutMessages",
+    "address": "0xViewContractAddress",
+    "args": ["0"],
+    "seek": ["0","1","2"],
+    "populate": ["noWinner","buyerWins","sellerWins"]
+  }
+]
+```
+
+### Curate V2 — Registration
+
+Registration and removal disputes use **separate templates** with inverted answer logic. For registration, accepting means the item should be added; for removal, accepting means the item should be removed.
+
+```json
+{
+  "$schema": "../NewDisputeTemplate.schema.json",
+  "title": "Curate registration: {{itemName}}",
+  "description": "A request to add {{itemName}} to the {{registryTitle}} registry has been challenged.",
+  "question": "Does {{itemName}} comply with the required criteria?",
+  "answers": [
+    { "id": "0x00", "title": "Refuse to Arbitrate / Invalid", "description": "The dispute is invalid." },
+    { "id": "0x01", "title": "Yes, Add Item", "description": "The item meets the criteria and should be registered." },
+    { "id": "0x02", "title": "No, Reject Item", "description": "The item does not meet the criteria." }
+  ],
+  "policyURI": "/ipfs/QmRegistryPolicy...",
+  "frontendUrl": "https://curate.kleros.io/tcr/100/{{registryAddress}}/{{itemId}}",
+  "arbitratorChainID": "421614",
+  "arbitratorAddress": "0xD08Ab99480d02bf9C092828043f611BcDFEA917b",
+  "metadata": {
+    "item": "{{itemId}}",
+    "registry": "{{registryAddress}}"
+  },
+  "category": "Curated Lists",
+  "version": "1.0"
+}
+```
+
+**Removal template** uses inverted semantics — `0x01` means "yes, remove":
+
+```json
+{
+  "question": "Should {{itemName}} be removed from the {{registryTitle}} registry?",
+  "answers": [
+    { "id": "0x00", "title": "Refuse to Arbitrate / Invalid", "description": "The dispute is invalid." },
+    { "id": "0x01", "title": "Yes, Remove Item", "description": "The item no longer meets criteria and should be removed." },
+    { "id": "0x02", "title": "No, Keep Item", "description": "The item still meets the criteria." }
+  ]
+}
+```
+
+### Reality V2
+
+```json
+{
+  "$schema": "../NewDisputeTemplate.schema.json",
+  "title": "Reality.eth dispute: {{questionTitle}}",
+  "description": "A Reality.eth question has been escalated to Kleros for arbitration.",
+  "question": "{{questionTitle}}",
+  "type": "single-select",
+  "answers": [
+    { "id": "0x00", "title": "Answered Too Soon", "description": "The question was answered before sufficient information was available." },
+    { "id": "0x01", "title": "Yes", "description": "The answer to the question is Yes." },
+    { "id": "0x02", "title": "No", "description": "The answer to the question is No." }
+  ],
+  "policyURI": "/ipfs/QmZ5XaV2RVgBADq5qMpbuEwgCuPZdRgCeu8rhGtJWLV6yz",
+  "frontendUrl": "https://reality.eth.link/app/#!/question/{{questionId}}",
+  "arbitratorChainID": "42161",
+  "arbitratorAddress": "0x9C1dA9A04925bDfDedf0f6421bC7EEa8305F9002",
+  "category": "Oracle",
+  "specification": "KIP-99",
+  "lang": "en_US",
+  "version": "1.0"
+}
+```
+
+Note: Reality V2 includes a `"type"` field (`"single-select"`, `"multiple-select"`, `"uint"`, `"datetime"`, `"bool"`) matching the Reality.eth question type. The **"Answered Too Soon"** option (`0x00`) is always present in Reality disputes.
+
+---
 
 ## Registration
 
+Templates are registered on `DisputeTemplateRegistry`:
+
 ```solidity
+// Register once; store the returned templateId
 uint256 templateId = templateRegistry.setDisputeTemplate(
     "myTag",
-    templateDataJSON,
-    templateDataMappingsJSON
+    templateJSON,       // the JSON string above
+    templateMappingsJSON // the mappings JSON array string
 );
 ```
 
-The `templateId` is emitted in the `DisputeTemplate` event and should be stored for reference.
+When raising a dispute, emit `DisputeRequest` with your stored `templateId`:
+
+```solidity
+emit DisputeRequest(
+    arbitrator,
+    arbitratorDisputeID,
+    externalDisputeID,  // your app's internal dispute identifier
+    templateId,         // from setDisputeTemplate above
+    ""                  // or an IPFS URI if template is stored off-chain
+);
+```
+
+If the template is large, store it on IPFS and pass its URI as `_templateUri` instead of registering inline.
+
+### Updating Templates
+
+Use `changeDisputeTemplate()` (available on arbitrable contracts like Escrow) to update the template after deployment — new disputes will use the updated template while old ones retain the original `templateId` snapshot.
+
+```solidity
+escrow.changeDisputeTemplate(newTemplateJSON, newMappingsJSON);
+```
+
+The `templateId` is emitted in the `DisputeTemplate` event on `DisputeTemplateRegistry` and must be stored by your contract for use in `DisputeRequest`.

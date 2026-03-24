@@ -3,6 +3,32 @@ title: "Integration Guide"
 description: "Integrate the Reality.eth + Kleros oracle into your smart contract to access reliable real-world data on-chain."
 ---
 
+## How Kleros Arbitration Works with Reality.eth
+
+Before integrating, understand the escalation flow:
+
+1. A question is asked on Reality.eth and answerers post bonds.
+2. Each new answer must **double the previous bond** (e.g. 0.01 ETH → 0.02 → 0.04 ETH). This economically incentivizes correct answers.
+3. If the question is not challenged within the `timeout` period (typically 24 hours), the last answer finalizes.
+4. If a party disagrees, they pay the **arbitration fee** to escalate the question to Kleros. This costs more than a bond, so it is a last resort for high-stakes questions.
+5. The Kleros Arbitrator Proxy creates a KlerosCore dispute. When Kleros rules, Reality.eth is notified and the answer is finalized.
+
+### Key Timing Parameter: `feeTimeout`
+
+The RealityV2 Kleros integration contract has a `feeTimeout` parameter (set to **600 seconds / 10 minutes** in the reference deployment). This is the time within which the *other party* must also pay the arbitration fee after it is requested. If they don't pay within `feeTimeout`, the requester wins by default.
+
+```solidity
+uint32 public constant FEE_TIMEOUT = 600; // 10 minutes
+```
+
+Inform your users about this window — if they request arbitration, the other party has only 10 minutes to match the fee.
+
+<Warning>
+The `disputeTemplateMappings` field in the Reality V2 deployment script is currently marked `TODO` in the reference implementation. This means the dispute template shown to Kleros jurors for Reality questions does not yet have dynamic data mappings (it shows static text). Check the [kleros/reality-v2 repository](https://github.com/kleros/reality-v2) for the latest status before relying on dynamic template population.
+</Warning>
+
+---
+
 ## Integration Options
 
 There are two ways to integrate with the Reality.eth + Kleros oracle:

@@ -110,10 +110,11 @@ The Vea SDK provides utility functions to calculate merkle inclusion proofs and 
 ```typescript
 import VeaSdk from "@kleros/vea-sdk";
 
-// Create client for a specific route
-const vea = VeaSdk.ClientFactory.arbitrumGoerliToChiadoDevnet(
-  "https://rpc.goerli.eth.gateway.fm",
-  "https://rpc.chiado.gnosis.gateway.fm"
+// Create client for the Arbitrum Sepolia → Chiado (testnet) route
+// Note: Goerli-based routes are deprecated. Use Sepolia equivalents.
+const vea = VeaSdk.ClientFactory.arbitrumSepoliaToChiadoDevnet(
+  "https://sepolia-rollup.arbitrum.io/rpc",
+  "https://rpc.chiadochain.net"
 );
 
 // Get message info by ID

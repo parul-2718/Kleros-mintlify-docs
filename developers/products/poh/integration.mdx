@@ -114,8 +114,15 @@ contract CrossChainDApp {
 ```
 
 <Warning>
-  Cross-chain state synchronization is not instant. There is a delay between when a registration is confirmed on the home chain and when it becomes visible on foreign chains. Design your application to handle this propagation delay.
+  Cross-chain state synchronization is **not instant**. PoH V2 lives on Gnosis Chain. When a user registers or renews on Gnosis, the state must be relayed to other chains via cross-chain bridges (e.g. AMB). This propagation typically takes **minutes to hours** depending on the bridge and relayer activity, but can take up to **24 hours** in practice. Design your application to handle this delay:
+  - Do not gate critical actions on cross-chain PoH status without a fallback
+  - Show users a "pending propagation" state in your UI
+  - Cache the result locally and re-check periodically rather than blocking the user
 </Warning>
+
+<Note>
+  PoH V2 is deployed on **Gnosis Chain** (home chain). The `CrossChainProofOfHumanity` contract on other chains (Ethereum, Arbitrum, etc.) receives state updates from Gnosis via the AMB bridge. The `pohMain` in your contract should point to the `CrossChainProofOfHumanity` address on your target chain, not the Gnosis deployment directly.
+</Note>
 
 ---
 

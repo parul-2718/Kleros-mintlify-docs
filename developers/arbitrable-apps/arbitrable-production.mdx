@@ -147,7 +147,7 @@ Court parameters (minStake, feeForJuror, session timings) are governed and can c
   ],
   "policyURI": "/ipfs/Qm...",                // ✓ Accessible
   "arbitratorChainID": "42161",              // ✓ Correct chain
-  "arbitratorAddress": "0x33d..."            // ✓ Correct address
+  "arbitratorAddress": "0x9C1dA9A04925bDfDedf0f6421bC7EEa8305F9002"  // ✓ KlerosCore on Arbitrum One
 }
 ```
 
@@ -284,19 +284,18 @@ Kleros disputes follow a fixed phase sequence. Understand the timing impact on y
 
 ---
 
-## V2 Beta Considerations
+## Kleros V2 on Mainnet
 
-Kleros V2 is in beta. These items are specific to the current beta period:
+Kleros V2 (Neo) is live on **Arbitrum One** mainnet. Court access is open to all — users can stake PNK and participate as jurors. These items are still relevant for integrators:
 
-- [ ] **Access gating:** Verify your users can access the Court V2 interface. Beta access is currently limited to V2 testnet participants, V1 jurors, and PoH V1 registrants. General availability timing is TBD.
-- [ ] **Contract upgrades:** V2 contracts use UUPS proxy patterns and may be upgraded post-audit. Subscribe to the [Kleros blog](https://blog.kleros.io) and [Discord](https://discord.gg/kleros) for upgrade announcements.
-- [ ] **Subgraph stability:** The V2 subgraph schema may change during beta. Pin to a specific subgraph version and test after upgrades.
-- [ ] **SDK status:** The `@kleros/kleros-v2-sdk` package is under development. For production use, interact with contracts directly via ABIs from `@kleros/kleros-v2-contracts` or the [kleros-v2 repository](https://github.com/kleros/kleros-v2).
+- [ ] **Contract upgrades:** V2 contracts use UUPS proxy patterns and may be upgraded via governance. Subscribe to the [Kleros blog](https://blog.kleros.io) and [Discord](https://discord.gg/kleros) for announcements.
+- [ ] **Subgraph stability:** Pin to a specific subgraph deployment version in production. Check the [kleros-v2 subgraph README](https://github.com/kleros/kleros-v2/tree/dev/subgraph) for the latest stable deployment IDs.
+- [ ] **SDK status:** `@kleros/kleros-sdk` is under active development. For maximum stability, you can interact with contracts directly via ABIs from `@kleros/kleros-v2-contracts`.
 - [ ] **Testnet first:** Always deploy and test a full dispute lifecycle on Arbitrum Sepolia before mainnet. Testnet disputes may take longer to resolve due to limited juror participation.
 
-<Warning>
-During the beta period, contact the Kleros team via [Discord](https://discord.gg/kleros) or `integrations@kleros.io` before deploying a production integration. The team can advise on the latest contract status and assist with dispute template design.
-</Warning>
+<Note>
+Contact the Kleros team via [Discord](https://discord.gg/kleros) or `integrations@kleros.io` before your first production deployment. The team can review your dispute template and advise on court selection.
+</Note>
 
 ---
 

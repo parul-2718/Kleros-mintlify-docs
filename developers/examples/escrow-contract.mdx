@@ -73,13 +73,15 @@ contract SimpleEscrow is IArbitrableV2 {
         });
     }
 
-    /// @dev Receiver releases payment to themselves (both parties agree).
+    /// @dev Sender releases payment to receiver (both parties agree).
     function pay(uint256 _txID) external {
         Transaction storage tx_ = transactions[_txID];
         require(msg.sender == tx_.sender, "Only sender");
         require(tx_.status == Status.Created, "Wrong status");
         tx_.status = Status.Resolved;
-        tx_.receiver.transfer(tx_.amount);
+        // Use .call() not .transfer() — .transfer() can fail with smart contract recipients
+        (bool ok,) = tx_.receiver.call{value: tx_.amount}("");
+        require(ok, "Transfer failed");
     }
 
     /// @dev Raise a dispute with Kleros Court.
@@ -120,14 +122,17 @@ contract SimpleEscrow is IArbitrableV2 {
         tx_.status = Status.Resolved;
 
         if (_ruling == SENDER_WINS) {
-            tx_.sender.transfer(tx_.amount);
+            (bool ok,) = tx_.sender.call{value: tx_.amount}("");
+            require(ok, "Transfer failed");
         } else if (_ruling == RECEIVER_WINS) {
-            tx_.receiver.transfer(tx_.amount);
+            (bool ok,) = tx_.receiver.call{value: tx_.amount}("");
+            require(ok, "Transfer failed");
         } else {
-            // Refuse to rule or no ruling split equally
+            // Ruling 0 = Refuse to Arbitrate — split equally as fallback
             uint256 half = tx_.amount / 2;
-            tx_.sender.transfer(half);
-            tx_.receiver.transfer(tx_.amount - half);
+            (bool ok1,) = tx_.sender.call{value: half}("");
+            (bool ok2,) = tx_.receiver.call{value: tx_.amount - half}("");
+            require(ok1 && ok2, "Transfer failed");
         }
 
         emit Ruling(arbitrator, _disputeID, _ruling);

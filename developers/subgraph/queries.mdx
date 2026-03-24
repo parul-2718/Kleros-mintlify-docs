@@ -11,7 +11,13 @@ Common GraphQL queries for fetching data from Kleros subgraphs.
 
 ## V2 Core Queries (Arbitrum)
 
+<Note>
+Always use the **decentralized network** endpoint for production queries. Get the subgraph ID from the Studio pages listed in [Subgraph Endpoints](/developers/subgraph/endpoints) and construct the URL as `https://gateway.thegraph.com/api/{API_KEY}/subgraphs/id/{SUBGRAPH_ID}`.
+</Note>
+
 ### Fetch Courts
+
+Key fields: `minStake` (in wei), `feeForJuror` (juror reward per vote), `timesPerPeriod` (array of 4 phase durations in seconds).
 
 ```graphql
 {
@@ -19,33 +25,60 @@ Common GraphQL queries for fetching data from Kleros subgraphs.
     id
     hiddenVotes
     minStake
+    alpha
     feeForJuror
     jurorsForCourtJump
     timesPerPeriod
-    stakedJurors {
-      id
-    }
+    parent { id }
+    policy { policy }
+    numberDisputes
+    numberStakedJurors
   }
 }
 ```
 
 ### Fetch Recent Disputes
 
+Key fields: `externalDisputeID` (your app's ID), `templateId` (links to DisputeTemplateRegistry), `ruled` (finalized), `currentRuling` (active ruling option).
+
 ```graphql
 {
   disputes(first: 10, orderBy: createdAtBlock, orderDirection: desc) {
     id
-    court {
-      id
-    }
+    arbitrated { id }
+    court { id }
     period
     ruled
     currentRuling
+    tied
+    overridden
     lastPeriodChange
     nbRounds
+    nbChoices
+    externalDisputeID
+    templateId
     rounds {
       nbVotes
+      totalFeesForJurors
+      drawnJurors { juror { id } }
     }
+  }
+}
+```
+
+### Fetch Dispute by External ID
+
+Use `externalDisputeID` to correlate an on-chain dispute with your app's internal ID (emitted in `DisputeRequest`):
+
+```graphql
+query GetDisputeByExternalID($externalId: BigInt!) {
+  disputes(where: { externalDisputeID: $externalId }) {
+    id
+    period
+    ruled
+    currentRuling
+    tied
+    templateId
   }
 }
 ```
@@ -55,11 +88,21 @@ Common GraphQL queries for fetching data from Kleros subgraphs.
 ```graphql
 {
   jurorTokensPerCourts(where: { juror: "0xYOUR_ADDRESS_LOWERCASE" }) {
-    court {
-      id
-    }
+    court { id }
     staked
     locked
+  }
+}
+```
+
+### Fetch Juror's Active Draws
+
+```graphql
+query GetJurorDraws($juror: String!) {
+  draws(where: { juror: $juror, vote_not: null }, first: 20) {
+    dispute { id period currentRuling }
+    round { id nbVotes }
+    vote { choice }
   }
 }
 ```

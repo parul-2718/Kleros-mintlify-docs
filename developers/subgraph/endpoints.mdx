@@ -1,77 +1,115 @@
 ---
 title: "Subgraph Endpoints"
-description: "GraphQL endpoints for all Kleros subgraphs"
+description: "GraphQL endpoints for all Kleros V2 and V1 subgraphs"
 ---
-
-
 
 All Kleros subgraphs are deployed on The Graph. Use these endpoints to query Kleros data via GraphQL.
 
 <Warning>
-Subgraph endpoints may migrate between The Graph's hosted service and decentralized network. Check the [kleros-v2 subgraph README](https://github.com/kleros/kleros-v2/tree/dev/subgraph) for the latest V2 endpoints.
+Subgraph endpoints on the decentralized network require a **Graph API key**. Get one at [thegraph.com/studio](https://thegraph.com/studio). In template mappings you will see `{{{graphApiKey}}}` — this is injected at runtime by the Kleros SDK.
 </Warning>
 
 ---
 
-## V2 Core Subgraph (Arbitrum One)
+## V2 Subgraphs (Arbitrum)
 
-| Network | Endpoint |
-| --- | --- |
-| Arbitrum One | Check [subgraph/README.md#deployments](https://github.com/kleros/kleros-v2/tree/dev/subgraph) |
-| Arbitrum Sepolia (testnet) | Check subgraph README |
+### Core Subgraph (KlerosCore, courts, disputes, jurors, stakes)
 
-Source: [kleros-v2/subgraph](https://github.com/kleros/kleros-v2/tree/dev/subgraph)
+| Environment | Network | Studio Page |
+| --- | --- | --- |
+| Mainnet | Arbitrum One | [kleros-v2-coreneo](https://thegraph.com/studio/subgraph/kleros-v2-coreneo/) |
+| Testnet | Arbitrum Sepolia | [kleros-v2-core-testnet](https://thegraph.com/studio/subgraph/kleros-v2-core-testnet/) |
+| Devnet | Arbitrum Sepolia | [kleros-v2-core-devnet](https://thegraph.com/studio/subgraph/kleros-v2-core-devnet/) |
+
+**Decentralized network query URL pattern:**
+```
+https://gateway.thegraph.com/api/{YOUR_API_KEY}/subgraphs/id/{SUBGRAPH_ID}
+```
+
+Get the `SUBGRAPH_ID` (deployment hash) from the Studio pages linked above — it is shown on the subgraph's Overview tab.
+
+### Dispute Template Registry Subgraph
+
+| Environment | Network | Studio Page |
+| --- | --- | --- |
+| Mainnet | Arbitrum One | [kleros-v2-drt](https://thegraph.com/studio/subgraph/kleros-v2-drt/) |
+| Testnet | Arbitrum Sepolia | [kleros-v2-drt-arbisep-testnet](https://thegraph.com/studio/subgraph/kleros-v2-drt-arbisep-testnet/) |
 
 ---
 
-## V1 Arbitrable App Subgraphs
+## V2 Product Subgraphs
 
-The following subgraphs index V1 Kleros products. Endpoints are sourced from the GitBook docs (updated September 2024).
+### Escrow V2
 
-### Curate
-
-| Network | Type | Endpoint |
+| Environment | Network | Subgraph ID |
 | --- | --- | --- |
-| Ethereum Mainnet | Classic + Light Curate | `https://thegraph.com/hosted-service/subgraph/kleros/curate` |
-| Gnosis Chain | Legacy Curate | `https://thegraph.com/hosted-service/subgraph/kleros/legacy-curate-xdai` |
+| Mainnet | Arbitrum One | `96vpnRJbRVkzF6usMNYMMoziSZEfSwGEDpXNi2h9WBSW` |
+| Devnet | Arbitrum Sepolia | `3aZxYcZpZL5BuVhuUupqVrCV8VeNyZEvjmPXibyPHDFQ` |
 
-### Proof of Humanity
+Full query URL (mainnet):
+```
+https://gateway.thegraph.com/api/{YOUR_API_KEY}/subgraphs/id/96vpnRJbRVkzF6usMNYMMoziSZEfSwGEDpXNi2h9WBSW
+```
+
+### Curate V2
+
+Curate V2 subgraph is under active development. Check the [curate-v2 repository](https://github.com/kleros/curate-v2/tree/master/subgraph) for the latest deployment.
+
+---
+
+## V1 Subgraphs (Legacy)
+
+These index V1 Kleros products still in active use.
+
+### Curate V1
+
+| Network | Endpoint |
+| --- | --- |
+| Ethereum Mainnet | `https://thegraph.com/hosted-service/subgraph/kleros/curate` |
+| Gnosis Chain | `https://thegraph.com/hosted-service/subgraph/kleros/legacy-curate-xdai` |
+
+### Proof of Humanity V1
 
 | Network | Endpoint |
 | --- | --- |
 | Ethereum Mainnet | `https://thegraph.com/hosted-service/subgraph/kleros/proof-of-humanity-mainnet` |
 
-You can also query the PoH contract directly at `0xC5E9dDebb09Cd64DfaCab4011A0D5cEDaf7c9BDb` on Ethereum Mainnet. To check if an address is registered, call `isRegistered(address)`.
+You can also query PoH V1 directly: call `isRegistered(address)` on `0xC5E9dDebb09Cd64DfaCab4011A0D5cEDaf7c9BDb` on Ethereum Mainnet.
 
-### Other Products
+### Other V1 Products
 
-For subgraph endpoints for Escrow, Linguo, Tokens, and other Kleros apps, check the [Kleros subgraph list on GitHub](https://github.com/orgs/kleros/repositories?q=subgraph).
-
-If no subgraph exists for the application you need, you can request one from the Kleros team or deploy your own using [The Graph](https://thegraph.com/docs/).
+For Escrow V1, Linguo, Tokens, and other legacy apps, see the [Kleros subgraph list on GitHub](https://github.com/orgs/kleros/repositories?q=subgraph).
 
 ---
 
 ## Querying Subgraphs
 
-All subgraphs expose a GraphQL API. You can query them using:
-
-- The Graph's hosted Explorer UI (click "Playground" on any subgraph page)
-- Any GraphQL client (`fetch`, Apollo, urql, etc.)
-- The [Kleros SDK](/reference/sdk/kleros-sdk)
+All subgraphs expose a GraphQL API. Query them with any GraphQL client:
 
 ```typescript
-const response = await fetch(SUBGRAPH_ENDPOINT, {
+const SUBGRAPH_URL =
+  `https://gateway.thegraph.com/api/${process.env.GRAPH_API_KEY}/subgraphs/id/96vpnRJbRVkzF6usMNYMMoziSZEfSwGEDpXNi2h9WBSW`;
+
+const response = await fetch(SUBGRAPH_URL, {
   method: "POST",
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
-    query: `{ courts(first: 10) { id policy { policy } stake } }`
+    query: `{
+      courts(first: 10) {
+        id
+        policy { policy }
+        minStake
+        timesPerPeriod
+      }
+    }`
   })
 });
+
 const { data } = await response.json();
 ```
 
 <Note>
-Addresses in subgraphs are stored as lowercase hex bytes. Always lowercase Ethereum addresses when querying, or the subgraph will not find them.
+Addresses in subgraph responses are always **lowercase hex** (no EIP-55 checksum). Always lowercase addresses in your query variables, or the subgraph will return no results.
 </Note>
 
 ---
@@ -80,9 +118,9 @@ Addresses in subgraphs are stored as lowercase hex bytes. Always lowercase Ether
 
 <CardGroup cols={2}>
   <Card title="Query Examples" icon="magnifying-glass" href="/developers/subgraph/queries">
-    Common GraphQL queries
+    Common GraphQL queries for disputes, courts, and jurors
   </Card>
   <Card title="Subgraph Overview" icon="database" href="/developers/subgraph/overview">
-    Architecture and local development
+    Architecture and local development setup
   </Card>
 </CardGroup>

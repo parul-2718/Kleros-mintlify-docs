@@ -1,35 +1,99 @@
 ---
 title: "Policy Format"
-description: "Court policy specification rules and guidelines for dispute resolution"
+description: "Court policy and dispute policy specification — rules and guidelines for jurors"
 ---
 
+Kleros uses two kinds of policy documents:
 
+1. **Court policies** — define the general rules for a specific Kleros court. Registered in the `PolicyRegistry` contract and displayed to jurors in every dispute in that court.
+2. **Dispute policies** — define the specific rules for a particular arbitrable app. Referenced via `policyURI` in the dispute template. Jurors are expected to read both.
 
-Court policies define the rules jurors follow when evaluating disputes. Policies are stored on IPFS and referenced by the `PolicyRegistry` contract.
+Both are JSON files stored on IPFS.
 
-## Policy JSON
+---
+
+## Court Policy JSON
 
 ```json
 {
   "name": "General Court Policy",
-  "description": "Rules for the General Court",
-  "summary": "The General Court handles disputes that do not fit into specialized courts.",
+  "description": "Rules for the General Court — handles disputes not covered by specialized courts.",
+  "summary": "The General Court is the court of last resort for disputes without a specialized subcourt. Jurors should apply reasonable judgment to the facts presented.",
   "requiredFields": [
     {
       "label": "Contract terms",
-      "description": "The original agreement between the parties"
+      "description": "The original agreement between the parties, if any"
+    },
+    {
+      "label": "Evidence of breach",
+      "description": "Specific evidence showing how the agreement was violated"
     }
   ],
   "rulingOptions": {
     "titles": ["Option A", "Option B"],
     "descriptions": [
-      "Description of what Option A means",
-      "Description of what Option B means"
+      "What happens if Option A is selected",
+      "What happens if Option B is selected"
     ]
   },
   "uri": "/ipfs/QmPolicyFileHash"
 }
 ```
+
+---
+
+## Dispute Policy (per-app)
+
+Dispute policies are linked via the `policyURI` field in dispute templates. They define how jurors should rule for **your specific application**.
+
+A well-written dispute policy should include:
+
+| Section | Description |
+|---------|-------------|
+| **Context** | What your app does and what the dispute represents |
+| **Ruling criteria** | Exact conditions for each ruling option |
+| **Edge cases** | Partial fulfillment, ambiguous evidence, missing info |
+| **Refuse to Arbitrate** | When jurors should select ruling 0 (invalid dispute, out of scope) |
+| **Evidence requirements** | What types of evidence are acceptable |
+
+### Example Dispute Policy Structure
+
+```json
+{
+  "name": "Escrow V2 Dispute Policy",
+  "version": "1.0",
+  "description": "Rules for resolving escrow payment disputes on Escrow V2.",
+  "rulingCriteria": {
+    "0": "Refuse to Arbitrate — The dispute is invalid, the question is unanswerable, or critical evidence is missing.",
+    "1": "Refund the Buyer — The seller failed to deliver the goods or services as described.",
+    "2": "Pay the Seller — The seller fulfilled their obligations as described in the transaction terms."
+  },
+  "edgeCases": [
+    "If delivery is partial, consider whether it materially meets the contract terms.",
+    "If the buyer raised the dispute in bad faith with no evidence, prefer ruling 2.",
+    "If terms are ambiguous and both parties have plausible claims, prefer ruling 0."
+  ],
+  "evidenceGuidelines": "Acceptable: screenshots, delivery confirmations, contract terms, payment records. Not acceptable: personal testimony without supporting evidence.",
+  "policyURI": "/ipfs/QmPolicyIPFSHash"
+}
+```
+
+---
+
+## `specification` Field in Dispute Templates
+
+Dispute templates may include a `specification` field referencing the KIP (Kleros Improvement Proposal) or standard the template follows:
+
+```json
+{
+  "specification": "KIP-99",
+  ...
+}
+```
+
+This is informational — it helps auditors and integrators understand which standard governs the template's structure. Reality V2 uses this to link to the Reality.eth arbitration spec.
+
+---
 
 ## PolicyRegistry Contract
 
@@ -37,4 +101,21 @@ Court policies define the rules jurors follow when evaluating disputes. Policies
 function setPolicy(uint96 _courtID, string calldata _courtName, string calldata _policyURI) external
 ```
 
-Only the governor can set policies. The `_policyURI` points to the IPFS-hosted policy JSON.
+Only the KlerosCore governor can register court policies. The `_policyURI` is an IPFS URI pointing to the court policy JSON.
+
+To read the current policy for a court:
+
+```solidity
+(string memory name, string memory uri) = policyRegistry.policies(courtID);
+```
+
+---
+
+## Tips for Writing Good Policies
+
+- Write for a general audience — jurors are not legal experts or domain specialists
+- Use concrete examples for each ruling option
+- Specify exactly what evidence is sufficient to shift the ruling
+- Avoid ambiguous language like "reasonable" without defining what it means in your context
+- Test the policy with mock disputes before deployment
+- Store on IPFS with multiple pinning providers (Pinata, Infura, Cloudflare) for permanence

@@ -3,6 +3,128 @@ title: "Guide"
 description: "Step-by-step implementation of an arbitrable contract"
 ---
 
+## Interface Reference
+
+Before building, understand the two interfaces your contract interacts with.
+
+### IArbitratorV2 (KlerosCore)
+
+```solidity
+interface IArbitratorV2 {
+    // ---- Dispute Creation ----
+
+    /// @dev Create dispute, pay fee in native currency (ETH on Arbitrum).
+    function createDispute(
+        uint256 _numberOfChoices,
+        bytes calldata _extraData
+    ) external payable returns (uint256 disputeID);
+
+    /// @dev Create dispute, pay fee in an ERC-20 token.
+    function createDispute(
+        uint256 _numberOfChoices,
+        bytes calldata _extraData,
+        IERC20 _feeToken,
+        uint256 _feeAmount
+    ) external returns (uint256 disputeID);
+
+    // ---- Cost Queries ----
+
+    /// @dev Returns arbitration cost in ETH for the given extraData.
+    function arbitrationCost(bytes calldata _extraData)
+        external view returns (uint256 cost);
+
+    /// @dev Returns arbitration cost in the specified ERC-20 token.
+    function arbitrationCost(bytes calldata _extraData, IERC20 _feeToken)
+        external view returns (uint256 cost);
+
+    // ---- Ruling ----
+
+    /// @dev Returns the current ruling and its status.
+    /// @param _disputeID The dispute to query.
+    /// @return ruling    Current winning option (0 = Refuse to Arbitrate / no majority yet).
+    /// @return tied      True if two or more options are tied for the most votes.
+    ///                   A tied dispute will default to ruling 0 unless resolved by appeal.
+    /// @return overridden True if the ruling was changed by the parent court on appeal.
+    function currentRuling(uint256 _disputeID)
+        external view returns (uint256 ruling, bool tied, bool overridden);
+
+    // ---- Events ----
+    event DisputeCreation(uint256 indexed _disputeID, IArbitrableV2 indexed _arbitrable);
+    event Ruling(IArbitrableV2 indexed _arbitrable, uint256 indexed _disputeID, uint256 _ruling);
+    event AcceptedFeeToken(IERC20 indexed _token, bool indexed _accepted);
+    event NewCurrencyRate(IERC20 indexed _feeToken, uint64 _rateInEth, uint8 _rateDecimals);
+}
+```
+
+### IArbitrableV2 (your contract)
+
+```solidity
+interface IArbitrableV2 {
+    /// @dev Emitted when your contract creates a dispute. Required by the Kleros Court UI
+    ///      to link the dispute to a display template.
+    /// @param _arbitrator          Address of KlerosCore.
+    /// @param _arbitratorDisputeID The dispute ID assigned by KlerosCore.
+    /// @param _externalDisputeID   Your contract's internal dispute/transaction ID.
+    ///                             Used in data mappings as {{externalDisputeID}}.
+    /// @param _templateId          ID from DisputeTemplateRegistry.setDisputeTemplate().
+    ///                             Pass 0 if using templateUri instead.
+    /// @param _templateUri         IPFS URI of the dispute template JSON.
+    ///                             Pass "" if using templateId instead.
+    event DisputeRequest(
+        IArbitratorV2 indexed _arbitrator,
+        uint256 indexed _arbitratorDisputeID,
+        uint256 _externalDisputeID,
+        uint256 _templateId,
+        string _templateUri
+    );
+
+    /// @dev Called by the arbitrator when a ruling is final.
+    /// @param _disputeID The arbitrator-assigned dispute ID.
+    /// @param _ruling    The winning option. 0 = "Refuse to Arbitrate" — always handle this.
+    function rule(uint256 _disputeID, uint256 _ruling) external;
+
+    event Ruling(IArbitratorV2 indexed _arbitrator, uint256 indexed _disputeID, uint256 _ruling);
+}
+```
+
+### `extraData` Encoding
+
+`extraData` configures the court and juror count:
+
+```solidity
+// V2 uses uint96 for courtID (not uint256 as in V1 — this is a breaking change)
+bytes memory extraData = abi.encodePacked(
+    uint96(1),   // courtID  — 1 = General Court
+    uint256(3)   // minJurors — always use odd numbers to avoid ties
+);
+```
+
+| Bytes | Type | Field | Notes |
+|-------|------|-------|-------|
+| 0–11 | `uint96` | `courtID` | **Must be `uint96`**, not `uint256`. Using `uint256` encodes a wrong value. |
+| 12–43 | `uint256` | `minJurors` | Use 3, 5, or 7. Even numbers risk tied votes (see below). |
+
+**Tied votes:** When votes are evenly split, `currentRuling()` returns `tied = true` and `ruling = 0`. The dispute remains in appeal until resolved. If never appealed after the period ends, ruling 0 (Refuse to Arbitrate) is executed. Always handle ruling 0 explicitly in your contract.
+
+### ERC-20 Fee Payment
+
+On Arbitrum One, KlerosCore accepts ETH and accepted ERC-20 tokens (e.g. WETH):
+
+```solidity
+IERC20 weth = IERC20(0x82aF49447D8a07e3bd95BD0d56f35241523fBab1); // WETH on Arbitrum
+uint256 cost = arbitrator.arbitrationCost(extraData, weth);
+weth.approve(address(arbitrator), cost);
+uint256 disputeID = arbitrator.createDispute(2, extraData, weth, cost);
+```
+
+<Warning>
+ERC-20 fees only work when calling KlerosCore directly on Arbitrum. The `ForeignGateway` (for cross-chain disputes from Ethereum or Gnosis) only accepts native ETH.
+</Warning>
+
+To check accepted tokens, listen for the `AcceptedFeeToken(token, accepted)` event on KlerosCore.
+
+---
+
 ## Building an Escrow Contract
 
 We'll build a complete escrow that uses Kleros arbitration. This covers all the patterns you'll need.
@@ -98,9 +220,10 @@ function raiseDispute(uint256 _txID) external payable {
         templateUri
     );
     
-    // Refund excess
+    // Refund excess — use .call() not .transfer()
     if (msg.value > cost) {
-        payable(msg.sender).transfer(msg.value - cost);
+        (bool ok,) = payable(msg.sender).call{value: msg.value - cost}("");
+        require(ok, "Refund failed");
     }
 }
 ```
@@ -118,15 +241,17 @@ function rule(uint256 _disputeID, uint256 _ruling) external override {
     require(_ruling <= 2, "Invalid ruling");
     
     tx.status = Status.Resolved;
-    
-    // Execute ruling
+
+    // Execute ruling — use .call() not .transfer() to avoid gas limit issues
     if (_ruling == uint256(Ruling.PaySeller)) {
-        payable(tx.seller).transfer(tx.amount);
+        (bool ok,) = tx.seller.call{value: tx.amount}("");
+        require(ok, "Transfer failed");
     } else {
-        // RefusedToRule or RefundBuyer → refund buyer
-        payable(tx.buyer).transfer(tx.amount);
+        // Ruling 0 (Refuse to Arbitrate) or RefundBuyer → refund buyer
+        (bool ok,) = tx.buyer.call{value: tx.amount}("");
+        require(ok, "Transfer failed");
     }
-    
+
     emit Ruling(arbitrator, _disputeID, _ruling);
 }
 ```
@@ -368,7 +493,10 @@ contract Escrow is IArbitrableV2, IEvidence {
         
         emit DisputeRequest(arbitrator, disputeID, _txID, 0, templateUri);
         
-        if (msg.value > cost) payable(msg.sender).transfer(msg.value - cost);
+        if (msg.value > cost) {
+            (bool ok,) = payable(msg.sender).call{value: msg.value - cost}("");
+            require(ok, "Refund failed");
+        }
     }
     
     function submitEvidence(uint256 _txID, string calldata _evidence) external {
@@ -384,11 +512,14 @@ contract Escrow is IArbitrableV2, IEvidence {
         require(t.status == Status.Disputed, "Not disputed");
         
         t.status = Status.Resolved;
-        
+
         if (_ruling == 1) {
-            payable(t.seller).transfer(t.amount);
+            (bool ok,) = t.seller.call{value: t.amount}("");
+            require(ok, "Transfer failed");
         } else {
-            payable(t.buyer).transfer(t.amount);
+            // Ruling 0 (Refuse to Arbitrate) or ruling 2 → refund buyer
+            (bool ok,) = t.buyer.call{value: t.amount}("");
+            require(ok, "Transfer failed");
         }
         
         emit Ruling(arbitrator, _disputeID, _ruling);
@@ -403,6 +534,6 @@ contract Escrow is IArbitrableV2, IEvidence {
 
 ## Next Steps
 
-<Card title="Testing Your Integration" icon="flask" href="/developers/arbitrable/testing">
+<Card title="Testing Your Integration" icon="flask" href="/developers/arbitrable-apps/arbitrable-testing">
   Test scenarios and debugging strategies
 </Card>

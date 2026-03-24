@@ -5,46 +5,115 @@ description: "TypeScript SDK for interacting with Kleros V2"
 
 
 
-The Kleros SDK is a TypeScript library for interacting with the Kleros V2 protocol. It succeeds Archon and is compatible with kleros-v2 contracts.
+The Kleros SDK (`@kleros/kleros-sdk`) is a TypeScript library for interacting with the Kleros V2 protocol. It succeeds Archon and provides utilities for dispute template population, evidence handling, and contract interactions.
+
+<Warning>
+The SDK is under active development. For production use, pin to a specific version and review the changelog before upgrading. ABIs from `@kleros/kleros-v2-contracts` are stable for direct contract interaction.
+</Warning>
 
 ## Installation
 
 ```bash
 npm install @kleros/kleros-sdk
+# Peer dependencies
+npm install @kleros/kleros-v2-contracts viem
 ```
 
-## Dependencies
+## Packages
 
-- ABIs from `@kleros/kleros-v2-contracts`
-- Subgraph from `@kleros/kleros-v2-subgraph`
+The SDK lives at [github.com/kleros/kleros-v2](https://github.com/kleros/kleros-v2) inside the `kleros-sdk/` workspace. It is published as `@kleros/kleros-sdk`.
 
-## Capabilities
+## Key Features
+
+### Dispute Template Population
+
+The SDK resolves `templateDataMappings` to populate `{{variable}}` placeholders in dispute templates. This is the primary use case — run mappings client-side to display rich dispute context.
+
+```typescript
+import { populateTemplate } from "@kleros/kleros-sdk";
+
+// disputeTemplate: the JSON template string from DisputeTemplateRegistry
+// mappings: the JSON mappings array string from DisputeTemplateRegistry
+// externalDisputeID: your app's dispute/transaction ID
+const populated = await populateTemplate(
+  disputeTemplate,
+  mappings,
+  externalDisputeID,
+  { graphApiKey: process.env.GRAPH_API_KEY }
+);
+
+console.log(populated.title);       // "Escrow dispute: Widget delivery"
+console.log(populated.description); // "Buyer claims goods were not delivered..."
+```
+
+### ExtraData Encoding / Decoding
+
+```typescript
+import { encodeExtraData, decodeExtraData } from "@kleros/kleros-sdk";
+
+// Encode: General Court (ID 1), 3 jurors
+const extraData = encodeExtraData(1n, 3n);
+// → "0x000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003"
+
+// Decode
+const { courtId, minJurors } = decodeExtraData(extraData);
+// → { courtId: 1n, minJurors: 3n }
+```
+
+### Evidence Submission
+
+```typescript
+import { uploadEvidence, submitEvidence } from "@kleros/kleros-sdk";
+
+// Upload evidence to IPFS
+const { uri } = await uploadEvidence({
+  name: "Delivery Receipt",
+  description: "Screenshot showing delivery on Jan 15",
+  fileURI: "/ipfs/QmFile...",
+});
+
+// Submit on-chain
+await submitEvidence(walletClient, {
+  arbitrator: KLEROS_CORE_ADDRESS,
+  evidenceGroupID: txID,
+  evidence: uri,
+});
+```
 
 ### Contract Discovery
-- Find KlerosCore, Dispute Kit, and Gateway addresses
-- Discover available dispute kits and their capabilities
 
-### Staking
-- Increase/decrease PNK allowance for KlerosCore
-- Set stake transactions
+```typescript
+import { getContracts } from "@kleros/kleros-sdk";
 
-### Dispute Kit Operations (per-kit)
-- **Vote commit/cast**: Upload to decentralized storage + transaction
-- **Evidence submission**: Upload to storage + on-chain submission
-- **Appeal crowdfunding**: Contribution transactions
+const contracts = await getContracts(chainId);
+// → { klerosCore, sortitionModule, disputeKitClassic, templateRegistry, ... }
+```
 
-### Views / Queries
-- Retrieve active disputes from KlerosCore or specific dispute kits
-- Check dispute kit phases
-- Get juror voting power, commitments, and cast votes
-- Retrieve juror, dispute, and court statistics (via subgraph)
-- Retrieve evidence from decentralized storage with content validation
+## Staking
 
-### Utilities
-- Dynamic evidence rendering
-- Content validation (hash verification)
-- ExtraData encoding/decoding
+```typescript
+import { setStake } from "@kleros/kleros-sdk";
+
+// Stake 200 PNK in court 1
+await setStake(walletClient, {
+  courtId: 1n,
+  amount: parseUnits("200", 18),
+});
+```
+
+## Capabilities Summary
+
+| Feature | Description |
+|---------|-------------|
+| Template population | Resolves `templateDataMappings` to fill `{{variables}}` in dispute templates |
+| ExtraData codec | Encode/decode court ID + juror count for `createDispute()` |
+| Evidence upload | Upload evidence JSON to IPFS, emit on-chain `Evidence` event |
+| Contract discovery | Resolve KlerosCore, SortitionModule, etc. by chain ID |
+| Staking | Set/remove PNK stake in courts |
+| Dispute queries | Fetch active disputes, juror votes, and draw status |
+| Appeal crowdfunding | Contribute to appeal rounds |
+| Content validation | Verify evidence/template integrity via hash |
 
 ## Source
 
-[GitHub Repository](https://github.com/kleros/kleros-sdk)
+[GitHub — kleros/kleros-v2/kleros-sdk](https://github.com/kleros/kleros-v2/tree/dev/kleros-sdk)

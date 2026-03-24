@@ -27,7 +27,14 @@ Distributes PNK stakes and fees to jurors based on vote coherence.
 Finalizes dispute and calls `rule()` on the Arbitrable contract.
 
 ### `currentRuling(uint256 _disputeID) view → (uint256 ruling, bool tied, bool overridden)`
-Gets current ruling state.
+
+Returns the current ruling and its status:
+
+| Return | Type | Description |
+|--------|------|-------------|
+| `ruling` | `uint256` | Current winning option. `0` means "Refuse to Arbitrate" or no majority yet. |
+| `tied` | `bool` | `true` when two or more options have equal votes. A tied dispute will default to ruling `0` if the appeal period expires without resolution. Always design your contracts to handle ruling `0` explicitly. |
+| `overridden` | `bool` | `true` when the parent court changed the ruling on appeal. Useful for monitoring or analytics — the final `rule()` callback on your arbitrable contract already reflects the overridden value. |
 
 ### `setStake(uint96 _courtID, uint256 _newStake)`
 Juror staking — requires prior PNK approval. In the Neo deployment, staking also requires the juror to hold the `KlerosV2NeoEarlyUser` NFT.
