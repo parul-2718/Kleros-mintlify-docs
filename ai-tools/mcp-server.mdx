@@ -1,0 +1,165 @@
+---
+title: "MCP Server"
+description: "Use Kleros documentation as an AI context source via the Model Context Protocol (MCP)"
+icon: "robot"
+---
+
+The Kleros documentation site exposes an **MCP (Model Context Protocol) server** that lets AI coding assistants — Claude, Cursor, VS Code Copilot, and others — query these docs directly as context when you are building a Kleros integration.
+
+This means your AI assistant can answer questions like "what is the correct extraData encoding for V2?" or "show me the IArbitrableV2 interface" by reading the authoritative docs rather than relying on training data that may be outdated.
+
+---
+
+## MCP Server URL
+
+```
+https://docs.kleros.io/mcp
+```
+
+The MCP server exposes the full content of the Kleros documentation in a format that MCP clients can query with natural language.
+
+---
+
+## Setup Instructions
+
+<Tabs>
+  <Tab title="Claude Code">
+    Run this from any directory (installs globally):
+
+    ```bash
+    claude mcp add kleros-docs --transport http https://docs.kleros.io/mcp
+    ```
+
+    Or add it manually to `~/.claude/settings.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "kleros-docs": {
+          "type": "http",
+          "url": "https://docs.kleros.io/mcp"
+        }
+      }
+    }
+    ```
+
+    Once connected, Claude Code can answer Kleros integration questions inline while you code.
+  </Tab>
+
+  <Tab title="Claude Desktop">
+    Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+
+    ```json
+    {
+      "mcpServers": {
+        "kleros-docs": {
+          "type": "http",
+          "url": "https://docs.kleros.io/mcp"
+        }
+      }
+    }
+    ```
+
+    Restart Claude Desktop after saving.
+  </Tab>
+
+  <Tab title="Cursor">
+    Open **Settings → MCP → Add Server** and enter:
+
+    - **Name:** `kleros-docs`
+    - **URL:** `https://docs.kleros.io/mcp`
+    - **Transport:** HTTP
+
+    Or add to `.cursor/mcp.json` in your project:
+
+    ```json
+    {
+      "mcpServers": {
+        "kleros-docs": {
+          "type": "http",
+          "url": "https://docs.kleros.io/mcp"
+        }
+      }
+    }
+    ```
+  </Tab>
+
+  <Tab title="VS Code">
+    Add to your `.vscode/settings.json` or user settings:
+
+    ```json
+    {
+      "github.copilot.chat.mcp.servers": {
+        "kleros-docs": {
+          "type": "http",
+          "url": "https://docs.kleros.io/mcp"
+        }
+      }
+    }
+    ```
+  </Tab>
+
+  <Tab title="Windsurf">
+    Add to `~/.codeium/windsurf/mcp_config.json`:
+
+    ```json
+    {
+      "mcpServers": {
+        "kleros-docs": {
+          "type": "http",
+          "url": "https://docs.kleros.io/mcp"
+        }
+      }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## What You Can Ask
+
+Once connected, your AI assistant has access to the full Kleros documentation. Useful prompts when building integrations:
+
+```
+What is the correct extraData encoding for Kleros V2?
+Show me the IArbitrableV2 interface.
+How do I register a dispute template?
+What are the data mapping types for dispute templates?
+How do I handle ruling 0 (refuse to arbitrate)?
+What are the KlerosCore contract addresses on Arbitrum One?
+How do I integrate Curate V2 into my contract?
+What subgraph queries can I use to fetch dispute data?
+How do I set up cross-chain arbitration with Vea?
+```
+
+---
+
+## LLM-Friendly Endpoints
+
+In addition to the MCP server, the docs site exposes two flat-file endpoints for LLM consumption:
+
+| Endpoint | Description |
+|----------|-------------|
+| `https://docs.kleros.io/llms.txt` | Index of all pages with titles and descriptions |
+| `https://docs.kleros.io/llms-full.txt` | Full text content of all pages concatenated |
+
+These are useful for one-shot context loading in systems that don't support MCP, such as custom LLM pipelines or RAG systems.
+
+---
+
+## Contextual AI on Every Page
+
+Every documentation page includes a context-aware AI button in the top-right corner. Click the **Ask AI** button (or press the relevant keyboard shortcut) to open a chat that has the current page as context.
+
+The page-level AI understands the specific section you are reading and can answer follow-up questions without you needing to copy-paste content.
+
+---
+
+<Note>
+The MCP server content is rebuilt on every documentation deploy. You always get the latest version of the docs, including the most recent contract addresses, API changes, and integration patterns.
+</Note>
+
+<Tip>
+If you find the AI giving outdated answers (e.g., wrong contract addresses or deprecated patterns like `arbitrumGoerliToChiadoDevnet`), the most likely cause is that it is answering from training data rather than from the MCP server. Verify MCP is connected and ask the AI to re-check using the docs.
+</Tip>

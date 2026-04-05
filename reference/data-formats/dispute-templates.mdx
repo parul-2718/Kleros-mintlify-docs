@@ -75,6 +75,7 @@ A complete dispute template is a JSON object. Fields marked `{{variable}}` are p
 | `specification` | string | No | KIP or spec reference this template follows |
 | `aliases` | object | No | Maps human-readable role names to address placeholders |
 | `version` | string | No | Semantic version of this template, e.g. `"1.0"` |
+| `extraEvidences` | array | No | Pre-dispute evidence from the arbitrable parties (requester/challenger). See [Pre-dispute Evidence](#pre-dispute-evidence-extraevidences) |
 
 ### Answer IDs
 
@@ -88,6 +89,64 @@ Answer IDs are hex-encoded ruling values:
 | `"0x03"`, ... | Additional answers |
 
 The `0x00` ruling is handled specially by KlerosCore — if a majority selects it, no party is considered to have won.
+
+---
+
+## Pre-dispute Evidence (`extraEvidences`)
+
+The `extraEvidences` field lets arbitrable contracts surface evidence that was submitted **before the dispute was created** — such as a requester's registration submission or a challenger's objection — directly in the Kleros Court UI. Without this field, jurors would need to navigate to the arbitrable app separately to find that evidence.
+
+### Schema
+
+```typescript
+// Zod schema (from @kleros/kleros-sdk)
+extraEvidences: z.array(EvidenceSchema).default([])
+
+// EvidenceSchema shape
+{
+  name: string,       // short label shown in Court UI
+  description: string, // explanation of what the evidence shows
+  fileURI: string,    // IPFS URI or data URI of the attached file (optional)
+  evidenceType: string // e.g. "Image", "Video", "Text", "Document"
+}
+```
+
+### Usage in Templates
+
+`extraEvidences` is an array populated by the data mappings system. In practice, Curate V2 uses Handlebars conditionals to include requester and challenger evidence only when they exist, joined by a comma when both are present:
+
+```json
+{
+  "extraEvidences": [
+    {{#if requesterEvidence}}{{{requesterEvidence}}}{{/if}}{{#if requesterEvidence}}{{#if challengerEvidence}},{{/if}}{{/if}}{{#if challengerEvidence}}{{{challengerEvidence}}}{{/if}}
+  ]
+}
+```
+
+The `requesterEvidence` and `challengerEvidence` variables are populated by a `fetch/ipfs/json` mapping that fetches each party's evidence file from IPFS:
+
+```json
+[
+  {
+    "type": "graphql",
+    "endpoint": "https://gateway.thegraph.com/api/{{{graphApiKey}}}/subgraphs/id/<SUBGRAPH_ID>",
+    "query": "query GetRequest($id: ID!) { request(id: $id) { requester challenger evidenceGroup { evidences(first: 1, orderBy: creationTime, orderDirection: asc) { uri } } } }",
+    "variables": { "id": "{{requestId}}" },
+    "seek": ["request.requester", "request.challenger", "request.evidenceGroup.evidences.0.uri"],
+    "populate": ["requester", "challenger", "requesterEvidenceUri"]
+  },
+  {
+    "type": "fetch/ipfs/json",
+    "ipfsUri": "{{{requesterEvidenceUri}}}",
+    "seek": ["name", "description", "fileURI", "evidenceType"],
+    "populate": ["requesterEvidenceName", "requesterEvidenceDescription", "requesterEvidenceFileURI", "requesterEvidenceType"]
+  }
+]
+```
+
+<Note>
+`extraEvidences` is the mechanism that connects pre-dispute activity (registration submissions, challenger objections) to the Kleros dispute UI. Without it, jurors must leave Court to find context. Always populate it when your arbitrable generates structured evidence at submission time.
+</Note>
 
 ---
 

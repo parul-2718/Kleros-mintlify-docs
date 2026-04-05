@@ -1,0 +1,335 @@
+---
+title: "Kleros Registries"
+description: "Address Tags, Tokens, CDN, and ATQ — the four live Kleros curation registries, their data models, subgraph access, and consumer integrations"
+---
+
+Kleros runs four production curation registries built on Curate V2. Each registry curates a specific type of data; disputed entries are resolved by Kleros Court. Together they form the core data layer used by wallets, block explorers, and token lists to display trusted metadata for contracts and tokens.
+
+| Registry | Short name | What it curates | Chain |
+|----------|-----------|-----------------|-------|
+| Address Tags | ATR | Human-readable tags for contract addresses | Gnosis Chain |
+| Tokens | — | ERC-20 token metadata (name, symbol, logo, decimals) | Gnosis Chain |
+| Contract Domain Names | CDN | Mapping from contract address → web domain | Gnosis Chain |
+| Address Tag Query | ATQ | Batch meta-registry of NPM packages that generate address tag data | Gnosis Chain |
+
+---
+
+## Address Tags Registry
+
+The Address Tags Registry maps a `(address, chain)` pair to a short descriptive tag string. It is the primary source for "what is this contract?" labels shown in wallets and explorers.
+
+### Item Schema
+
+Each registered item encodes the following columns:
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `Contract Address` | `address` | The checksummed contract address |
+| `Contract Name` | `text` | Human-readable name (e.g. "Uniswap V3: Router 2") |
+| `Public Name Tag` | `text` | Short label shown to end users |
+| `UI/Website` | `link` | Project website |
+| `Chain ID` | `number` | Chain the address belongs to |
+
+### Subgraph Access
+
+The registry is indexed by an Envio-hosted subgraph (private deployment). Query pattern:
+
+```graphql
+{
+  litems(
+    where: {
+      registryAddress: "0xATR_REGISTRY_ADDRESS"
+      status_in: [Registered, ClearingRequested]
+    }
+    first: 1000
+  ) {
+    props { label value }
+  }
+}
+```
+
+- Addresses must be **lowercase** in `where` filters
+- Filter by `chain_id` in `props` to narrow to a specific network
+- Items with `ClearingRequested` are still active — include them in "active tags" queries
+
+### Resolution Rules
+
+- **One tag per address per chain.** A second registration for the same `(address, chainId)` pair triggers a conflict; the curated item with more stake backing is preferred.
+- **ATQ vs ATR conflict:** If an address has a tag from both the ATQ meta-registry and the Address Tags Registry, the **ATR entry takes priority** (it is individually curated and challenged).
+
+---
+
+## Tokens Registry
+
+The Tokens Registry curates ERC-20 token metadata. It is the source for Kleros-maintained token lists used by Uniswap, MetaMask, Ledger, and others.
+
+### Item Schema
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `Name` | `text` | Full token name (e.g. "Wrapped Ether") |
+| `Ticker` | `text` | Symbol (e.g. "WETH") |
+| `Address` | `address` | Token contract address |
+| `Chain ID` | `number` | Chain the token is deployed on |
+| `Decimals` | `number` | Token decimal places |
+| `Logo` | `image` | IPFS URI for the token logo |
+
+### Subgraph Access
+
+Same Envio-hosted subgraph pattern as ATR. Query by `registryAddress` for the Tokens registry contract.
+
+### Token List Output
+
+The Tokens registry generates a standard [Token List](https://tokenlists.org/) JSON at build time. Consumers fetch the static file rather than querying the subgraph directly:
+
+```typescript
+// Fetch the Kleros token list
+const res = await fetch("https://t2crtokens.eth.limo");
+const tokenList = await res.json();
+// tokenList.tokens is an array of TokenInfo objects
+```
+
+---
+
+## CDN Registry (Contract Domain Names)
+
+The CDN Registry maps contract addresses to web domains. It provides a reverse-lookup: given a contract address, find the project's authoritative domain.
+
+### Item Schema
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `Contract Address` | `address` | The contract address |
+| `Domain Name` | `text` | Authoritative domain (e.g. `uniswap.org`) |
+| `Chain ID` | `number` | Chain the contract is deployed on |
+
+### Subgraph Access
+
+Same Envio-hosted subgraph pattern. CDN is smaller than ATR; the full set can typically be fetched in a single query.
+
+### Use Cases
+
+- Wallet phishing detection: check whether the domain a dApp claims matches the CDN entry for the contract being called
+- Block explorer "verified project" badges
+- Reverse DNS resolution for contract addresses
+
+---
+
+## ATQ Registry (Address Tag Query)
+
+The ATQ registry is a **meta-registry**: instead of curating individual address tags, it curates NPM **packages** that each generate batches of address tags when run. This allows large-scale tag generation (thousands of addresses) without requiring individual curation submissions per address.
+
+<Warning>
+ATQ is **not queryable on-the-fly** via subgraph. To generate address tags from ATQ, you must download and run each registered NPM package locally. There is no API that returns ATQ-derived tags for a specific address in real time.
+</Warning>
+
+### Item Schema
+
+| Column | Type | Description |
+|--------|------|-------------|
+| `Package Name` | `text` | NPM package name (e.g. `@kleros/address-tags-aave`) |
+| `Version` | `text` | Semver version of the package |
+| `Description` | `text` | Human description of what addresses this package tags |
+| `Publisher` | `address` | Address of the package submitter |
+
+### Workflow
+
+1. A data provider publishes an NPM package that exports a function returning `Array<{address, chainId, tag, ...}>`
+2. They submit the package to the ATQ registry via Curate
+3. Consumers clone all registered packages, run them, and merge the results into a combined address tag dataset
+4. The merged dataset is cached and served statically
+
+```typescript
+// Conceptual: running ATQ packages to generate tags
+import { getAddressTags } from "@kleros/address-tags-aave";
+
+const tags = await getAddressTags();
+// tags: [{ address: "0x...", chainId: 1, tag: "Aave V3: Pool" }, ...]
+```
+
+### Data Model
+
+```typescript
+// curate_atq_package
+interface ATQPackage {
+  packageName: string;     // NPM package name
+  version: string;
+  description: string;
+  publisher: string;       // submitter address
+  status: "Registered" | "RegistrationRequested" | "ClearingRequested";
+  registrationTime: number;
+}
+```
+
+---
+
+## Data Models
+
+Full normalized data models for each registry:
+
+### `curate_address_tag`
+
+```typescript
+interface CurateAddressTag {
+  id: string;              // itemID@registryAddress
+  contractAddress: string; // lowercase
+  contractName: string;
+  publicNameTag: string;
+  website: string;
+  chainId: number;
+  status: CurateStatus;
+  registrationTime: number;
+  source: "ATR" | "ATQ";  // direct registration or via ATQ package
+}
+```
+
+### `curate_token`
+
+```typescript
+interface CurateToken {
+  id: string;
+  name: string;
+  ticker: string;
+  address: string;         // lowercase
+  chainId: number;
+  decimals: number;
+  logoURI: string;         // IPFS URI
+  status: CurateStatus;
+}
+```
+
+### `curate_cdn`
+
+```typescript
+interface CurateCDN {
+  id: string;
+  contractAddress: string; // lowercase
+  domainName: string;
+  chainId: number;
+  status: CurateStatus;
+}
+```
+
+### `curate_atq_package`
+
+```typescript
+interface CurateATQPackage {
+  id: string;
+  packageName: string;
+  version: string;
+  description: string;
+  publisher: string;
+  status: CurateStatus;
+}
+
+type CurateStatus =
+  | "Absent"
+  | "Registered"
+  | "RegistrationRequested"
+  | "ClearingRequested";
+```
+
+---
+
+## Consumers
+
+The following products and services consume data from Kleros registries:
+
+| Consumer | Registry Used | How |
+|----------|--------------|-----|
+| Etherscan | ATR, CDN | Contract name tags, domain labels |
+| Blockscout | ATR | Address name tags |
+| MetaMask Core | ATR, Tokens | Token metadata, address labels |
+| MetaMask Snap | ATR | Address warnings |
+| Ledger Live | Tokens | Token display metadata |
+| Uniswap Token List | Tokens | Default token list |
+| Kleros Scout | ATR, Tokens, CDN | Cross-chain address and token explorer |
+
+Consumers typically fetch a pre-built static export (JSON file) rather than querying the subgraph at runtime, to avoid exposing API keys in client-side code.
+
+---
+
+## Architecture
+
+### Level 1 — System Context
+
+```
+                    ┌─────────────────────┐
+                    │   Data Providers    │
+                    │  (submit items via  │
+                    │   Curate UI)        │
+                    └────────┬────────────┘
+                             │  Curate V2 submission
+                             ▼
+                    ┌─────────────────────┐
+                    │   Curate V2         │
+                    │   Smart Contracts   │◄──── Kleros Court (disputes)
+                    │   (Gnosis Chain)    │
+                    └────────┬────────────┘
+                             │  Events indexed
+                             ▼
+                    ┌─────────────────────┐
+                    │   Envio Subgraph    │
+                    │   (private)         │
+                    └────────┬────────────┘
+                             │  GraphQL queries + static exports
+                             ▼
+                    ┌─────────────────────┐
+                    │   Consumers         │
+                    │   (wallets,         │
+                    │    explorers,       │
+                    │    token lists)     │
+                    └─────────────────────┘
+```
+
+### Level 2 — Container View
+
+```
+Gnosis Chain
+├── ATR Registry Contract     0x[address]
+├── Tokens Registry Contract  0x[address]
+├── CDN Registry Contract     0x[address]
+└── ATQ Registry Contract     0x[address]
+
+Envio Indexer
+├── ATR subgraph   → /api/v1/atr/graphql
+├── Tokens subgraph → /api/v1/tokens/graphql
+└── CDN subgraph   → /api/v1/cdn/graphql
+
+Static Export Pipeline (CI)
+├── Reads from Envio subgraphs
+├── Runs ATQ NPM packages
+├── Merges and deduplicates
+└── Publishes → CDN (cdn.kleros.link)
+```
+
+---
+
+## Known Limitations
+
+| Limitation | Impact | Workaround |
+|-----------|--------|-----------|
+| ATQ packages are not queryable in real time | Cannot look up an address in ATQ without running all packages | Use the pre-built static export; run packages in CI |
+| Graph API keys in frontend code | API key exposure risk if subgraph URL is hardcoded client-side | Use server-side proxy or static export; do not embed API keys in browser bundles |
+| No address request logging | Cannot audit who queried a specific address | Use server-side proxy and log at the proxy layer |
+| Max 1 ATR tag per `(address, chainId)` pair | Conflicts require challenge and resolution | Submit the most accurate/general tag; challenges are resolved by jurors |
+
+---
+
+## Adding Data to a Registry
+
+To contribute address tags, tokens, or domain names:
+
+1. Go to [curate.kleros.io](https://curate.kleros.io) and select the registry
+2. Review the registry policy (linked from the registry page)
+3. Submit your item and pay the deposit
+4. Wait for the challenge period to expire (typically 3–7 days)
+
+For bulk submissions via ATQ:
+1. Create an NPM package exporting an async function returning an array of `{address, chainId, tag}` objects
+2. Publish it to NPM
+3. Register it in the ATQ registry on Curate
+
+<Note>
+Contact the Kleros team via [Discord](https://discord.gg/kleros) or `integrations@kleros.io` if you need registry contract addresses, Envio subgraph endpoints, or assistance with bulk ATQ submissions.
+</Note>

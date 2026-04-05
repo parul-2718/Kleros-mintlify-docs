@@ -191,7 +191,16 @@
               "contributing/code-style",
               "contributing/license"
   ]
-}
+},
+          {
+            "group": "AI Tools",
+            "pages": [
+              "ai-tools/mcp-server",
+              "ai-tools/claude-code",
+              "ai-tools/cursor",
+              "ai-tools/windsurf"
+            ]
+          }
         ]
       },
       {
@@ -222,11 +231,12 @@
 
               {
       "group": "Curate",
-     
+
       "pages": [
         "developers/products/curate/overview",
         "developers/products/curate/smart-contracts",
-        "developers/products/curate/integration"
+        "developers/products/curate/integration",
+        "developers/products/curate/registries"
       ]
     },
              {
