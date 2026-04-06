@@ -363,6 +363,13 @@
     "light": "/logo/Kleros logo_updated.svg",
     "dark": "/logo/Kleros logo_updated_white.svg"
   },
+  "seo": {
+    "indexing": "all",
+    "metatags": {
+      "og:site_name": "Kleros Documentation",
+      "og:type": "website"
+    }
+  },
   "contextual": {
     "options": [
       "copy",

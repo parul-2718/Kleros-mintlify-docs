@@ -1,3 +1,18 @@
+---
+name: kleros-docs
+description: >
+  Answer questions about integrating Kleros V2 dispute resolution into smart contracts.
+  Use when a developer asks about IArbitrableV2, IArbitratorV2, createDispute, extraData
+  encoding, dispute templates, data mappings, KlerosCore addresses, Curate V2, Escrow V2,
+  Proof of Humanity V2, Reality V2, Vea cross-chain bridge, or the @kleros/kleros-sdk.
+license: MIT
+compatibility: Designed for Claude Code and other AI coding assistants working on Kleros integrations
+metadata:
+  author: kleros
+  version: "1.0"
+  site: https://docs.kleros.io
+---
+
 # Kleros Documentation — AI Context
 
 You are helping with the Kleros developer documentation. Kleros is a decentralized dispute resolution protocol built on Ethereum. The current live version is **Kleros V2 (Neo)**, deployed on **Arbitrum One**.
@@ -41,7 +56,7 @@ You are helping with the Kleros developer documentation. Kleros is a decentraliz
 
 Four live curation registries (not all are subgraph-queryable):
 - **Address Tags** — maps `address+chain` → tag string; Envio subgraph available
-- **Tokens** — ERC-20 token metadata; Envio subgraph available  
+- **Tokens** — ERC-20 token metadata; Envio subgraph available
 - **CDN (Contract Domain Names)** — maps contract address → domain; Envio subgraph available
 - **ATQ (Address Tag Query)** — meta-registry of NPM packages; batch-only, NOT subgraph-queryable
 
@@ -84,7 +99,7 @@ Vea bridges messages from Arbitrum → other chains. Pattern: `SenderGateway →
     arbitrable-guide.mdx      — IArbitrableV2 implementation guide
     arbitrable-production.mdx — Pre-deployment checklist
   products/
-    curate/                   — Curate V2 integration
+    curate/                   — Curate V2 integration + registry system
     reality/                  — Reality.eth + Kleros
     poh/                      — Proof of Humanity V2
   crosschain/
