@@ -43,6 +43,10 @@
         {
           "tab": "Reference",
           "href": "/reference"
+        },
+        {
+          "tab": "API",
+          "href": "/api-reference"
         }
       ],
       "anchors": [
@@ -355,6 +359,20 @@
       "group": "SDK",
       "pages": ["reference/sdk/kleros-sdk"]
     }
+        ]
+      },
+      {
+        "dropdown": "API",
+        "icon": "code",
+        "groups": [
+          {
+            "group": "IPFS Gateway",
+            "pages": [
+              "api-reference/introduction",
+              "api-reference/endpoint/upload",
+              "api-reference/endpoint/fetch"
+            ]
+          }
         ]
       }
     ]

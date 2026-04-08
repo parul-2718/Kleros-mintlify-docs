@@ -1,216 +1,149 @@
 {
   "openapi": "3.1.0",
   "info": {
-    "title": "OpenAPI Plant Store",
-    "description": "A sample API that uses a plant store as an example to demonstrate features in the OpenAPI specification",
-    "license": {
-      "name": "MIT"
-    },
-    "version": "1.0.0"
+    "title": "Kleros IPFS Gateway",
+    "description": "HTTP API for uploading and retrieving content from the Kleros IPFS content delivery network. Used to store dispute templates, evidence files, policy documents, and Curate item metadata.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "Kleros Integrations",
+      "email": "integrations@kleros.io",
+      "url": "https://discord.gg/kleros"
+    }
   },
   "servers": [
     {
-      "url": "http://sandbox.mintlify.com"
-    }
-  ],
-  "security": [
-    {
-      "bearerAuth": []
+      "url": "https://cdn.kleros.link",
+      "description": "Kleros IPFS CDN (mainnet + testnet)"
     }
   ],
   "paths": {
-    "/plants": {
+    "/ipfs/{hash}": {
       "get": {
-        "description": "Returns all plants from the system that the user has access to",
+        "summary": "Fetch content from IPFS",
+        "description": "Retrieve a file or directory from IPFS by its CID hash. Returns the raw content. For JSON files (dispute templates, evidence, policy docs) the response body is the parsed JSON.",
+        "operationId": "getIpfsContent",
         "parameters": [
           {
-            "name": "limit",
-            "in": "query",
-            "description": "The maximum number of results to return",
+            "name": "hash",
+            "in": "path",
+            "required": true,
+            "description": "The IPFS CID (v0 or v1) of the content to retrieve. May include a subpath for directory traversal, e.g. `QmHash.../metadata.json`.",
             "schema": {
-              "type": "integer",
-              "format": "int32"
+              "type": "string",
+              "example": "QmTaZuQjJT9NZCYsqyRmEwLb1Vt3gme1a6BS4NQLiWXtH2"
             }
           }
         ],
         "responses": {
           "200": {
-            "description": "Plant response",
+            "description": "Content retrieved successfully",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/Plant"
+                  "type": "object",
+                  "description": "For JSON files: the parsed content. Schema varies by content type (dispute template, evidence, policy doc).",
+                  "example": {
+                    "title": "Should this item be accepted into the registry?",
+                    "description": "Evaluate whether the item meets the registry criteria.",
+                    "question": "Does this item comply with the required criteria?",
+                    "answers": [
+                      { "id": "0x00", "title": "Refuse to Arbitrate" },
+                      { "id": "0x01", "title": "Yes" },
+                      { "id": "0x02", "title": "No" }
+                    ]
+                  }
+                }
+              },
+              "application/octet-stream": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary",
+                  "description": "Raw binary content for non-JSON files (images, PDFs, etc.)"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Content not found or not yet propagated to this gateway"
+          }
+        }
+      }
+    },
+    "/add": {
+      "post": {
+        "summary": "Upload content to IPFS",
+        "description": "Upload a file to IPFS via the Kleros gateway. Returns the IPFS CID of the uploaded content. Use this to upload dispute templates, evidence files, policy documents, and Curate item attachments before referencing them on-chain.",
+        "operationId": "uploadToIpfs",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": ["data"],
+                "properties": {
+                  "data": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "The file content to upload. For JSON objects (templates, evidence), encode as UTF-8 string."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "File uploaded and pinned successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "cids": {
+                      "type": "array",
+                      "description": "Array of IPFS CIDs for the uploaded content",
+                      "items": { "type": "string" },
+                      "example": ["/ipfs/QmTaZuQjJT9NZCYsqyRmEwLb1Vt3gme1a6BS4NQLiWXtH2"]
+                    }
                   }
                 }
               }
             }
           },
-          "400": {
-            "description": "Unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "description": "Creates a new plant in the store",
-        "requestBody": {
-          "description": "Plant to add to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          },
-          "required": true
-        },
-        "responses": {
-          "200": {
-            "description": "plant response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Plant"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/plants/{id}": {
-      "delete": {
-        "description": "Deletes a single plant based on the ID supplied",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of plant to delete",
-            "required": true,
-            "schema": {
-              "type": "integer",
-              "format": "int64"
-            }
-          }
-        ],
-        "responses": {
-          "204": {
-            "description": "Plant deleted",
-            "content": {}
-          },
-          "400": {
-            "description": "unexpected error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Error"
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "webhooks": {
-    "/plant/webhook": {
-      "post": {
-        "description": "Information about a new plant added to the store",
-        "requestBody": {
-          "description": "Plant added to the store",
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NewPlant"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Return a 200 status to indicate that the data was received successfully"
-          }
+          "400": { "description": "Bad request — missing or malformed file data" },
+          "413": { "description": "File too large" }
         }
       }
     }
   },
   "components": {
     "schemas": {
-      "Plant": {
-        "required": [
-          "name"
-        ],
+      "EvidenceFile": {
         "type": "object",
+        "description": "Standard Kleros evidence file format (ERC-1497). Upload this JSON to IPFS and use the returned CID as the evidence URI.",
+        "required": ["name", "description"],
         "properties": {
-          "name": {
-            "description": "The name of the plant",
-            "type": "string"
-          },
-          "tag": {
-            "description": "Tag to specify the type",
-            "type": "string"
+          "name": { "type": "string", "example": "Transaction Receipt" },
+          "description": { "type": "string", "example": "Screenshot showing the seller acknowledged receipt of payment." },
+          "fileURI": { "type": "string", "example": "/ipfs/QmReceiptImageHash..." },
+          "evidenceType": {
+            "type": "string",
+            "enum": ["Image", "Video", "Text", "Document", "Other"],
+            "example": "Image"
           }
         }
       },
-      "NewPlant": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Plant"
-          },
-          {
-            "required": [
-              "id"
-            ],
-            "type": "object",
-            "properties": {
-              "id": {
-                "description": "Identification number of the plant",
-                "type": "integer",
-                "format": "int64"
-              }
-            }
-          }
-        ]
-      },
-      "Error": {
-        "required": [
-          "error",
-          "message"
-        ],
+      "PolicyFile": {
         "type": "object",
+        "description": "Kleros dispute policy document. Upload to IPFS and reference the CID in policyURI of your dispute template.",
+        "required": ["name", "description", "rulingCriteria"],
         "properties": {
-          "error": {
-            "type": "integer",
-            "format": "int32"
-          },
-          "message": {
-            "type": "string"
-          }
+          "name": { "type": "string", "example": "Kleros Curate Registry Policy v1.0" },
+          "description": { "type": "string" },
+          "rulingCriteria": { "type": "string" },
+          "version": { "type": "string", "example": "1.0" }
         }
-      }
-    },
-    "securitySchemes": {
-      "bearerAuth": {
-        "type": "http",
-        "scheme": "bearer"
       }
     }
   }

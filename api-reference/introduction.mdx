@@ -1,33 +1,66 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: "API Reference"
+description: "HTTP API reference for the Kleros IPFS gateway — upload and retrieve dispute templates, evidence, and policy documents"
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+Every Kleros integration that involves jurors needs off-chain content: dispute templates that tell jurors what question to answer, evidence files that parties submit, and policy documents that define ruling criteria. All of this content is stored on IPFS and referenced on-chain by its CID.
 
-## Welcome
+The Kleros IPFS gateway at `cdn.kleros.link` is the recommended gateway for uploading and serving this content.
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+## Base URL
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
-
-## Authentication
-
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
-
-```json
-"security": [
-  {
-    "bearerAuth": []
-  }
-]
 ```
+https://cdn.kleros.link
+```
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Upload to IPFS" icon="upload" href="/api-reference/endpoint/upload">
+    Upload dispute templates, evidence files, and policy documents
+  </Card>
+  <Card title="Fetch from IPFS" icon="download" href="/api-reference/endpoint/fetch">
+    Retrieve content by IPFS CID hash
+  </Card>
+</CardGroup>
+
+## Common content types
+
+| Content | Where it's used | Schema |
+|---------|----------------|--------|
+| Dispute template JSON | `DisputeTemplateRegistry.setDisputeTemplate()` | [Dispute Templates](/reference/data-formats/dispute-templates) |
+| Evidence file JSON | `EvidenceModule` — submitted by parties during a dispute | [Evidence Format](/reference/data-formats/evidence-format) |
+| Policy document JSON | `policyURI` field in dispute templates | [Policy Format](/reference/data-formats/policy-format) |
+| Item attachment | Curate V2 item metadata | Column-based JSON schema |
+
+## Uploading content — SDK
+
+The `@kleros/kleros-sdk` wraps the gateway upload in a typed helper:
+
+```typescript
+import { uploadToIPFS } from "@kleros/kleros-sdk";
+
+const evidence = {
+  name: "Transaction Screenshot",
+  description: "Shows the buyer confirmed delivery on 2024-01-15.",
+  fileURI: "/ipfs/QmImageHash...",
+  evidenceType: "Image"
+};
+
+const { cids } = await uploadToIPFS(JSON.stringify(evidence));
+const evidenceURI = cids[0]; // "/ipfs/Qm..."
+```
+
+## Redundant pinning
+
+Content uploaded to the Kleros gateway is pinned by Kleros infrastructure. For production integrations, also pin with a secondary provider so your content stays available if the Kleros gateway is temporarily unreachable:
+
+```typescript
+// Example: pin with Pinata in addition to Kleros gateway
+const pinataRes = await pinata.pinJSONToIPFS(evidence);
+// Both pins point to the same CID
+```
+
+<Warning>
+Unpinned IPFS content can disappear if no node is serving it. Always pin from at least two independent sources in production.
+</Warning>

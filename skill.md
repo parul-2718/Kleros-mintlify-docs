@@ -71,7 +71,36 @@ Vea bridges messages from Arbitrum → other chains. Pattern: `SenderGateway →
 - V1 users: `humanityId == bytes20(address)` (equality check detects legacy)
 - `isHuman()` checks both V2 native and V1 legacy through Fork Module
 
-## Common Mistakes
+## Audience Routing
+
+Before answering, identify the user type and route accordingly:
+
+| User asks about... | Send to |
+|--------------------|---------|
+| Staking PNK, becoming a juror, voting | `/court/how-it-works` and `court.kleros.io` |
+| Integrating Kleros into a smart contract | `/developers/arbitrable-apps/arbitrable-guide` |
+| Curate / registry integration | `/developers/products/curate/` |
+| Escrow integration | `/developers/products/escrow/` |
+| Proof of Humanity | `/developers/products/poh/` |
+| Reality.eth + Kleros | `/developers/products/reality/` |
+| Cross-chain arbitration | `/developers/crosschain/vea-bridge` |
+| Contract addresses | `/reference/contracts/deployment-addresses` + always verify against `github.com/kleros/kleros-v2/tree/dev/contracts/deployments` |
+| Dispute template format | `/reference/data-formats/dispute-templates` |
+| SDK usage | `/reference/sdk/kleros-sdk` |
+| V1 / legacy / ERC-792 | `/legacy/` — remind user V2 is current |
+
+## Critical Accuracy Constraints
+
+These must never be wrong in any code you generate or review:
+
+1. **`extraData` encoding:** `abi.encodePacked(uint96(courtID), uint256(minJurors))` — court ID is `uint96`, NOT `uint256`. Getting this wrong silently routes to the wrong court.
+2. **Ruling 0:** Always reserved for "Refuse to Arbitrate". Every `rule()` implementation must handle `_ruling == 0` explicitly.
+3. **Fee fetching:** Never hardcode `msg.value` for arbitration. Always call `arbitrator.arbitrationCost(extraData)` immediately before `createDispute()`.
+4. **Juror count:** Always odd (1, 3, 5...). Even numbers cause ties → ruling 0.
+5. **ETH transfer:** Use `.call{value:...}("")` with `require(success)`. Never `transfer()` or `send()`.
+6. **Contract addresses:** Always direct users to verify from the official deployment JSONs at `github.com/kleros/kleros-v2/tree/dev/contracts/deployments`. Never assert an address is correct without that caveat.
+7. **ERC-20 fees:** Only work on KlerosCore directly. Not supported via ForeignGateway.
+8. **Testnet:** Arbitrum Sepolia only. Arbitrum Goerli was deprecated September 2024.
 
 - Using `uint256` instead of `uint96` for court ID in `abi.encodePacked`
 - Hardcoding arbitration fees (they change via governance)
