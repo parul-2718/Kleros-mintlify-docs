@@ -1,22 +1,45 @@
 ---
-title: "Proof of Humanity V2 Overview"
-description: "Sybil-resistant identity registry with soulbound humanity IDs and cross-chain verification through Kleros Court."
+title: "Proof of Humanity"
+description: "Developer overview of Proof of Humanity V1 (Mainnet) and V2 (Gnosis), covering humanityId lifecycle, registry contracts, and integration paths."
 ---
 
 ## Introduction
 
-Proof of Humanity (PoH) V2 is a Sybil-resistant registry of unique human identities. Each verified human receives a soulbound humanity ID (`humanityId`) that persists across wallet changes. PoH V2 uses Kleros Court for dispute resolution when profiles are challenged.
+Proof of Humanity (PoH) is a Sybil-resistant registry of unique human identities. This page covers both V1 (Ethereum Mainnet) and V2 (Gnosis Chain).
 
-Unlike V1 where each registration was bound to a specific wallet address, V2 decouples identity from address. One human maps to one humanity ID, which maps to one wallet address at any time. If a user loses wallet access, they can remove the lost address and re-register with a new one using the same `humanityId`.
+Each verified human receives a soulbound humanity ID (`humanityId`) that persists across wallet changes. PoH V2 uses Kleros Court for dispute resolution when profiles are challenged. Unlike V1, where each registration was bound to a specific wallet address, V2 decouples identity from address. One human maps to one humanity ID, which maps to one wallet address at any time. If a user loses wallet access, they can remove the lost address and re-register with a new one using the same `humanityId`.
 
-<CardGroup cols={2}>
-  <Card title="Smart Contracts" icon="file-contract" href="/developers/products/poh/smart-contracts">
-    Core interfaces, data structures, and contract addresses
-  </Card>
-  <Card title="Integration Guide" icon="code" href="/developers/products/poh/integration">
-    Integrate PoH identity verification into your application
-  </Card>
-</CardGroup>
+<Card title="Smart Contracts" icon="file-contract" href="/developers/products/poh/smart-contracts">
+  Core interfaces, data structures, and contract addresses
+</Card>
+
+---
+
+## V1 (Ethereum Mainnet)
+
+PoH V1 runs on Ethereum Mainnet and **V1 integration remains available**. A Fork Module allows V1 registrations to be recognized by V2. The EPNS/Push Protocol integration that was active in V1 has been discontinued, and is replaced in V2 by Atlas + SendGrid.
+
+For V1 contract addresses, see [Deployment Addresses](/reference/contracts/deployment-addresses-v1).
+
+---
+
+## V2 (Gnosis Chain)
+
+The sections below document PoH V2 technical details.
+
+Technical notes for integrators:
+
+- **PNK airdrop**: the first 10,000 verified humans can claim 1,200 PNK, doubled by staking in the Humanity Court. A dashboard tracks registrations and airdrop claims.
+- **Ledger limitation**: hardware wallets do not currently support EIP-7702 on Gnosis Chain, which the standard airdrop claim flow requires. A manual claiming guide is available.
+- **Email notifications**: every step of the profile flow triggers notifications processed end-to-end by Atlas, including pending revocation, vouching activity, disputed flows, and challenge outcomes.
+- **Evidence keys**: the interface writes evidence files with the correct evidence key. Court V1 and the Dispute Resolver include a normalization workaround for older submissions that used the wrong key.
+- **Execution pipeline**: profile advancement uses a rewritten auto-advance execute pipeline.
+- **Security**: frontend security reviews cover XSS attack vectors, and the app runs on a patched NextJS 15.
+- **In progress**: a voucher reward distributor contract and a referral system (technical specifications under review).
+
+<Note>
+Atlas is an internal backend library for Kleros development teams only. It is not intended for community use or integration.
+</Note>
 
 ---
 
@@ -101,7 +124,7 @@ graph TD
     The `isHuman()` function is available on multiple chains through `CrossChainProofOfHumanity` contracts. Synchronization uses bridge infrastructure to propagate registration state.
   </Accordion>
   <Accordion title="V1 Backward Compatibility">
-    A Fork Module allows V1 registrations to be recognized by V2. The `isHuman()` call automatically checks both V2 native registrations and V1 legacy registrations.
+    A Fork Module allows V1 registrations to be recognized by V2. The `isHuman()` call automatically checks both V2 native registrations and V1 registrations.
   </Accordion>
   <Accordion title="Vouching System">
     New registrants need a vouch from an existing verified human. The keeper bot processes vouches and reward withdrawals automatically, reducing manual intervention.

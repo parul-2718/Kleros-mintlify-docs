@@ -96,6 +96,11 @@ If a claim is challenged, the message is sent over the canonical bridge. This ca
 | Arbitrum to Ethereum | Home to Foreign | Fast Bridge |
 | Ethereum to Arbitrum | Foreign to Home | Simple Bridge |
 | Arbitrum to Gnosis Chain | Home to Foreign | Fast Bridge (multi-hop via Ethereum in unhappy path) |
+| Base ↔ Ethereum | Both | Added June 2026 |
+| Base ↔ Arbitrum | Both | Added June 2026 |
+| Arbitrum ↔ Story | Both | Deployed and tested January 2026 |
+
+Bridge dependencies were upgraded to the latest LayerZero and Chainlink CCIP versions (March 2026).
 
 <Note>
 Vea does not rely on a direct native bridge between Arbitrum and Gnosis Chain. In the unhappy path, challenged claims are resolved using two Safe Bridges: Arbitrum to Ethereum Mainnet, then Ethereum Mainnet to Gnosis Chain.
@@ -136,6 +141,34 @@ function verifyAndRelay(bytes memory _message) external;
 Time is partitioned into epochs defined by an `epochPeriod`. Epochs mark the period between potential bridging events and define the highest frequency of bridge operation. A claim delay of roughly one `epochPeriod` is introduced after a snapshot to ensure challengers know the L2 state before claims can be made.
 
 ---
+
+## Bridge Protocols
+
+Vea supports multiple underlying bridge protocols:
+
+- deBridge was added as a second bridge protocol alongside LayerZero (February 2026). The `DeBridgeReporter` contract was deployed and tested, with a full end-to-end message tested on the Story-to-Arbitrum route (February 2026).
+- A three-oracle approach for VeaShi was approved (June 2026): LayerZero and Chainlink CCIP as the two primary oracles, with deBridge or Wormhole as a third slot.
+- Mainnet deployments were completed on Base and Ethereum with three DVNs in LayerZero (June 2026).
+
+## VeaShi
+
+- The VeaShi package packages Hashi and Vea contracts for consumption by Kleros V2 (March 2026).
+- `veashi-sdk` was published to npm as `@kleros/veashi-sdk` v0.0.2 (May 2026).
+- LayerZero contracts were moved under an adapter layout for consistency (May 2026).
+- The Hashi executor was decoupled from the relayer - splitting message indexing from execution and introducing state-file logic for pending messages that don't yet meet the Hashi threshold (May 2026).
+- The Hashi executor was made chain-agnostic (January 2026).
+
+## Validator Infrastructure
+
+- A second validator became operational (February 2026).
+- A validator RPC fallback shipped - a degraded primary RPC no longer takes the validator down (June 2026).
+- The relayer error-handling was refactored - listener setup moved out of the per-network loop, with error-per-chain logging (May 2026).
+- An RPC provider wrapper handles errors and fallback URLs in both the validator and the relayer (May 2026).
+
+## Indexing
+
+- The Envio HyperIndex indexer was integrated into the VeaShi scanner, with the existing subgraph kept as a fallback (June 2026).
+- The VeaShi scanner was moved into the Vea monorepo (June 2026).
 
 ## VeaScan
 

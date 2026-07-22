@@ -1,14 +1,12 @@
 ---
-title: "Kleros SDK"
-description: "TypeScript SDK for interacting with Kleros V2"
+title: "Kleros V2 SDK"
+description: "@kleros/kleros-sdk TypeScript library reference: dispute template population, evidence handling, and Kleros V2 contract interactions on Arbitrum."
 ---
-
-
 
 The Kleros SDK (`@kleros/kleros-sdk`) is a TypeScript library for interacting with the Kleros V2 protocol. It succeeds Archon and provides utilities for dispute template population, evidence handling, and contract interactions.
 
 <Warning>
-The SDK is under active development. For production use, pin to a specific version and review the changelog before upgrading. ABIs from `@kleros/kleros-v2-contracts` are stable for direct contract interaction.
+  The SDK is under active development. For production use, pin to a specific version and review the changelog before upgrading. ABIs from `@kleros/kleros-v2-contracts` are stable for direct contract interaction.
 </Warning>
 
 ## Installation
@@ -27,7 +25,7 @@ The SDK lives at [github.com/kleros/kleros-v2](https://github.com/kleros/kleros-
 
 ### Dispute Template Population
 
-The SDK resolves `templateDataMappings` to populate `{{variable}}` placeholders in dispute templates. This is the primary use case — run mappings client-side to display rich dispute context.
+The SDK resolves `templateDataMappings` to populate `{{variable}}` placeholders in dispute templates. This is the primary use case - run mappings client-side to display rich dispute context.
 
 ```typescript
 import { populateTemplate } from "@kleros/kleros-sdk";
@@ -104,9 +102,9 @@ await setStake(walletClient, {
 ## Capabilities Summary
 
 | Feature | Description |
-|---------|-------------|
+| --- | --- |
 | Template population | Resolves `templateDataMappings` to fill `{{variables}}` in dispute templates |
-| ExtraData codec | Encode/decode court ID + juror count for `createDispute()` |
+| ExtraData codec | Encode/decode court ID \+ juror count for `createDispute()` |
 | Evidence upload | Upload evidence JSON to IPFS, emit on-chain `Evidence` event |
 | Contract discovery | Resolve KlerosCore, SortitionModule, etc. by chain ID |
 | Staking | Set/remove PNK stake in courts |
@@ -116,4 +114,4 @@ await setStake(walletClient, {
 
 ## Source
 
-[GitHub — kleros/kleros-v2/kleros-sdk](https://github.com/kleros/kleros-v2/tree/dev/kleros-sdk)
+[GitHub - kleros/kleros-v2/kleros-sdk](https://github.com/kleros/kleros-v2/tree/dev/kleros-sdk)

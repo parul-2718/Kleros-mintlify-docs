@@ -1,11 +1,13 @@
 ---
 title: "Insurance Claim"
-description: "Build a decentralized insurance claim contract with Kleros V2 arbitration for disputed claims."
+description: "Example parametric insurance contract using Kleros V1 arbitration with ERC-792 and ERC-1497 to resolve disputed payout claims via juror rulings."
 ---
 
 ## Overview
 
-This example demonstrates a parametric insurance contract that uses Kleros Court V2 to arbitrate disputed claims. The contract covers a specific insured event (e.g., flight delay, crop failure) and pays out when jurors confirm the event occurred.
+This example demonstrates a parametric insurance contract that uses Kleros Court V1 to arbitrate disputed claims, following the ERC-792 arbitration standard and ERC-1497 evidence standard. The contract covers a specific insured event (for example, flight delay or crop failure) and pays out when jurors confirm the event occurred.
+
+It follows the V1 arbitrable pattern documented on [docs.kleros.io](https://docs.kleros.io/).
 
 ---
 
@@ -13,33 +15,32 @@ This example demonstrates a parametric insurance contract that uses Kleros Court
 
 ```solidity
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.7.6;
 
-import {IArbitrableV2, IArbitratorV2} from "@kleros/kleros-v2-contracts/interfaces/IArbitrableV2.sol";
-import {IDisputeTemplateRegistry} from "@kleros/kleros-v2-contracts/interfaces/IDisputeTemplateRegistry.sol";
+import "@kleros/erc-792/contracts/IArbitrable.sol";
+import "@kleros/erc-792/contracts/IArbitrator.sol";
+import "@kleros/erc-792/contracts/erc-1497/IEvidence.sol";
 
-contract InsuranceClaim is IArbitrableV2 {
-    enum ClaimStatus { None, Filed, Disputed, Resolved }
+contract InsuranceClaim is IArbitrable, IEvidence {
+    enum ClaimStatus { None, Disputed, Resolved }
 
     struct Policy {
         address payable insured;
         uint256 premium;
         uint256 coverage;
         uint256 expiresAt;
-        string termsURI; // IPFS URI to the policy document
+        string termsURI; // IPFS URI to the policy document (MetaEvidence)
     }
 
     struct Claim {
         uint256 policyID;
-        string evidenceURI;
         ClaimStatus status;
         uint256 disputeID;
         uint256 ruling;
     }
 
-    IArbitratorV2 public immutable arbitrator;
+    IArbitrator public arbitrator;
     bytes public arbitratorExtraData;
-    uint256 public templateId;
 
     mapping(uint256 => Policy) public policies;
     mapping(uint256 => Claim) public claims;
@@ -47,25 +48,17 @@ contract InsuranceClaim is IArbitrableV2 {
     uint256 public policyCount;
     uint256 public claimCount;
 
-    // Ruling: 1 = Approve claim, 2 = Deny claim
+    uint256 constant numberOfRulingOptions = 2;
+    // Ruling: 0 = Refuse, 1 = Approve claim, 2 = Deny claim
     uint256 constant APPROVE = 1;
     uint256 constant DENY = 2;
 
-    constructor(
-        IArbitratorV2 _arbitrator,
-        bytes memory _arbitratorExtraData,
-        IDisputeTemplateRegistry _templateRegistry,
-        string memory _templateData,
-        string memory _templateDataMappings
-    ) {
+    constructor(IArbitrator _arbitrator, bytes memory _arbitratorExtraData) {
         arbitrator = _arbitrator;
         arbitratorExtraData = _arbitratorExtraData;
-        templateId = _templateRegistry.setDisputeTemplate(
-            "", _templateData, _templateDataMappings
-        );
     }
 
-    /// @dev Purchase an insurance policy.
+    /// @dev Purchase an insurance policy. The terms document is the MetaEvidence.
     function purchasePolicy(
         uint256 _coverage,
         uint256 _duration,
@@ -82,12 +75,15 @@ contract InsuranceClaim is IArbitrableV2 {
             expiresAt: block.timestamp + _duration,
             termsURI: _termsURI
         });
+
+        // ERC-1497: register the policy terms as MetaEvidence, keyed by policyID.
+        emit MetaEvidence(policyID, _termsURI);
     }
 
-    /// @dev File a claim against a policy.
+    /// @dev File a claim, creating a dispute in Kleros Court.
     function fileClaim(
         uint256 _policyID,
-        string calldata _evidenceURI
+        string calldata _evidence
     ) external payable returns (uint256 claimID) {
         Policy storage policy = policies[_policyID];
         require(msg.sender == policy.insured, "Only insured");
@@ -98,31 +94,28 @@ contract InsuranceClaim is IArbitrableV2 {
 
         claimID = claimCount++;
         uint256 disputeID = arbitrator.createDispute{value: msg.value}(
-            2,
+            numberOfRulingOptions,
             arbitratorExtraData
         );
 
         claims[claimID] = Claim({
             policyID: _policyID,
-            evidenceURI: _evidenceURI,
             status: ClaimStatus.Disputed,
             disputeID: disputeID,
             ruling: 0
         });
         disputeIDtoClaimID[disputeID] = claimID;
 
-        emit DisputeRequest(
-            arbitrator,
-            disputeID,
-            claimID,
-            templateId,
-            ""
-        );
+        // ERC-1497: link the dispute to the policy MetaEvidence and an evidence group.
+        emit Dispute(arbitrator, disputeID, _policyID, claimID);
+        emit Evidence(arbitrator, claimID, msg.sender, _evidence);
     }
 
-    /// @dev Called by arbitrator when ruling is final.
+    /// @dev Called by the arbitrator when the ruling is final.
     function rule(uint256 _disputeID, uint256 _ruling) external override {
         require(msg.sender == address(arbitrator), "Only arbitrator");
+        require(_ruling <= numberOfRulingOptions, "Ruling out of bounds");
+
         uint256 claimID = disputeIDtoClaimID[_disputeID];
         Claim storage claim = claims[claimID];
         require(claim.status == ClaimStatus.Disputed, "Not disputed");
@@ -134,7 +127,7 @@ contract InsuranceClaim is IArbitrableV2 {
             Policy storage policy = policies[claim.policyID];
             policy.insured.transfer(policy.coverage);
         }
-        // If DENY or refuse to rule, no payout
+        // If DENY or refuse to rule, no payout.
 
         emit Ruling(arbitrator, _disputeID, _ruling);
     }
@@ -148,26 +141,32 @@ contract InsuranceClaim is IArbitrableV2 {
 
 ## How It Works
 
-1. **Policy purchase**: A user pays a premium and receives a policy with defined coverage amount, duration, and terms document (stored on IPFS)
-2. **Claim filing**: The insured submits a claim with evidence and pays the arbitration fee, which immediately creates a dispute in Kleros Court
+1. **Policy purchase**: A user pays a premium and receives a policy with a defined coverage amount, duration, and terms document (stored on IPFS and announced as ERC-1497 MetaEvidence)
+2. **Claim filing**: The insured submits evidence and pays the arbitration fee, which immediately creates a dispute in Kleros Court V1
 3. **Juror evaluation**: Kleros jurors review the evidence against the policy terms and vote to approve or deny
 4. **Payout or denial**: If approved, the coverage amount is transferred to the insured. If denied, no payout occurs
 
 ---
 
-## Dispute Template
+## Policy Terms (MetaEvidence)
+
+The policy terms are an ERC-1497 MetaEvidence JSON document uploaded to IPFS:
 
 ```json
 {
-  "title": "Insurance Claim #{{ claimID }}",
-  "description": "The insured has filed a claim. Evaluate whether the insured event occurred according to the policy terms.",
+  "title": "Insurance Claim",
+  "description": "Evaluate whether the insured event occurred according to the policy terms.",
   "question": "Should this insurance claim be approved?",
-  "answers": [
-    { "title": "Refuse to Rule", "id": "0x0" },
-    { "title": "Approve Claim", "id": "0x1" },
-    { "title": "Deny Claim", "id": "0x2" }
-  ],
-  "policyURI": "{{ termsURI }}"
+  "rulingOptions": {
+    "titles": ["Refuse to Rule", "Approve Claim", "Deny Claim"],
+    "descriptions": [
+      "The arbitrator refuses to rule.",
+      "The insured event occurred; approve the payout.",
+      "The insured event did not occur; deny the claim."
+    ]
+  },
+  "category": "Insurance",
+  "fileURI": "/ipfs/QmPolicyTerms..."
 }
 ```
 

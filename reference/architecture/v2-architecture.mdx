@@ -1,9 +1,7 @@
 ---
-title: "V2 Architecture"
-description: "High-level system architecture and component interactions for Kleros V2"
+title: "Overview"
+description: "High-level Kleros V2 architecture on Arbitrum: KlerosCore, dispute kits, sortition module, policy registry, governor, and cross-chain gateways."
 ---
-
-
 
 Kleros V2 is a modular dispute resolution protocol deployed on Arbitrum One with cross-chain support.
 
@@ -27,7 +25,7 @@ graph TB
 ## Core Components
 
 | Component | Role |
-|---|---|
+| --- | --- |
 | **KlerosCore** | Central arbitrator dispute lifecycle, appeals, rulings |
 | **DisputeKitClassic** | Voting, commit-reveal, appeal funding, incentive distribution |
 | **SortitionModule** | Weighted random juror selection from staked PNK |
@@ -40,7 +38,7 @@ graph TB
 For foreign-chain Arbitrables, the Gateway system abstracts away bridging:
 
 | Component | Chain | Role |
-|---|---|---|
+| --- | --- | --- |
 | **ForeignGateway** | Foreign chain | Acts as Arbitrator for the Arbitrable |
 | **HomeGateway** | Arbitrum | Acts as Arbitrable for KlerosCore |
 | **Vea Bridge** | Both | Message transport with optimistic verification |

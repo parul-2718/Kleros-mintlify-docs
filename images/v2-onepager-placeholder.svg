@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="360" viewBox="0 0 900 360">
+  <rect width="900" height="360" rx="12" fill="#14101f"/>
+  <rect x="6" y="6" width="888" height="348" rx="9" fill="none" stroke="#4d00b4" stroke-width="2" stroke-dasharray="10 6"/>
+  <text x="450" y="150" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="26" font-weight="bold" fill="#b45fff">One-pager infographic</text>
+  <text x="450" y="190" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#9c92b8">Visual explainer to be added here</text>
+  <text x="450" y="222" text-anchor="middle" font-family="Helvetica, Arial, sans-serif" font-size="14" fill="#6b6285">Getting Started with Kleros Court V2</text>
+</svg>

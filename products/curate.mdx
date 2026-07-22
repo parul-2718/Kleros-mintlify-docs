@@ -1,25 +1,31 @@
 ---
 title: Curate
-description: Decentralized lists and registries powered by crypto-economic incentives
+description: "Kleros Curate lets anyone build community-run lists and token registries, with jurors resolving disputes over incorrect or malicious submissions."
 ---
 
 <Frame>
-  <img src="/images/curate-hero.png" alt="Kleros Curate Interface" />
+  <img src="/images/curatev1-hero.png" alt="Kleros Curate Interface" />
 </Frame>
 
 # Curate
 
-<Badge>V2</Badge>
-
-**Curate** is a decentralized application for creating and maintaining community-curated registries. Anyone can submit items to a list, and anyone can challenge incorrect or malicious submissions—with disputes resolved by Kleros Court.
+**Curate** is a decentralized application for creating and maintaining community-curated registries. Anyone can submit items to a list, and anyone can challenge incorrect or malicious submissions-with disputes resolved by Kleros Court.
 
 Think of it as Wikipedia for structured data, but with economic skin in the game. Submitters stake a deposit that they lose if their submission is successfully challenged. Challengers risk their own deposit if the submission turns out to be valid. This creates a self-sustaining system where participants are economically incentivized to maintain accurate registries.
 
 Curate powers critical infrastructure across Web3: token lists that wallets use to display assets, address tags that block explorers use to label contracts, and security registries that help users avoid scams.
 
-<Note>
-  Looking for V1 documentation? See [Curate V1 (Legacy)](/legacy/curate-v1).
-</Note>
+---
+
+## Curate Variants
+
+Curate is a family of three variants. All three use the V1 Kleros Court for dispute resolution.
+
+- **Classic Curate** (V1) - a full Token-Curated Registry (TCR) supporting complex schemas. Best for high-value registries with custom fields. Migrated to Gnosis Chain.
+- **Light Curate** (V1) - a simplified TCR built for higher volume and lower gas costs. On Gnosis Chain.
+- **Stake Curate** (V1 infrastructure) - continuous verification with permanent deposits, on Gnosis Chain. Deployed mid-August 2025; first implementation with DAMM Capital (September 2025). See [Stake Curate](/products/stake%20curate).
+
+
 
 ---
 
@@ -136,14 +142,23 @@ This creates a self-policing system where bad actors are economically punished.
 
 ## Registry Types
 
-Curate supports two registry architectures:
+Curate offers three variants across the two protocol versions:
 
-| Type | Best For | Gas Costs | Flexibility |
-|------|----------|-----------|-------------|
-| **Curate** (full) | High-value registries with complex schemas | Higher | Maximum |
-| **Light Curate** | Simple registries, higher volume | Lower | Standard schemas |
+| Variant | Version | Best For | Gas Costs | Flexibility |
+|---------|---------|----------|-----------|-------------|
+| **Classic Curate** (full) | V1 | High-value registries with complex schemas | Higher | Maximum |
+| **Light Curate** | V1 | Simple registries, higher volume | Lower | Standard schemas |
+| **Stake Curate** | V1 infra | Continuous verification with permanent deposits | - | See [Stake Curate](/products/stake%20curate) |
 
-Most new registries use **Light Curate** for cost efficiency. Full Curate is used when you need custom fields or complex acceptance criteria.
+Among the V1 variants, most registries use **Light Curate** for cost efficiency. Classic Curate is used when you need custom fields or complex acceptance criteria.
+
+---
+
+## Current Status
+
+As of the May 2026 development update, Curate V2 aligned its evidence query with the kleros-core schema migration and removed an unused evidence hook. Work is in progress to integrate a shared file-viewer component.
+
+Follow development on the [Kleros blog - developer updates](https://blog.kleros.io/tag/developer/).
 
 ---
 
@@ -151,12 +166,11 @@ Most new registries use **Light Curate** for cost efficiency. Full Curate is use
 
 <CardGroup cols={3}>
 
-  <Card title="Use Curate" icon="rocket" href="https://help.kleros.io/curate">
+  <Card title="Use Curate" icon="rocket" href="/tutorials/curate-tutorial">
     **Step-by-step guides**
     
     Learn how to submit items, challenge submissions, and earn rewards.
-    
-    → Help Center
+   
   </Card>
 
   <Card title="Build on Curate" icon="code" href="/developers/products/curate">
@@ -191,7 +205,7 @@ Most new registries use **Light Curate** for cost efficiency. Full Curate is use
   <Card title="Contract Addresses" icon="file-contract" href="/reference/contracts/deployment-addresses">
     Curate V2 deployment addresses
   </Card>
-  <Card title="Create a Registry" icon="plus" href="https://help.kleros.io/curate/create-registry">
+  <Card title="Create a Registry" icon="plus" href="/tutorials/curate-tutorial">
     Guide to deploying your own registry
   </Card>
 </CardGroup>

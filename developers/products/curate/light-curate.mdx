@@ -1,0 +1,348 @@
+---
+title: "Light Curate Integration"
+description: "Developer guide for integrating Kleros Light Curate (V1) with subgraph-based storage, covering contracts, item lifecycle, and dispute flow."
+---
+
+# Light Curate: Integration for Devs
+
+<Note>
+This covers Light Curate (V1). For V2 Curate, see the [Developers Curate section](/developers/products/curate/overview).
+</Note>
+
+---
+
+## Overview
+
+Light Curate significantly decreases deployment and operation costs compared to Curate Classic by changing the data storage strategy:
+
+- Item data is NOT stored in contract storage. Only the IPFS multihash is stored on-chain. Storage cost is O(1) instead of O(n).
+- Item fields are stored in the subgraph via The Graph's IPFS API. No need for `@kleros/gtcr-encoder`.
+- Uses EIP-1167 minimal proxy for deployments. Deployment cost dropped from ~7M gas to ~700K gas.
+
+Tradeoff: other contracts cannot query the TCR for field values on-chain (only the IPFS hash is available).
+
+---
+
+## Reading Data
+
+### Fetching Items via Subgraph
+
+Light Curate uses `litems` entities (prefixed with `l`). Pass the TCR address to filter:
+
+```graphql
+{
+  litems(
+    first: 10
+    where: {
+      status: Registered
+      registryAddress: "0xYOUR_LIST_ADDRESS_LOWERCASE"
+    }
+    orderBy: latestRequestResolutionTime
+    orderDirection: desc
+  ) {
+    itemID
+    data
+    props {
+      type
+      label
+      description
+      value
+    }
+  }
+}
+```
+
+The `props` field contains decoded item fields directly. No encoder library needed.
+
+### Fetching a Specific Item
+
+Item entities have IDs in the format `<itemID>@<listAddress>`:
+
+```typescript
+const compoundId = `${itemID}@${tcrAddress.toLowerCase()}`;
+const result = useQuery(ITEM_DETAILS_QUERY, { variables: { id: compoundId } });
+```
+
+### View Contract
+
+A view contract is available for fetching all relevant info in a single call.
+
+Gnosis Chain deployment: `0x08e58Bc26CFB0d346bABD253A1799866F269805a`
+
+---
+
+## Writing Data
+
+### Submitting an Item
+
+1. Upload item data to IPFS (use both The Graph's IPFS endpoint and Kleros IPFS node)
+2. Call `addItem()` on the LightGeneralizedTCR contract with the IPFS URI and required deposit
+
+```
+REACT_APP_IPFS_GATEWAY=https://cdn.kleros.link
+REACT_APP_HOSTED_GRAPH_IPFS_ENDPOINT=https://api.thegraph.com/ipfs
+```
+
+Pin data to IPFS nodes you control in addition to The Graph's and Kleros' nodes.
+
+### Challenging and Executing Requests
+
+- Challenge: call `challengeRequest()` with a deposit
+- Execute: call `executeRequest()` after the challenge period passes unchallenged
+
+---
+
+## MetaEvidence Standard
+
+MetaEvidence is the single on-chain source of truth for both the human-readable policy and the machine-readable item schema. Always resolve it live from chain events. Never hardcode, cache, or infer it.
+
+### Two independent streams
+
+Light Curate (LGTCR) requires two separate MetaEvidence documents:
+
+| Stream | Governs | Used by |
+|---|---|---|
+| Registration MetaEvidence | Adding an item | `addItem`, challenging a registration request |
+| Clearing MetaEvidence | Removing an item | `removeItem`, challenging a removal request |
+
+Both are normally emitted at deployment (`_metaEvidenceID = 0` for registration, `= 1` for clearing by convention), but a registry governor can push new MetaEvidence, incrementing the ID. Never assume only IDs 0/1 exist; always take the latest applicable event per stream.
+
+### Retrieval
+
+1. Query `eth_getLogs` against the registry address, filtered on the `MetaEvidence` event topic:
+   ```
+   topic0 = 0x61606860eb6c87306811e2695215385101daab53bd6ab4e9f9049aead9363c7d
+   // MetaEvidence(uint256 indexed _metaEvidenceID, string _evidence)
+   ```
+2. Sort matching logs by `blockNumber`, then `transactionIndex`, then `logIndex`.
+3. Fetch each `_evidence` IPFS pointer via a gateway (for example `https://cdn.kleros.link/ipfs/<hash>`). Do not double-prefix `/ipfs/`.
+4. Classify each JSON as registration or clearing by its `title`/`description`/ruling-option content ("Add" vs "Remove"), not by log order. Some governor transactions emit a registration event immediately followed by a clearing event in the same block.
+5. Use the latest event matching the operation you are performing. If classification is ambiguous, stop and ask a human.
+
+### Production MetaEvidence shape
+
+```json
+{
+  "title": "Add one <singular item noun> to <List Name>",
+  "description": "Someone requested to add one <singular item noun> to <List Name>",
+  "rulingOptions": {
+    "titles": ["Yes, Add It", "No, Don't Add It"],
+    "descriptions": [
+      "Select this if the item complies with the required criteria and should be added.",
+      "Select this if the item does not comply and should not be added."
+    ]
+  },
+  "category": "Curated Lists",
+  "question": "Does the <singular item noun> comply with the required criteria?",
+  "fileURI": "/ipfs/<policy-cid>/policy.pdf",
+  "evidenceDisplayInterfaceURI": "/ipfs/<evidence-ui-cid>/index.html",
+  "metadata": {
+    "tcrTitle": "<List Name>",
+    "tcrDescription": "<Short description of the list>",
+    "columns": [],
+    "itemName": "<singular item noun>",
+    "itemNamePlural": "<plural item noun>",
+    "logoURI": "/ipfs/<logo-cid>/logo.png",
+    "requireRemovalEvidence": true,
+    "isTCRofTCRs": false
+  }
+}
+```
+
+The clearing MetaEvidence uses the identical shape with removal-oriented `title`/`description`/`question`, and reuses the same `metadata.columns`. `metadata.columns` is the authoritative schema of the registry: every submitted `item.json` must contain an identical deep copy of this array. Use lowercase common nouns for `itemName`/`itemNamePlural` (for example `"token"`, `"tokens"`).
+
+### Field requirements
+
+| Field | Status | Notes |
+|---|---|---|
+| `title` | Required | Must unambiguously indicate Add vs Remove |
+| `description` | Required | Single sentence recommended |
+| `rulingOptions` | Strongly recommended | Juror voting labels, in option order |
+| `question` | Required | The question jurors vote on |
+| `category` | Required | Conventionally `"Curated Lists"` |
+| `fileURI` | Required | Governing policy document; PDF strongly preferred |
+| `evidenceDisplayInterfaceURI` | Strongly recommended | ERC-1497 evidence renderer |
+| `metadata.tcrTitle` / `tcrDescription` | Required | List identity and description |
+| `metadata.itemName` / `itemNamePlural` | Required | Used by frontends for copy |
+| `metadata.logoURI` | Required for production | Never deploy production without a logo |
+| `metadata.requireRemovalEvidence` | Recommended | Forces removal justification |
+| `metadata.columns` | Required | Item schema copied into every `item.json` |
+
+When calling the factory `deploy(...)`, pass MetaEvidence URIs registration first, clearing second. The constructor assigns `_metaEvidenceID` positionally.
+
+**Hard stops** (do not deploy): JSON does not parse; `metadata.columns` missing or empty; any column uses an unsupported `type`; `fileURI` missing; production `logoURI` missing; policy is not a PDF and the risk was not accepted; both streams not validated.
+
+---
+
+## item.json Standard
+
+`item.json` is uploaded to IPFS and referenced on-chain via `addItem(string _item)`.
+
+```json
+{
+  "columns": [
+    { "label": "Name", "description": "The token name.", "type": "text", "isIdentifier": true }
+  ],
+  "values": { "Name": "Pinakion" }
+}
+```
+
+Construction rules (non-negotiable):
+
+- `columns` must be a verbatim deep copy of the active `MetaEvidence.metadata.columns` (same labels, descriptions, types, `isIdentifier` flags, same order). Even a grammar fix violates the contract.
+- `values` is the only dynamic part.
+- `Object.keys(values)` must exactly equal `columns.map(c => c.label)`, in the same order. No missing, extra, renamed, or reordered keys.
+- Never reconstruct the schema from UI text, screenshots, old docs, or memory; always pull `metadata.columns` from the currently active MetaEvidence.
+
+Common failures to reject in review: renaming a label, reordering columns, rewriting descriptions, changing `isIdentifier`, using `type: "url"`, or submitting partial/placeholder values.
+
+---
+
+## Field Type Standard
+
+Only these type strings are valid for Curate V1 (GTCR) columns. Do not use V2-only spellings unless a live MetaEvidence proves that spelling is already in production for the list.
+
+| Type | Value format | Notes |
+|---|---|---|
+| `text` | Plain string | |
+| `long text` | Multi-line string | Never an identifier |
+| `link` | URL string | Use instead of `url` |
+| `address` | `0x`-prefixed EVM address | |
+| `rich address` | `<namespace>:<referenceId>:<address>` | See below |
+| `image` | `/ipfs/<hash>/<path>` | Path form, not a gateway URL; never an identifier |
+| `file` | `/ipfs/<hash>/<path>` | Requires `allowedFileTypes`; never an identifier |
+| `number` | Match existing submissions (strings are common) | |
+| `boolean` | `"true"` / `"false"` strings | |
+| `GTCR address` | Address of another GTCR list | List-of-lists schemas only |
+
+Forbidden aliases: `url` → `link`; `string` → `text`; `markdown` → `long text`; `bool` → `boolean`; `integer`/`int`/`float`/`decimal` → `number`; `longText`/`richAddress`/`chain` (V2 spellings) → `long text`/`rich address`. Using an unsupported type surfaces as an interface error such as `Unhandled input type url`.
+
+Identifier rules: at least one identifier column is required; up to five are supported; `image`, `file`, and `long text` must never be identifiers. For multi-chain token registries, prefer `rich address` over plain `address`.
+
+---
+
+## Rich Address Standard
+
+`rich address` is a CAIP-style value that references an address on a specific chain, avoiding the ambiguity of a bare `0x...` string:
+
+```
+<namespace>:<referenceId>:<address>
+// EVM / Ethereum Mainnet:
+eip155:1:0x1234567890123456789012345678901234567890
+```
+
+Namespaces: `eip155` (EVM chains), `bip122` (Bitcoin-like), `solana`, `tvm` (TON), `stacks`. Common `eip155` reference IDs include Ethereum Mainnet `1`, Optimism `10`, BNB Smart Chain `56`, Gnosis `100`, Polygon `137`, Base `8453`, Arbitrum One `42161`, Avalanche `43114`, Linea `59144`, and Sepolia `11155111`.
+
+Never infer the target chain of a rich address from surrounding context; always confirm it explicitly. A bare address resolved under the wrong `referenceId` silently points to a different account on a different chain.
+
+---
+
+## Deposit Computation
+
+Curate V1 deposits are paid entirely in the chain's native token (ETH on Mainnet/Sepolia, xDAI on Gnosis).
+
+**Never hardcode a deposit.** Deposit parameters are governance-controlled. Compute live from on-chain reads immediately before building a transaction. The frontend shows only the base deposit; sending only that as `msg.value` reverts, because the contract requires base deposit plus arbitration cost in a single value.
+
+| Action | Formula |
+|---|---|
+| `addItem` | `submissionBaseDeposit() + arbitrationCost` |
+| `removeItem` | `removalBaseDeposit() + arbitrationCost` |
+| `challengeRequest` (against registration) | `submissionChallengeBaseDeposit() + arbitrationCost` |
+| `challengeRequest` (against removal) | `removalChallengeBaseDeposit() + arbitrationCost` |
+
+`arbitrationCost` is derived from `registry.arbitrator()` and `registry.arbitratorExtraData()`, then `IArbitrator(arbitrator).arbitrationCost(extraData)`.
+
+Appeal funding: `requiredForSide = appealCost + appealCost * feeStakeMultiplier / MULTIPLIER_DIVISOR`, where the multiplier is `sharedStakeMultiplier()` (no ruling yet), `winnerStakeMultiplier()` (side matches the current ruling), or `loserStakeMultiplier()` (side opposes it). The losing side must fund before the midpoint of the appeal window.
+
+---
+
+## Contract Interface (LightGeneralizedTCR)
+
+**Write functions:**
+
+```solidity
+function addItem(string _item) external payable
+function removeItem(bytes32 _itemID, string _evidence) external payable
+function challengeRequest(bytes32 _itemID, string _evidence) external payable
+function submitEvidence(bytes32 _itemID, string _evidence) external
+function fundAppeal(bytes32 _itemID, uint8 _side) external payable
+function executeRequest(bytes32 _itemID) external
+function withdrawFeesAndRewards(address _beneficiary, bytes32 _itemID, uint256 _requestID, uint256 _roundID) external
+```
+
+`_side` in `fundAppeal` uses the Party enum: `0 = None`, `1 = Requester`, `2 = Challenger`.
+
+**Key read functions:** `submissionBaseDeposit()`, `removalBaseDeposit()`, `submissionChallengeBaseDeposit()`, `removalChallengeBaseDeposit()`, `challengePeriodDuration()`, `arbitrator()`, `arbitratorExtraData()`, `winnerStakeMultiplier()`, `loserStakeMultiplier()`, `sharedStakeMultiplier()`, `MULTIPLIER_DIVISOR()`, `getItemInfo(bytes32)`, `getRequestInfo(bytes32, uint256)`.
+
+**Key events:**
+
+```solidity
+event MetaEvidence(uint256 indexed _metaEvidenceID, string _evidence)
+event NewItem(bytes32 indexed _itemID, string _data, bool _addedDirectly)
+event RequestSubmitted(bytes32 indexed _itemID, uint256 indexed _requestIndex)
+event Evidence(address indexed _arbitrator, uint256 indexed _evidenceGroupID, address indexed _party, string _evidence)
+event Dispute(address indexed _arbitrator, uint256 indexed _disputeID, uint256 _metaEvidenceID, uint256 _evidenceGroupID)
+event Ruling(address indexed _arbitrator, uint256 indexed _disputeID, uint256 _ruling)
+```
+
+**Factory:** `deploy(address _arbitrator, bytes _arbitratorExtraData, address _connectedTCR, string _registrationMetaEvidence, string _clearingMetaEvidence, address _governor, uint256[4] _baseDeposits, uint256 _challengePeriodDuration, uint256[3] _stakeMultipliers, address _relayContract)`, emitting `NewGTCR(address)`. Do not hardcode the factory address; verify it per chain.
+
+**View helper:** `LightGeneralizedTCRView.fetchArbitrable(address)` returns all deposit parameters in a single call. Prefer it for aggregated reads; use direct contract reads as final truth for critical values.
+
+---
+
+## Registry Verification
+
+Before touching MetaEvidence or deposits for an unfamiliar address:
+
+1. Confirm the `chainId` matches intent (Mainnet `1`, Sepolia `11155111`, Gnosis `100`).
+2. Call `eth_getCode(listAddress)` on that chain. If the result is `0x`, it is not a contract there; stop.
+3. Perform a hallmark read (`submissionBaseDeposit()` or `arbitrator()`). If it reverts, this is not a valid LGTCR instance; stop.
+
+---
+
+## Submit an Item (end-to-end)
+
+1. Fetch the latest registration MetaEvidence.
+2. Read the policy at `fileURI` before building anything.
+3. Build `item.json` from `metadata.columns`; run a schema-drift audit against a recent `NewItem` sample if this is your first submission.
+4. Upload `item.json` to IPFS to obtain `/ipfs/<hash>`.
+5. Compute the live deposit: `submissionBaseDeposit() + arbitrationCost`.
+6. Simulate the transaction with identical calldata and `msg.value`.
+7. Call `addItem("/ipfs/<hash>")` with `msg.value = deposit`.
+
+<Note>
+Deploying a list does not make it visible on the Curate frontend. The public list-of-lists mechanism uses Curate Classic (`GeneralizedTCR`), not Light Curate's `addItem(string)`; submitting a new list for discoverability is a separate, optional workflow.
+</Note>
+
+---
+
+## Subgraph Conventions
+
+| Entity Prefix | Version |
+| --- | --- |
+| `litems`, `lrequests`, etc. | Light Curate |
+| `items`, `requests`, etc. | Curate Classic |
+
+Addresses must be **lowercase** in queries. The subgraph does not understand checksummed addresses.
+
+The hosted service has a **1000 item limit** per query. For larger registries, paginate using `skip` or `id_gt`.
+
+---
+
+## Subgraph Deployment
+
+If you deployed a list using the factory, it already has a subgraph deployed and available. For custom deployments, see [The Graph documentation](https://thegraph.com/docs/).
+
+---
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Light Curate Contracts" icon="github" href="https://github.com/kleros/tcr">
+    Source code
+  </Card>
+  <Card title="Query Examples" icon="magnifying-glass" href="/developers/subgraph/queries">
+    More GraphQL query examples
+  </Card>
+</CardGroup>

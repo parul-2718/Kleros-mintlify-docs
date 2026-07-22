@@ -1,11 +1,15 @@
 ---
 title: "Court Hierarchy"
-description: "Understanding the hierarchical court structure and specialized domains"
+description: "How the Kleros court tree organizes the General Court and specialized subcourts, with parameters like minStake, alpha, feeForJuror, and hidden votes."
 ---
 
 
 
 Kleros courts are organized in a hierarchical tree structure, allowing disputes to be handled by jurors with appropriate expertise while maintaining a clear appeals path.
+
+<Note>
+The hierarchical model is the same in both protocol versions. V1 uses the term **subcourts** and its court tree runs on Ethereum Mainnet; V2 uses the term **courts** and runs on Arbitrum. The tree, parameters, and examples below reflect V2. Curation for the Curate products also runs on **Gnosis Chain** using V1 courts. Governance proposal **KIP-87** created a new Gnosis Chain Curation Court with hidden voting, which went live in June 2026.
+</Note>
 
 ---
 
@@ -15,21 +19,21 @@ The court tree forms an arborescence with the General Court as the current root.
 
 ```mermaid
 graph TD
-    FC["Forking Court (ID: 0)\nReserved for future use"]
-    GC["General Court (ID: 1)\nRoot Court"]
-    BT["Blockchain\nTechnical"]
+    FC["Forking Court (ID: 0)<br/>Reserved for future use"]
+    GC["General Court (ID: 1)<br/>Root Court"]
+    BT["Blockchain<br/>Technical"]
     CU["Curation"]
-    EL["English\nLanguage"]
+    EL["English<br/>Language"]
     ON["Onboarding"]
-    DA["Data\nAnalysis"]
-    VP["Video\nProduction"]
-    SP["Corte General\nen Español"]
-    HC["Humanity\nCourt"]
+    DA["Data<br/>Analysis"]
+    VP["Video<br/>Production"]
+    SP["Corte General<br/>en Español"]
+    HC["Humanity<br/>Court"]
     SOL["Solidity"]
     NT["Non-Technical"]
-    TL["Token\nListing"]
-    CM["Curation\n(Medium)"]
-    SM["Statistical\nModeling"]
+    TL["Token<br/>Listing"]
+    CM["Curation<br/>(Medium)"]
+    SM["Statistical<br/>Modeling"]
 
     FC -.-> GC
     GC --> BT
@@ -105,7 +109,7 @@ graph TD
   </Tab>
 
   <Tab title="Automated Curation">
-    **AI-Optimized Resolution**
+    **AI-Optimized Resolution** <Badge>V2 only</Badge>
 
     - New court type designed for AI agents
     - Optimized dispute resolution parameters
@@ -132,7 +136,7 @@ Each court has parameters that define how it operates. These are set during cour
 
 ### Mainnet Court Parameters (Arbitrum One)
  
-The following table shows the production court configuration as deployed. Values are governance-controlled and may have changed since this was written — always cross-check with [v2.kleros.builders](https://v2.kleros.builders/).
+The following table shows the production court configuration as deployed. Values are governance-controlled and may have changed since this was written - always cross-check with [v2.kleros.builders](https://v2.kleros.builders/).
  
 | ID | Name | Parent | minStake (PNK) | feeForJuror (ETH) | jurorsForJump | hiddenVotes |
 |---|---|---|---|---|---|---|

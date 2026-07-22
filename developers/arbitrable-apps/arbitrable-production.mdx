@@ -1,6 +1,6 @@
 ---
 title: "Production Checklist"
-description: "Pre-deployment verification for arbitrable contracts"
+description: "Pre-deployment security, arbitration, and access control checklist to verify your Kleros arbitrable contract before shipping to mainnet."
 ---
 
 ## Before You Deploy
@@ -228,8 +228,8 @@ Kleros disputes follow a fixed phase sequence. Understand the timing impact on y
 | Contract | Expected | Deployed |
 |----------|----------|----------|
 | KlerosCore | `0x33d0b8879...` | ▢ Match |
-| Your Arbitrable | — | ▢ Verified |
-| Dispute Template | — | ▢ Accessible |
+| Your Arbitrable | - | ▢ Verified |
+| Dispute Template | - | ▢ Accessible |
 
 ### Initialization
 
@@ -286,7 +286,7 @@ Kleros disputes follow a fixed phase sequence. Understand the timing impact on y
 
 ## Kleros V2 on Mainnet
 
-Kleros V2 (Neo) is live on **Arbitrum One** mainnet. Court access is open to all — users can stake PNK and participate as jurors. These items are still relevant for integrators:
+Kleros V2 (Neo) is live on **Arbitrum One** mainnet. Court access is open to all - users can stake PNK and participate as jurors. These items are still relevant for integrators:
 
 - [ ] **Contract upgrades:** V2 contracts use UUPS proxy patterns and may be upgraded via governance. Subscribe to the [Kleros blog](https://blog.kleros.io) and [Discord](https://discord.gg/kleros) for announcements.
 - [ ] **Subgraph stability:** Pin to a specific subgraph deployment version in production. Check the [kleros-v2 subgraph README](https://github.com/kleros/kleros-v2/tree/dev/subgraph) for the latest stable deployment IDs.

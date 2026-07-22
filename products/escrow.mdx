@@ -1,22 +1,60 @@
 ---
 title: "Escrow"
-description: "Decentralized escrow securing blockchain transactions between untrusted parties"
+description: "Kleros Escrow secures blockchain payments between strangers with smart contracts and decentralized arbitration, supporting ETH and ERC-20 tokens."
 sidebarTitle: "Escrow"
 
 ---
 
 
-<img src="/images/escrow-hero.png" alt="Kleros Escrow Interface" />
+<img src="/images/escrowv1-hero.png" alt="Kleros Escrow Interface" />
 
 # Escrow
 
-<Note>
-**V2** - Looking for V1 documentation? See [Escrow V1 (Legacy)](/legacy/escrow-v1).
-</Note>
-
 **Kleros Escrow** is a decentralized escrow platform that secures blockchain transactions between untrusted parties. It combines smart contract automation with Kleros' decentralized arbitration system to provide trustless transaction security for digital commerce.
 
-Traditional online transactions require trust between strangers, creating opportunities for fraud and disputes. Kleros Escrow eliminates this trust requirement by securing funds in smart contracts, allowing structured settlement negotiations, and delivering decentralized arbitration through Kleros Court when agreements fail.
+Traditional online transactions require trust between strangers, creating opportunities for fraud and disputes. Kleros Escrow eliminates this trust requirement by securing funds in smart contracts and delivering decentralized arbitration through Kleros Court when agreements fail.
+
+---
+
+## V1 - Production Protocol
+
+Escrow V1 runs on Ethereum Mainnet. Two parties lock funds in a smart contract, with Kleros Court available as the dispute resolution mechanism if they disagree.
+
+
+
+- **Network**: Ethereum Mainnet
+- **Model**: Two-party escrow with basic settlement
+- **Tokens**: ETH and standard ERC-20 tokens (non-standard tokens such as USDT are not supported)
+- **Evidence & appeals**: Handled by the escrow contract
+
+---
+
+## V2 - Next-Gen Upgrade
+
+Escrow V2 runs on Arbitrum and adds structured settlement negotiation, multi-token support (ETH, USDC, USDT, DAI, or any ERC-20 via `SafeERC20`), and moves evidence and appeal handling to the Court.
+<Frame>
+  <img src="/images/escrow-hero.png" alt="Escrow V1 interface, screenshot to be added" />
+</Frame>
+
+---
+
+## What Changed in V2
+
+| Feature | V1 | V2 |
+|---------|----|----|
+| Network | Ethereum Mainnet | Arbitrum One |
+| Token support | ETH + standard ERC-20 | ETH + any ERC-20 (via SafeERC20) |
+| Settlement | Basic | Structured proposal / counter-proposal |
+| Evidence & appeals | Handled by escrow contract | Handled by Court |
+| Platform fees | None | None |
+
+---
+
+## Current Status
+
+As of the May 2026 development update, Escrow completed its Atlas IPFS migration, with UX improvements to the agreement upload step.
+
+Follow development on the [Kleros blog - developer updates](https://blog.kleros.io/tag/developer/).
 
 ---
 
@@ -41,7 +79,7 @@ Traditional online transactions require trust between strangers, creating opport
 </Card>
 
 <Card title="Zero Platform Fees" icon="badge-percent">
-  Completely free to use—only pay network gas fees
+  Completely free to use-only pay network gas fees
 </Card>
 
 <Card title="Automatic Enforcement" icon="robot">
@@ -113,7 +151,7 @@ Kleros Escrow V2 provides multiple ways to resolve transactions:
     - The deadline has elapsed
 
     <Info>
-    This requires a manual transaction call—it is NOT automatic. Any address can trigger it once conditions are met.
+    This requires a manual transaction call-it is NOT automatic. Any address can trigger it once conditions are met.
     </Info>
   </Tab>
 

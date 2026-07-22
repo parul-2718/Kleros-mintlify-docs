@@ -1,21 +1,47 @@
 ---
-title: "Curate V2 Overview"
-description: "Decentralized system for creating community-curated lists on the blockchain"
-
+title: "Curate"
+description: "Developer overview of Kleros Curate V1 (Classic, Light) and V2, covering registry contracts, item lifecycle, and integration paths for builders."
 ---
 
 ## Introduction
 
-Curate V2 is a decentralized system for creating community-curated lists on the blockchain. Anyone can submit items, challenge entries, and participate through economic incentives. When disputes arise, they're resolved through Kleros Court.
+Curate is a decentralized system for creating community-curated lists on the blockchain. Anyone can submit items, challenge entries, and participate through economic incentives. When disputes arise, they're resolved through Kleros Court. This page covers both V1 (Classic and Light Curate on Ethereum / Gnosis Chain) and V2 (Arbitrum).
 
 <CardGroup cols={2}>
   <Card title="Smart Contracts" icon="file-contract" href="/developers/products/curate/smart-contracts">
     Core contract interfaces and data structures
   </Card>
-  <Card title="Integration Guide" icon="code" href="/developers/products/curate/integration">
-    Frontend implementation and event monitoring
+  <Card title="Curate Classic (V1)" icon="list" href="/developers/products/curate/curate-classic">
+    V1 integration guide - full TCR
+  </Card>
+  <Card title="Light Curate (V1)" icon="list-check" href="/developers/products/curate/light-curate">
+    V1 integration guide - simplified TCR
+  </Card>
+  <Card title="Registries" icon="database" href="/developers/products/curate/registries">
+    Registry reference
   </Card>
 </CardGroup>
+
+---
+
+## V1 - Curate Classic and Light Curate (Ethereum / Gnosis Chain)
+
+Curate Classic is the full Token-Curated Registry, and Light Curate is the simplified, higher-volume variant. Both are on Ethereum and Gnosis Chain and are eligible for direct integration by third-party developers.
+
+**Full V1 integration guides are available:** see the [Curate Classic](/developers/products/curate/curate-classic) and [Light Curate](/developers/products/curate/light-curate) subpages. For V1 contract addresses, see [Deployment Addresses](/reference/contracts/deployment-addresses-v1).
+
+---
+
+## V2 - Curate V2 (Arbitrum)
+
+The sections below document Curate V2 technical details.
+
+Technical notes for integrators:
+
+- **Evidence handling**: Curate V2 does not use a separate Evidence Module; evidence submission is handled directly by the `CurateV2` and `CurateFactory` contracts
+- **Subgraph**: the schema includes dedicated fields for requester and challenger evidence
+- **Frontend stack**: the interface uses Tailwind CSS and the shared components library, including the shared file viewer
+- **Developer documentation**: basic developer documentation is available in the [Curate V2 GitHub repository](https://github.com/kleros/curate-v2)
 
 ---
 
@@ -223,6 +249,20 @@ This prevents governance from affecting ongoing disputes by changing arbitrator 
     Decentralized content curation and filtering
   </Card>
 </CardGroup>
+
+---
+
+## Stake Curate
+
+Stake Curate is part of the Curate product family. It uses V1 Kleros Court on Gnosis Chain for dispute resolution. Unlike traditional Curate, where deposits are returned after listing, Stake Curate keeps deposits locked - anyone can challenge at any time, and challengers earn bounties. It launched in January 2026, with its first use case being Battle-Tested DeFi Vaults.
+
+---
+
+## Scout
+
+Scout is the primary frontend for the Curate-based address tag registries. It reached its definitive version in May 2026 with over 2.6 million curated on-chain addresses. For technical details, chain support, partners, and the GTCR Indexer, see the [Scout page](/developers/products/scout/overview).
+
+The GTCR Indexer schema was extended with challenge transaction hashes, challenge dates, and appeal transaction hashes (v0.1.7, April 2026), with an Envio branch maintained alongside the main branch.
 
 ---
 

@@ -1,11 +1,11 @@
 ---
-title: Deployment Addresses
-description: Smart contract addresses for Kleros V2 on all supported networks
+title: "Deployment Addresses V2"
+description: "Kleros V2 smart contract addresses on Arbitrum One: KlerosCore, DisputeKitClassic, Sortition Module, PolicyRegistry, and UUPS proxies."
 ---
 
 # Deployment Addresses
 
-Always verify addresses against the [official kleros-v2 repository](https://github.com/kleros/kleros-v2/tree/master/contracts/deployments) before use. Addresses change with protocol upgrades. All core contracts use the UUPS proxy pattern — proxy addresses remain stable across upgrades.
+Always verify addresses against the [official kleros-v2 repository](https://github.com/kleros/kleros-v2/tree/master/contracts/deployments) before use. Addresses change with protocol upgrades. All core contracts use the UUPS proxy pattern - proxy addresses remain stable across upgrades.
 
 ## Arbitrum One (Chain ID: 42161)
 
@@ -48,7 +48,7 @@ Always verify addresses against the [official kleros-v2 repository](https://gith
 
 | Contract | Address |
 | --- | --- |
-| Pinakion (PNK) — bridged | `0x330bD769382cFc6d50175903434CCC8D206DCAE5` |
+| Pinakion (PNK) - bridged | `0x330bD769382cFc6d50175903434CCC8D206DCAE5` |
 
 ### Gated Court Eligibility (SBT) Contracts
 
@@ -84,7 +84,7 @@ These soulbound token contracts are used as eligibility gates for specific court
 | PNK Token (L1) | `0x93ED3FBe21207Ec2E8f2d3c3de6e058Cb73Bc04d` |
 | PinakionV2 (ERC-20 upgraded) | See [Sepolia testnet](#ethereum-sepolia-chain-id-11155111--testnet) for the V2 token contract |
 
-For full V1 contract addresses on Ethereum (KlerosLiquid Court, PolicyRegistry, ArbitrableProxy, Realitio proxies, T2CR, Proof of Humanity, Governors, etc.), see [V1 Deployment Addresses](/developers/legacy/v1-deployment-addresses).
+For full V1 contract addresses on Ethereum (KlerosLiquid Court, PolicyRegistry, ArbitrableProxy, Realitio proxies, T2CR, Proof of Humanity, Governors, etc.), see [V1 Deployment Addresses](/reference/contracts/deployment-addresses-v1).
 
 ---
 
@@ -94,11 +94,11 @@ For full V1 contract addresses on Ethereum (KlerosLiquid Court, PolicyRegistry, 
 | --- | --- |
 | Realitio Cross-Chain Polygon Home Proxy | `0x5AFa42b30955f137e10f89dfb5EF1542a186F90e` |
 
-Paired with the Realitio Cross-chain Polygon Foreign Proxy on Ethereum (see [V1 Deployment Addresses](/developers/legacy/v1-deployment-addresses)). Used by Polkamarkets and other Polygon prediction markets.
+Paired with the Realitio Cross-chain Polygon Foreign Proxy on Ethereum (see [V1 Deployment Addresses](/reference/contracts/deployment-addresses-v1)). Used by Polkamarkets and other Polygon prediction markets.
 
 ---
 
-## Arbitrum Sepolia (Chain ID: 421614) — Official Testnet
+## Arbitrum Sepolia (Chain ID: 421614) - Official Testnet
 
 ### Core Contracts
 
@@ -149,7 +149,7 @@ Paired with the Realitio Cross-chain Polygon Foreign Proxy on Ethereum (see [V1 
 
 ---
 
-## Ethereum Sepolia (Chain ID: 11155111) — Testnet
+## Ethereum Sepolia (Chain ID: 11155111) - Testnet
 
 | Contract | Address |
 | --- | --- |
@@ -157,7 +157,7 @@ Paired with the Realitio Cross-chain Polygon Foreign Proxy on Ethereum (see [V1 
 
 ---
 
-## Chiado / Gnosis Testnet (Chain ID: 10200) — Official Testnet
+## Chiado / Gnosis Testnet (Chain ID: 10200) - Official Testnet
 
 | Contract | Address |
 | --- | --- |
@@ -178,6 +178,6 @@ Paired with the Realitio Cross-chain Polygon Foreign Proxy on Ethereum (see [V1 
 ## Notes
 
 - **Proxy vs Implementation**: All core contracts use the UUPS proxy pattern. Always interact with the **proxy** address. Implementation addresses are only needed for direct ABI inspection.
-- **Testnet parameters**: Testnet court parameters (minStake, feeForJuror, timesPerPeriod) differ significantly from mainnet — see [Court Hierarchy](https://github.com/kleros/docs/blob/main/court/court-hierarchy) for details.
+- **Testnet parameters**: Testnet court parameters (minStake, feeForJuror, timesPerPeriod) differ significantly from mainnet - see [Court Hierarchy](/court/court-hierarchy) for details.
 - **Dispute Kits**: The General Court on Arbitrum One supports all four kits (Classic, Shutter, Gated, GatedShutter). The active kit for a dispute is determined by the `extraData` passed at dispute creation.
 - **Canonical source**: Always cross-reference with [kleros-v2/contracts/deployments](https://github.com/kleros/kleros-v2/tree/master/contracts/deployments) for the most up-to-date addresses.

@@ -1,0 +1,64 @@
+---
+title: "Scout"
+description: "Developer reference for Kleros Scout, the frontend for the curated address tag registry ecosystem, covering registries, tags, and query patterns."
+---
+
+This page documents technical details for Scout. It does not include an integration guide.
+
+---
+
+## What is Scout
+
+- A frontend interface for the Kleros curated address tag registry ecosystem
+- Reached its definitive version in May 2026 - the planned feature set is complete, with focus now on growing the unified database
+- Over 2.6 million curated on-chain addresses as of May 2026
+- Registries: Tokens, CDN, ATQ (Address Tags Query), and single-tag registries
+
+---
+
+## Technical architecture
+
+- Built on Curate smart contracts (Light Curate / GTCR on-chain)
+- Data indexed via the GTCR Indexer and Envio HyperIndex
+- IPFS uploads go through the Atlas SIWE flow
+- Submissions require sign-in at the time of submission; images are persisted in the browser until then
+- Submission image size is capped on all registries; the tokens registry enforces a max of 1 MB and a minimum of 128×128 for logos
+- ATQ duplicate detection prevents duplicate address tag submissions
+- Disputes route to the correct court via JavaScript Court routing
+- The evidence section sits outside the submission modal so evidence can be browsed while submitting
+
+---
+
+## Chain support
+
+Ethereum Mainnet, Linea, Avalanche C-Chain, zkSync, Scroll, Gnosis, Celo, Base, Solana, Arbitrum One, OP Mainnet, MegaETH, Polygon, and PulseChain.
+
+---
+
+## Partners using Scout data
+
+- OpenScan and RouteScan (block explorers)
+- MonarchLend
+- MetaMask Snap (Scout Snap v1.3.8)
+
+---
+
+## GTCR Indexer
+
+- The schema (v0.1.7) includes challenge transaction hashes, challenge dates, and appeal transaction hashes
+- An Envio branch is maintained alongside the main branch
+
+---
+
+## Governance
+
+- KIP-87 created a new Curation Court on Gnosis with hidden voting (June 2026)
+- Scout registries are planned to migrate to the new court
+
+---
+
+## Links
+
+- App: [app.klerosscout.eth.limo](https://app.klerosscout.eth.limo/)
+- Repository: [github.com/kleros/scout](https://github.com/kleros/scout)
+- GTCR Indexer: [github.com/kleros/gtcr-indexer](https://github.com/kleros/gtcr-indexer)

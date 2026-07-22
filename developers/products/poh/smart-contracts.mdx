@@ -1,6 +1,6 @@
 ---
 title: "Smart Contracts"
-description: "Proof of Humanity V2 contract interfaces, data structures, and core functions."
+description: "Reference for Proof of Humanity V2 smart contracts, covering the IProofOfHumanity interface, identity queries, and registration lifecycle functions."
 ---
 
 ## Core Interface
@@ -125,6 +125,6 @@ When a registration is challenged, PoH creates a dispute in Kleros Court with th
 | **Choices** | 2 (Accept Registration / Reject Registration) |
 | **Ruling 0** | Refuse to arbitrate |
 | **Ruling 1** | Accept -> registration is valid |
-| **Ruling 2** | Reject —> registration is invalid |
+| **Ruling 2** | Reject -> registration is invalid |
 
 Evidence is submitted on-chain and displayed in the Court V2 interface. The dispute template specifies the PoH registration policy as the primary document for juror evaluation.

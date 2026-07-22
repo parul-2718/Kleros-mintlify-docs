@@ -1,11 +1,66 @@
 ---
 title: "How It Works"
-description: "The complete dispute resolution process from creation to execution"
+description: "Walk through the Kleros Court dispute lifecycle: dispute creation, evidence, juror drawing, commit-reveal voting, appeals, and on-chain ruling execution."
 ---
 
 # How Kleros Court Works
 
 Kleros Court resolves disputes through a structured process that ensures fairness, transparency, and economic alignment. This page walks through each stage from dispute creation to final execution.
+
+The same crypto-economic model powers both protocol versions. V1 runs on Ethereum with the KlerosLiquid contract; V2 runs on Arbitrum with a modular architecture. The V1 process is summarized first, followed by the detailed V2 process.
+
+---
+
+## V1 - Production Protocol
+
+In Court V1, the entire dispute process is handled by a single contract, **KlerosLiquid**, on Ethereum Mainnet (also deployed on Gnosis Chain).
+
+```mermaid
+flowchart LR
+    A["Dispute<br/>Creation"] --> B["Evidence"]
+    B --> C["Juror<br/>Drawing"]
+    C --> D["Commit"]
+    D --> E["Reveal /<br/>Vote"]
+    E --> F["Appeal"]
+    F -->|"Appeal funded"| C
+    F -->|"No appeal"| G["Execution"]
+
+    style A fill:#9b59b6,color:#fff
+    style B fill:#a569bd,color:#fff
+    style C fill:#a569bd,color:#fff
+    style D fill:#a569bd,color:#fff
+    style E fill:#a569bd,color:#fff
+    style F fill:#a569bd,color:#fff
+    style G fill:#7d3c98,color:#fff
+```
+
+
+
+<Steps>
+  <Step title="Dispute Creation">
+    An arbitrable application creates a dispute through the ERC-792 arbitrator interface and pays arbitration fees. The target subcourt and juror count are set in the `extraData` parameter.
+  </Step>
+  <Step title="Evidence">
+    Parties submit evidence following the ERC-1497 standard. Evidence and appeals are handled by the arbitrable contract itself, not by the Court.
+  </Step>
+  <Step title="Juror Selection">
+    Jurors are drawn at random from those who have staked PNK in the subcourt, weighted by stake. PNK stays in the juror's wallet while staked. Randomness comes from a blockhash-based RNG.
+  </Step>
+  <Step title="Commit-Reveal Voting">
+    Jurors commit a hashed vote, then reveal it with justification. The outcome is decided by plurality - the choice with the most votes wins.
+  </Step>
+  <Step title="Appeal & Execution">
+    Parties can fund an appeal to trigger a new round with more jurors. Once appeals are exhausted, the ruling is enforced. Coherent jurors are rewarded; incoherent jurors lose part of their stake.
+  </Step>
+</Steps>
+
+Courts in V1 are organized as a hierarchical **subcourt** tree with the General Court as the root. Staking in a child subcourt automatically includes the juror in its parent subcourts.
+
+---
+
+## V2 - Next-Gen Upgrade
+
+The sections below describe the V2 dispute process on Arbitrum. V2 keeps the same lifecycle but splits the logic across **KlerosCore**, the **SortitionModule**, and pluggable **DisputeKits**.
 
 ---
 
@@ -13,11 +68,11 @@ Kleros Court resolves disputes through a structured process that ensures fairnes
 
 ```mermaid
 flowchart LR
-    A["Dispute\nCreation"] --> B["Evidence\nPeriod"]
-    B --> C["Juror\nSelection"]
-    C --> D["Commit\nPeriod"]
-    D --> E["Reveal /\nVote Period"]
-    E --> F["Appeal\nPeriod"]
+    A["Dispute<br/>Creation"] --> B["Evidence<br/>Period"]
+    B --> C["Juror<br/>Selection"]
+    C --> D["Commit<br/>Period"]
+    D --> E["Reveal /<br/>Vote Period"]
+    E --> F["Appeal<br/>Period"]
     F -->|"Appeal funded"| C
     F -->|"No appeal"| G["Execution"]
 
@@ -107,9 +162,9 @@ The Sortition Module uses a three-phase cycle to prevent manipulation of juror s
 ```mermaid
 stateDiagram-v2
     [*] --> Staking
-    Staking --> Generating : disputesWithoutJurors > 0\n& minStakingTime elapsed
+    Staking --> Generating : disputesWithoutJurors > 0 & minStakingTime elapsed
     Generating --> Drawing : Random number received
-    Drawing --> Staking : All disputes have jurors\nor maxDrawingTime elapsed
+    Drawing --> Staking : All disputes have jurors or maxDrawingTime elapsed
 
     note right of Staking : Stake changes take effect immediately
     note right of Generating : Random number requested from RNG
@@ -157,7 +212,7 @@ Kleros V2 introduces modular dispute resolution through pluggable Dispute Kits. 
 | 3 | **Gated** | Classic voting restricted to jurors holding a specific eligibility token (SBT). Used for courts requiring verified credentials. | Live |
 | 4 | **GatedShutter** | Gated eligibility combined with Shutter encryption. | Live |
  
-<Note>All four kits are deployed and registered on the General Court on Arbitrum One. Specialized courts (e.g., courts 29 and 32 for Argentina Consumer Protection) use DisputeKitGated and require specific SBTs — see [Deployment Addresses](/reference/contracts/deployment-addresses). The dispute kit architecture is extensible; new kits can be added through governance.</Note>
+<Note>All four kits are deployed and registered on the General Court on Arbitrum One. Specialized courts (e.g., courts 29 and 32 for Argentina Consumer Protection) use DisputeKitGated and require specific SBTs - see [Deployment Addresses](/reference/contracts/deployment-addresses). The dispute kit architecture is extensible; new kits can be added through governance.</Note>
 
 ---
 
@@ -261,7 +316,7 @@ The system includes fallback behavior: if the Drawing phase exceeds `maxDrawingT
   <Card title="Appeals" icon="arrow-up-right-from-square" href="/court/appeals">
     Learn how appeals and escalation work
   </Card>
-  <Card title="Become a Juror" icon="user-plus" href="https://blog.kleros.io/kleros-2-0-juror-101/">
-    Step-by-step staking and voting guide
+  <Card title="Become a Juror" icon="user-plus" href="/tutorials/juror-tutorial-v1">
+    Step-by-step staking and voting tutorial
   </Card>
 </CardGroup>

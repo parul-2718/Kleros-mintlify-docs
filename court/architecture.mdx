@@ -1,11 +1,40 @@
 ---
-title: "V2 Architecture"
-description: "Detailed system architecture of Kleros V2"
+title: "Architecture"
+description: "Compare the monolithic KlerosLiquid contract on Ethereum with the modular KlerosCore, SortitionModule, and Dispute Kits architecture of V2 on Arbitrum."
 ---
 
+This page covers the Kleros Court architecture for both protocol versions. It starts with the V1 design, then the V2 design, and ends with what changed between them.
 
+---
 
-## Design Principles
+## V1 Architecture
+
+Court V1 is built around a single contract, **KlerosLiquid**, deployed on Ethereum Mainnet (and Gnosis Chain). KlerosLiquid is monolithic: juror staking, random selection, voting, and dispute management all live in the same contract.
+
+| Component | Responsibility |
+|---|---|
+| **KlerosLiquid** | Staking, juror drawing, voting, appeals, and ruling execution in one contract |
+| **PolicyRegistry** | Court policy storage |
+| **Minime PNK token** | The staking token used in V1 |
+
+Key characteristics:
+
+- **Network**: Ethereum Mainnet (also Gnosis Chain)
+- **Standards**: ERC-792 (arbitration) and ERC-1497 (evidence); evidence and appeals are handled by the arbitrable contract, not the Court
+- **Juror selection**: built into KlerosLiquid, using a stake-weighted sortition sum tree
+- **Randomness**: blockhash-based RNG
+- **Voting**: commit-reveal with plurality aggregation
+- **Courts**: a hierarchical subcourt tree with the General Court as root
+
+For more on V1, see [Court V1](/legacy/court-v1).
+
+---
+
+## V2 Architecture
+
+Court V2 runs on Arbitrum and splits the monolithic V1 contract into modular components. The rest of this section describes that design.
+
+### Design Principles
 
 Kleros V2 was designed around six key principles:
 
@@ -16,7 +45,7 @@ Kleros V2 was designed around six key principles:
 5. **Juror Fraud Protection**: Mechanisms to detect and penalize pre-reveal, bribery, and cartelling
 6. **Evidence Spam Protection**: Deposit-based evidence submission on L2 where gas is cheap
 
-## Component Map
+### Component Map
 
 | Component | Responsibility |
 |---|---|
@@ -29,7 +58,7 @@ Kleros V2 was designed around six key principles:
 | **Home/Foreign Gateways** | Cross-chain dispute relay |
 | **Vea Bridge** | Optimistic cross-chain message transport |
 
-## Multi-Chain Vision
+### Multi-Chain Vision
 
 The long-term architecture supports Arbitrables on any EVM chain:
 - Users interact primarily with the Home chain (Arbitrum) for most operations
@@ -37,7 +66,7 @@ The long-term architecture supports Arbitrables on any EVM chain:
 - Gateways and the Vea bridge abstract away bridging complexity
 - Each supported foreign chain has its own Foreign Gateway deployment
 
-## Dispute Kit System
+### Dispute Kit System
 
 Courts can support multiple dispute kits, enabling different:
 - **Drawing methods**: PNK-weighted, Proof-of-Humanity-based, etc.
@@ -47,10 +76,25 @@ Courts can support multiple dispute kits, enabling different:
 
 Currently, `DisputeKitClassic` (PNK drawing + plurality voting + equal split + fund-2-only appeals) is the only deployed kit and is mandatorily supported by all courts.
 
-## Security Model
+### Security Model
 
 - **Cryptoeconomic**: Jurors stake PNK; incoherent voters lose stake
 - **Random Selection**: Prevents manipulation of juror composition
 - **Appeal Escalation**: Exponentially increasing cost to sustain an attack
 - **Emergency Controls**: Guardian pause + Governor unpause for rapid response
 - **Fork Mechanism**: Ultimate defense: honest minority can fork the protocol
+
+---
+
+## What Changed in V2
+
+| Aspect | V1 (KlerosLiquid) | V2 (KlerosCore) |
+|---|---|---|
+| **Structure** | Monolithic - one contract for staking, drawing, voting, disputes | Modular - KlerosCore, SortitionModule, and DisputeKits are separate |
+| **Network** | Ethereum L1 (also Gnosis Chain) | Arbitrum L2 |
+| **Juror selection** | Built into KlerosLiquid | SortitionModule (separate contract) |
+| **Dispute resolution** | Single built-in mechanism | Pluggable DisputeKits (Classic, Shutter, Gated, GatedShutter) |
+| **PNK token** | Minime token | Lightweight ERC-20 |
+| **Evidence & appeals** | Handled by the arbitrable contract | Handled by the Court |
+| **Cross-chain** | Single chain | Multi-chain via the Vea bridge and Gateways |
+| **RNG** | Blockhash-based | Generic RNG interface with fallback |

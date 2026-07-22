@@ -1,6 +1,6 @@
 ---
 title: "Safe Zodiac Integration"
-description: "Integrate Kleros as the arbitrator for DAO governance using Gnosis Safe, Snapshot, and Zodiac"
+description: "Integrate Kleros Court as arbitrator for DAO governance using Gnosis Safe, Snapshot, Zodiac Reality Module, and the Reality.eth-Kleros proxy contract."
 ---
 
 # Safe Zodiac Integration
@@ -15,7 +15,7 @@ This guide covers how to make your DAO governance fully decentralized using Gnos
 | --- | --- |
 | [Gnosis Safe](https://gnosis-safe.io/) | Multi-signature wallet managing DAO treasury and contracts |
 | [Snapshot](https://snapshot.org/) | Off-chain vote signaling platform |
-| [Zodiac Reality Module](https://gnosis.github.io/zodiac/docs/tutorial-module-reality/get-started) | Enables trustless on-chain execution of off-chain votes using Reality.eth |
+| [Zodiac Reality Module](https://zodiac.gnosisguild.org/) | Enables trustless on-chain execution of off-chain votes using Reality.eth |
 | [Kleros Court](https://court.kleros.io) | Arbitrates disputed proposals via the Reality.eth-Kleros proxy |
 
 This creates a separation of powers: token holders vote (legislative), the multisig executes (executive), and Kleros arbitrates disputed proposals (judiciary).
@@ -31,8 +31,8 @@ This creates a separation of powers: token holders vote (legislative), the multi
 
 ### Steps
 
-1. **Set up Zodiac Reality Module** following the [Zodiac documentation](https://gnosis.github.io/zodiac/docs/tutorial-module-reality/get-started). When setting parameters, select **Kleros** in the arbitrator field.
-2. **Add the SafeSnap plugin to Snapshot** following the [Snapshot integration guide](https://gnosis.github.io/zodiac/docs/tutorial-module-reality/integrate-snapshot).
+1. **Set up Zodiac Reality Module** following the [Zodiac documentation](https://zodiac.gnosisguild.org/). When setting parameters, select **Kleros** in the arbitrator field.
+2. **Add the SafeSnap plugin to Snapshot** following the [Snapshot integration guide](https://zodiac.gnosisguild.org/).
 3. **Test proposals**: Create executable proposals on Snapshot and process them after voting ends.
 
 <Warning>
@@ -84,7 +84,7 @@ After this, the only way to interact with the DAO's Safe is through governance p
 ## Resources
 
 <CardGroup cols={2}>
-  <Card title="Zodiac Documentation" icon="book" href="https://gnosis.github.io/zodiac/docs/tutorial-module-reality/get-started">
+  <Card title="Zodiac Documentation" icon="book" href="https://zodiac.gnosisguild.org/">
     Full Zodiac setup guide
   </Card>
   <Card title="Kleros Governance Blog Post" icon="newspaper" href="https://blog.kleros.io/kleros-x-safesnap/">

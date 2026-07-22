@@ -1,7 +1,6 @@
-
 ---
 title: "Kleros Registries"
-description: "Address Tags, Tokens, CDN, and ATQ — the four live Kleros curation registries, their data models, subgraph access, and consumer integrations"
+description: "Address Tags, Tokens, CDN, and ATQ: the four live Kleros curation registries, their data models, subgraph access, and consumer integrations."
 ---
 
 Kleros runs four production curation registries built on Curate V2. Each registry curates a specific type of data; disputed entries are resolved by Kleros Court. Together they form the core data layer used by wallets, block explorers, and token lists to display trusted metadata for contracts and tokens.
@@ -9,7 +8,7 @@ Kleros runs four production curation registries built on Curate V2. Each registr
 | Registry | Short name | What it curates | Chain |
 |----------|-----------|-----------------|-------|
 | Address Tags | ATR | Human-readable tags for contract addresses | Gnosis Chain |
-| Tokens | — | ERC-20 token metadata (name, symbol, logo, decimals) | Gnosis Chain |
+| Tokens | - | ERC-20 token metadata (name, symbol, logo, decimals) | Gnosis Chain |
 | Contract Domain Names | CDN | Mapping from contract address → web domain | Gnosis Chain |
 | Address Tag Query | ATQ | Batch meta-registry of NPM packages that generate address tag data | Gnosis Chain |
 
@@ -51,7 +50,7 @@ The registry is indexed by an Envio-hosted subgraph (private deployment). Query 
 
 - Addresses must be **lowercase** in `where` filters
 - Filter by `chain_id` in `props` to narrow to a specific network
-- Items with `ClearingRequested` are still active — include them in "active tags" queries
+- Items with `ClearingRequested` are still active - include them in "active tags" queries
 
 ### Resolution Rules
 
@@ -252,7 +251,7 @@ Consumers typically fetch a pre-built static export (JSON file) rather than quer
 
 ## Architecture
 
-### Level 1 — System Context
+### Level 1 - System Context
 
 ```
                     ┌─────────────────────┐
@@ -283,7 +282,7 @@ Consumers typically fetch a pre-built static export (JSON file) rather than quer
                     └─────────────────────┘
 ```
 
-### Level 2 — Container View
+### Level 2 - Container View
 
 ```
 Gnosis Chain

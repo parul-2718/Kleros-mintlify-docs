@@ -1,6 +1,6 @@
 ---
 title: Products Overview
-description: Kleros products and their protocol versions
+description: "Explore every Kleros product, Court, Curate, Escrow, Governor, Scout, Reality, PoH, and Foresight, with each protocol version and where it runs."
 ---
 
 # Kleros Products
@@ -8,23 +8,22 @@ description: Kleros products and their protocol versions
 Kleros provides a suite of decentralized applications, all powered by Kleros Court for dispute resolution. This page gives an overview of each product and its current protocol version.
 <img src="/images/overviewv2-hero.png" alt="Kleros Interface" />
 
-<Note>
-  **Kleros V2** is the latest version of the Kleros protocol, featuring improved scalability, lower gas costs, and enhanced dispute resolution mechanics. Most products have migrated or are migrating to V2.
-</Note>
-
 ---
 
 ## Protocol Version Guide
 
-| Product | Protocol Version | Status |
-|---------|-----------------|--------|
-| [Court](/court/overview) | **V2** | ✅ Live |
-| [Curate](/products/curate) | **V2** | ✅ Live |
-| [Escrow](/products/escrow) | **V2** | ✅ Live |
-| [Governor](/products/governor) | **V2** | ✅ Live |
-| [Scout](/products/scout) | V1 | 🔄 V2 coming soon |
-| [Reality (Oracle)](/products/reality) | V1 | 🔄 V2 coming soon |
-| [Proof of Humanity](/products/proof-of-humanity) | V1 | ⚠️ See note below |
+Kleros products run on two protocol versions. **V1** is the production-proven protocol on Ethereum L1; **V2** is the next-generation upgrade on Arbitrum L2. The table below shows where each product stands today.
+
+| Product | Available on | Notes |
+|---------|--------------|-------|
+| [Court](/court/overview) | V1 • V2 | V1 on Ethereum, V2 on Arbitrum |
+| [Curate](/products/curate) | V1 • V2 | Classic (V1), Light (V1), Stake Curate (V1 infra) |
+| [Escrow](/products/escrow) | V1 • V2 | V2 adds settlement negotiation and multi-token support |
+| [Governor](/products/governor) | V1 • V2 | Optimistic execution on both versions |
+| [Scout](/products/scout) | V1 | Frontend reading from V1 Curate registries |
+| [Reality (Oracle)](/products/reality) | V1 | Kleros arbitration backstop for Reality.eth |
+| [Proof of Humanity](/products/proof-of-humanity) | V1 | See note below |
+| [Foresight](/products/foresight) | V2 | Experimental prediction-market platform |
 
 <Warning>
   **Proof of Humanity note:** PoH has its own "V2" product upgrade (cross-chain support, improved UX), but it still uses the **Kleros V1 protocol** for dispute resolution. Don't confuse "PoH 2.0" (the product) with "Kleros V2" (the protocol).
@@ -32,9 +31,7 @@ Kleros provides a suite of decentralized applications, all powered by Kleros Cou
 
 ---
 
-## V2 Products
-
-These products run on the latest Kleros V2 protocol.
+## Production Products
 
 <CardGroup cols={2}>
 
@@ -53,8 +50,8 @@ These products run on the latest Kleros V2 protocol.
     
     Create and maintain community-curated lists with economic incentives and dispute resolution.
     
+    - Classic Curate (V1), Light Curate (V1), Stake Curate (V1 infra)
     - Token lists, address tags, contract registries
-    - Challenge incorrect submissions
     - Query registry data via subgraph
   </Card>
 
@@ -78,24 +75,12 @@ These products run on the latest Kleros V2 protocol.
     - Integration with Snapshot
   </Card>
 
-</CardGroup>
-
----
-
-## V1 Products (V2 Migration Planned)
-
-These products currently use Kleros V1 and will migrate to V2.
-
-<CardGroup cols={2}>
-
   <Card title="Scout" icon="shield-check" href="/products/scout">
     **Contract & token verification**
     
     Community-curated safety information for smart contracts, tokens, and dApps. Integrates with MetaMask Snaps.
     
-    <Note>
-      Scout is a **frontend application** that displays data from Curate registries. V2 support will come when the underlying registries migrate.
-    </Note>
+    Scout is a frontend that reads from Curate registries.
   </Card>
 
   <Card title="Reality (Oracle)" icon="database" href="/products/reality">
@@ -108,66 +93,67 @@ These products currently use Kleros V1 and will migrate to V2.
     - Kleros as arbitration backstop
   </Card>
 
+  <Card title="Proof of Humanity" icon="fingerprint" href="/products/proof-of-humanity">
+    **Sybil-resistant identity registry**
+    
+    A registry of verified humans combining video verification, social vouching, and dispute resolution.
+    
+    Uses the Kleros V1 protocol for dispute resolution.
+  </Card>
+
+  <Card title="Foresight" icon="chart-line" href="/products/foresight">
+    **Prediction-market decision making**
+    
+    Prediction market platform built on Seer, with Kleros Court as the backstop for contested outcomes.
+    
+    <Badge>Experimental</Badge>
+  </Card>
+
 </CardGroup>
 
 ---
 
-## V1 Protocol Products
+## Curate Variants
 
-<Card title="Proof of Humanity" icon="fingerprint" href="/products/proof-of-humanity">
-  **Sybil-resistant identity registry**
-  
-  A registry of verified humans combining video verification, social vouching, and dispute resolution.
-  
-  <Warning>
-    **Important:** Proof of Humanity uses the **Kleros V1 protocol** for dispute resolution—even the "PoH 2.0" product version. The "2.0" refers to product improvements (cross-chain support, better UX), not the underlying Kleros protocol version.
-  </Warning>
-  
-  - Register as a verified human
-  - Vouch for others
-  - Challenge suspicious registrations
-  - Cross-chain profile support (Ethereum, Gnosis Chain)
-</Card>
+Curate is a family of three variants:
+
+- **Classic Curate** (V1) - full Token-Curated Registry with complex schemas
+- **Light Curate** (V1) - simplified TCR for higher volume
+- **Stake Curate** (V1 infrastructure) - continuous verification with permanent deposits
+
+See [Curate](/products/curate) for details.
 
 ---
 
-## Legacy & Retired Products
+## V1 Product Versions
 
-These products are documented in the [Legacy section](/legacy/overview).
+The V1 versions of these products remain in production. Each product page above covers its V1 details first, then what changed in V2.
 
-| Product | Status | Notes |
-|---------|--------|-------|
-| [Court V1](/legacy/court-v1) | Legacy | Superseded by Court V2 |
-| [Resolver V1](/legacy/resolver-v1) | Legacy | Standalone app, now integrated into Court V2 |
-| [Curate V1](/legacy/curate-v1) | Legacy | Superseded by Curate V2 |
-| [Escrow V1](/legacy/escrow-v1) | Legacy | Superseded by Escrow V2 |
-| [Governor V1](/legacy/governor-v1) | Legacy | Superseded by Governor V2 |
-| [Moderate](/legacy/retired/moderate) | Retired | Telegram moderation bot |
-| [Linguo](/legacy/retired/linguo) | Retired | Translation marketplace |
-| [Tokens](/legacy/retired/tokens) | Retired | Replaced by Curate token registry |
+| Product | V2 version |
+|---------|-----------|
+| [Court V1](/legacy/court-v1) | [Court V2](/court/overview) available |
+| [Resolver V1](/legacy/resolver-v1) | Integrated into the Court V2 interface |
+| [Curate V1](/legacy/curate-v1) | [Curate V2](/products/curate) available |
+| [Escrow V1](/legacy/escrow-v1) | [Escrow V2](/products/escrow) available |
+| [Governor V1](/legacy/governor-v1) | [Governor V2](/products/governor) available |
 
 ---
 
-## Choosing Between V1 and V2
+## Retired Products
 
-**For new integrations:** Always use V2 products when available. V2 offers:
-- Lower gas costs
-- Improved dispute resolution mechanics
-- Better scalability
-- Active development and support
+These products are no longer actively maintained. They are listed under **Retired Products** in the sidebar.
 
-**For existing V1 integrations:** See the [Migration Guide](/legacy/migration-guide) for steps to upgrade.
-
-**For V1-only products (Scout, Reality, PoH):** Continue using V1 for now. Migration guides will be provided when V2 support is available.
+| Product | Description | Status |
+|---------|-------------|--------|
+| [Moderate](/legacy/retired/moderate) | Telegram moderation bot | Retired |
+| [Linguo](/legacy/retired/linguo) | Translation marketplace | Retired |
+| [Tokens](/legacy/retired/tokens) | Token submission interface | Replaced by Curate token registry |
 
 ---
 
 ## Next Steps
 
 <CardGroup cols={3}>
-  <Card title="Use a product" icon="rocket" href="https://help.kleros.io">
-    Step-by-step guides in the Help Center
-  </Card>
   <Card title="Build on Kleros" icon="code" href="/developers/overview">
     Integration guides for developers
   </Card>

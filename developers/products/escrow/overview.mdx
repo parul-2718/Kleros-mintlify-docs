@@ -1,21 +1,39 @@
 ---
-title: "Escrow V2 Overview"
-description: "Secure peer-to-peer transactions with decentralized dispute resolution through Kleros Court"
-
+title: "Escrow"
+description: "Developer overview of Kleros Escrow V1 (Mainnet) and V2 (Arbitrum), covering transaction contracts, dispute flow, and integration patterns."
 ---
 
 ## Introduction
 
-Kleros Escrow V2 enables secure peer-to-peer transactions with built-in dispute resolution through Kleros Court. The system supports both native ETH and ERC20 tokens, with features including settlement negotiations, partial payments, and deadline-based automatic execution.
+Kleros Escrow enables secure transactions with built-in dispute resolution through Kleros Court. This page covers both V1 (Ethereum Mainnet) and V2 (Arbitrum).
 
-<CardGroup cols={2}>
-  <Card title="Smart Contracts" icon="file-contract" href="/developers/products/escrow/smart-contracts">
-    Core contract interfaces and data structures
-  </Card>
-  <Card title="Integration Guide" icon="code" href="/developers/products/escrow/integration">
-    React hooks and frontend implementation
-  </Card>
-</CardGroup>
+<Card title="Smart Contracts" icon="file-contract" href="/developers/products/escrow/smart-contracts">
+  Core contract interfaces and data structures
+</Card>
+
+---
+
+## V1 (Ethereum Mainnet)
+
+Escrow V1 is a two-party escrow on Ethereum Mainnet, with Kleros Court available for dispute resolution. **V1 integration is fully supported.**
+
+The V1 interface enforces token compatibility: unsupported tokens are blacklisted with toast notifications, and the token selector modal warns about non-standard ERC20 tokens (such as USDT) that V1 does not support. The application at `escrow.kleros.io` is whitelisted on Reown for WalletConnect sessions.
+
+For V1 contract addresses, see [Deployment Addresses V1](/reference/contracts/deployment-addresses-v1).
+
+---
+
+## V2 (Arbitrum)
+
+Kleros Escrow V2 is in production and supports both native ETH and ERC20 tokens, with settlement negotiations, partial payments, and deadline-based automatic execution. The sections below document V2 technical details.
+
+Technical notes for integrators:
+
+- **Token decimals**: the contract handles tokens with non-18 decimals correctly (USDC and USDT are supported; both are whitelisted, USDT being a V2-only addition since V1 does not support it)
+- **Dispute policy**: the General Escrow dispute policy document is finalized and stored on IPFS
+- **Subgraph**: version 2.2.1 runs on Goldsky and exposes `transactionHash` fields, which power block explorer links in the transaction timeline
+- **File storage**: uploads go through the Atlas SIWE flow to IPFS
+- **Frontend stack**: the interface uses kleros-app 3.0.1 (including unsubscribe-from-notifications support) and the shared UI Components Library, including the shared file viewer
 
 ---
 

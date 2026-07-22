@@ -15,10 +15,6 @@
   "navbar": {
     "links": [
       {
-        "label": "Help Center",
-        "href": "https://help.kleros.io"
-      },
-      {
         "label": "Blog",
         "href": "https://blog.kleros.io"
       }
@@ -26,7 +22,7 @@
     "primary": {
       "type": "button",
       "label": "Launch Court",
-      "href": "https://v2.kleros.builders/"
+      "href": "https://court.kleros.io/"
     }
   },
   "navigation": {
@@ -57,12 +53,7 @@
             "light": "#5c05e1",
             "dark": "#5c05e1"
           },
-          "href": "https://kleros.builders"
-        },
-        {
-          "anchor": "Help Center",
-          "icon": "circle-question",
-          "href": "https://help.kleros.io"
+          "href": "https://kleros.io"
         },
         {
           "anchor": "GitHub",
@@ -78,7 +69,10 @@
         "groups": [
           {
             "group": "Welcome",
-            "pages": ["welcome/introduction", "welcome/faq"]
+            "pages": [
+              "welcome/introduction",
+              "welcome/faq"
+            ]
           },
           {
             "group": "Kleros Court",
@@ -90,19 +84,56 @@
               "court/architecture"
             ]
           },
-          
           {
             "group": "Products",
             "pages": [
               "products/overview",
               "products/curate",
-              "products/stake curate",
               "products/escrow",
               "products/governor",
-              "products/scout",
+              {
+                "group": "Scout",
+                "pages": [
+                  "products/scout",
+                  "products/scout-earn",
+                  "products/scout-partnerships",
+                  "products/scout-snap"
+                ]
+              },
               "products/reality",
               "products/proof-of-humanity",
-              "products/foresight"
+              "products/foresight",
+              {
+                "group": "Retired Products",
+                "pages": [
+                  "legacy/retired/moderate",
+                  "legacy/retired/linguo",
+                  "legacy/retired/tokens"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Tutorials",
+            "pages": [
+              {
+                "group": "Juror Guide",
+                "pages": [
+                  "tutorials/juror-tutorial-v1",
+                  "tutorials/juror-tutorial-v2"
+                ]
+              },
+              "tutorials/escrow-tutorial",
+              "tutorials/curate-tutorial",
+              "tutorials/scout-tutorial",
+              {
+                "group": "Proof of Humanity",
+                "pages": [
+                  "tutorials/poh-register-and-vouch",
+                  "tutorials/poh-remove-and-challenge",
+                  "tutorials/poh-transferring-a-profile"
+                ]
+              }
             ]
           },
           {
@@ -112,6 +143,7 @@
               "concepts/game-theory",
               "concepts/sortition",
               "concepts/tokenomics",
+              "concepts/pnk-token",
               "concepts/credible-neutrality"
             ]
           },
@@ -135,46 +167,8 @@
           {
             "group": "Enterprise",
             "pages": [
-              
               "enterprise/enterprise",
               "enterprise/ecosystem"
-            ]
-          },
-          {
-            "group": "Legacy (V1)",
-            "pages": [
-              "legacy/overview",
-              "legacy/migration-guide",
-              {
-      "group": "Integration",
-     
-      "pages": [
-        "legacy/integrate/overview",
-        "legacy/integrate/types-of-integration",
-        "legacy/integrate/centralized-arbitrator",
-              "legacy/integrate/dispute-resolver",
-              "legacy/integrate/zodiac-integration",
-              
-              "legacy/integrate/policy-guide"
-              
-      ]
-    },
-              
-              "legacy/court-v1",
-              "legacy/curate-v1",
-              "legacy/escrow-v1",
-              "legacy/governor-v1",
-              "legacy/resolver-v1",
-               {
-      "group": "Retired",
-     
-      "pages": [
-       "legacy/retired/moderate",
-              "legacy/retired/linguo",
-              "legacy/retired/tokens"    
-      ]
-    }
-              
             ]
           },
           {
@@ -187,15 +181,15 @@
             ]
           },
           {
-           "group": "Contributing",
+            "group": "Contributing",
             "pages": [
               "contributing/overview",
               "contributing/dev-workflow",
               "contributing/smart-contract-workflow",
               "contributing/code-style",
               "contributing/license"
-  ]
-}
+            ]
+          }
         ]
       },
       {
@@ -211,54 +205,70 @@
             ]
           },
           {
-            "group": "Building Arbitrable Apps (V2)",
+            "group": "V2 Architecture",
+            "pages": [
+              "reference/architecture/v2-architecture",
+              "reference/architecture/arbitrator-v2",
+              "reference/architecture/sortition-module-spec",
+              "reference/architecture/vea-overview"
+            ]
+          },
+          {
+            "group": "Arbitrable Apps",
             "pages": [
               "developers/arbitrable-apps/arbitrable-overview",
+              "developers/arbitrable-apps/v1-arbitrable-apps",
               "developers/arbitrable-apps/arbitrable-guide",
+              "developers/arbitrable-apps/erc-792",
+              "developers/arbitrable-apps/erc-1497",
+              "developers/arbitrable-apps/centralized-arbitrator",
+              "developers/arbitrable-apps/arbitrable-proxy",
               "developers/arbitrable-apps/arbitrable-testing",
               "developers/arbitrable-apps/arbitrable-production"
             ]
           },
           {
-            "group": "Building on Kleros Products",
+            "group": "Products",
             "pages": [
               "developers/products/overview",
-
+              "developers/products/court/overview",
               {
-      "group": "Curate",
-     
-      "pages": [
-        "developers/products/curate/overview",
-        "developers/products/curate/smart-contracts",
-        "developers/products/curate/integration",
-        "developers/products/curate/registries"
-      ]
-    },
-             {
-      "group": "Escrow",
-    
-      "pages": [
-        "developers/products/escrow/overview",
-        "developers/products/escrow/smart-contracts",
-        "developers/products/escrow/integration"
-      ]
-    },
-        {
-      "group": "Proof of Humanity",
-      "pages": [
-        "developers/products/poh/overview",
-        "developers/products/poh/smart-contracts",
-        "developers/products/poh/integration"
-      ]
-    },
-    {
-      "group": "Reality",
-      "pages": [
-        "developers/products/reality/overview",
-        "developers/products/reality/smart-contracts",
-        "developers/products/reality/integration"
-      ]
-    }             
+                "group": "Curate",
+                "pages": [
+                  "developers/products/curate/overview",
+                  "developers/products/curate/smart-contracts",
+                  "developers/products/curate/curate-classic",
+                  "developers/products/curate/light-curate",
+                  "developers/products/curate/registries"
+                ]
+              },
+              {
+                "group": "Escrow",
+                "pages": [
+                  "developers/products/escrow/overview",
+                  "developers/products/escrow/smart-contracts"
+                ]
+              },
+              {
+                "group": "Proof of Humanity",
+                "pages": [
+                  "developers/products/poh/overview",
+                  "developers/products/poh/smart-contracts",
+                  "developers/products/poh/integration"
+                ]
+              },
+              {
+                "group": "Reality",
+                "pages": [
+                  "developers/products/reality/overview",
+                  "developers/products/reality/smart-contracts",
+                  "developers/products/reality/integration"
+                ]
+              },
+              "developers/products/foresight/overview",
+              "developers/products/governor/overview",
+              "developers/products/scout/overview",
+              "developers/products/dispute-resolver/overview"
             ]
           },
           {
@@ -266,7 +276,7 @@
             "pages": [
               "developers/crosschain/vea-bridge",
               "developers/crosschain/vea-getting-started",
-    "developers/crosschain/vea-deployment-addresses",
+              "developers/crosschain/vea-deployment-addresses",
               "developers/crosschain/l2-integration"
             ]
           },
@@ -279,78 +289,62 @@
             ]
           },
           {
-  "group": "Subgraph & Data",
-  "pages": [
-    "developers/subgraph/overview",
-    "developers/subgraph/endpoints",
-    "developers/subgraph/queries"
-  ]
-},
-          {
-            "group": "V1 Integration (Legacy)",
+            "group": "Subgraph & Data",
             "pages": [
-              "developers/legacy/v1-overview",
-              "developers/legacy/erc-792",
-              "developers/legacy/erc-1497",
-              "developers/legacy/v1-arbitrable-apps",
-              "developers/legacy/migrating-to-v2", 
-              "developers/legacy/arbitrable-proxy",
-              "developers/legacy/curate-classic",
-             "developers/legacy/light-curate",
-              "developers/legacy/v1-deployment-addresses",
-              "developers/legacy/centralized-arbitrator"
+              "developers/subgraph/overview",
+              "developers/subgraph/endpoints",
+              "developers/subgraph/queries"
             ]
-            }
-    ]
-          },
+          }
+        ]
+      },
       {
         "dropdown": "Reference",
         "icon": "book-bookmark",
         "groups": [
           {
-      "group": "Overview",
-      "pages": ["reference/overview"]
-    },
-    {
-      "group": "Architecture",
-      "pages": [
-        "reference/architecture/v2-architecture",
-        "reference/architecture/arbitrator-v2",
-        "reference/architecture/sortition-module-spec",
-        "reference/architecture/vea-overview"
-      ]
-    },
-
-    {
-      "group": "Contracts",
-      "pages": [
-        "reference/contracts/deployment-addresses",
-        "reference/contracts/kleros-core",
-        "reference/contracts/dispute-kit-classic",
-        "reference/contracts/sortition-module",
-        "reference/contracts/gateways",
-        "reference/contracts/kleros-governor",
-        "reference/contracts/policy-registry",
-        "reference/contracts/dispute-template-registry",
-        "reference/contracts/moderated-evidence-module"
-      ]
-    },
-    {
-      "group": "Data Formats",
-      "pages": [
-        "reference/data-formats/dispute-templates",
-        "reference/data-formats/evidence-format",
-        "reference/data-formats/policy-format",
-        "reference/data-formats/court-specification",
-        "reference/data-formats/cross-chain-evidence"
-      ]
-    },
-    
-    {
-      "group": "SDK",
-      "pages": ["reference/sdk/kleros-sdk"]
-    }
-         ]
+            "group": "Overview",
+            "pages": [
+              "reference/overview"
+            ]
+          },
+          {
+            "group": "Contracts",
+            "pages": [
+              "reference/contracts/deployment-addresses-v1",
+              "reference/contracts/deployment-addresses",
+              {
+                "group": "Reference V2",
+                "pages": [
+                  "reference/contracts/kleros-core",
+                  "reference/contracts/dispute-kit-classic",
+                  "reference/contracts/sortition-module",
+                  "reference/contracts/dispute-template-registry",
+                  "reference/contracts/policy-registry",
+                  "reference/contracts/kleros-governor",
+                  "reference/contracts/gateways"
+                ]
+              },
+              "reference/contracts/moderated-evidence-module"
+            ]
+          },
+          {
+            "group": "Data Formats",
+            "pages": [
+              "reference/data-formats/dispute-templates",
+              "reference/data-formats/evidence-format",
+              "reference/data-formats/policy-format",
+              "reference/data-formats/court-specification",
+              "reference/data-formats/cross-chain-evidence"
+            ]
+          },
+          {
+            "group": "SDK",
+            "pages": [
+              "reference/sdk/kleros-sdk"
+            ]
+          }
+        ]
       },
       {
         "dropdown": "Changelog",
@@ -359,6 +353,8 @@
           {
             "group": "Changelog",
             "pages": [
+              "changelog/2026-07-13",
+              "changelog/2026-07-06",
               "changelog/2026-06-29",
               "changelog/2026-06-15",
               "changelog/2026-05-25",
@@ -378,7 +374,6 @@
     "light": "/logo/Kleros logo_updated.svg",
     "dark": "/logo/Kleros logo_updated_white.svg"
   },
-
   "seo": {
     "indexing": "all",
     "metatags": {
@@ -404,7 +399,7 @@
       "github": "https://github.com/kleros",
       "linkedin": "https://www.linkedin.com/company/kleros/",
       "telegram": "https://t.me/kleros",
-      "website": "https://kleros.builders"
+      "website": "https://kleros.io"
     },
     "links": [
       {
@@ -425,6 +420,26 @@
           {
             "label": "Scout",
             "href": "https://scout.kleros.io"
+          },
+          {
+            "label": "Escrow",
+            "href": "https://escrow.kleros.io"
+          },
+          {
+            "label": "Foresight",
+            "href": "https://foresight.kleros.io/"
+          },
+          {
+            "label": "Dispute Resolver",
+            "href": "https://resolve.kleros.io/"
+          },
+          {
+            "label": "Vea",
+            "href": "https://vea.ninja/"
+          },
+          {
+            "label": "Kleros SafeSnap",
+            "href": "https://safesnap.kleros.builders/"
           }
         ]
       },
@@ -432,16 +447,12 @@
         "header": "Resources",
         "items": [
           {
-            "label": "Help Center",
-            "href": "https://help.kleros.io"
-          },
-          {
             "label": "Blog",
             "href": "https://blog.kleros.io"
           },
           {
             "label": "Research",
-            "href": "/research/overview"
+            "href": "https://kleros.io/rd-research"
           }
         ]
       },
@@ -450,15 +461,15 @@
         "items": [
           {
             "label": "About",
-            "href": "https://kleros.io/about"
+            "href": "https://kleros.io/"
           },
           {
             "label": "Careers",
-            "href": "https://kleros.io/careers"
+            "href": "https://wellfound.com/company/kleros"
           },
           {
             "label": "Brand Assets",
-            "href": "https://kleros.io/brand"
+            "href": "https://kleros.io/brand-assets"
           }
         ]
       }

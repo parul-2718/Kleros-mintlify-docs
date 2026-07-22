@@ -1,13 +1,13 @@
 ---
 title: "Escrow Contract"
-description: "Build a simple escrow contract with Kleros V2 dispute resolution."
+description: "Example SimpleEscrow contract using Kleros V1 arbitration, ERC-792, and ERC-1497 to hold funds until release or juror-resolved dispute payout."
 ---
 
 ## Overview
 
-This example demonstrates how to build an escrow contract that uses Kleros Court V2 as an external arbitrator. The contract holds funds in escrow until both parties agree on payment, or a dispute is raised and resolved by Kleros jurors.
+This example demonstrates how to build an escrow contract that uses Kleros Court V1 as an external arbitrator, following the ERC-792 arbitration standard and ERC-1497 evidence standard. The contract holds funds in escrow until the payer releases them, or a dispute is raised and resolved by Kleros jurors.
 
-This is a simplified version of the [Escrow V2 product](/developers/products/escrow/overview) to illustrate the core integration pattern.
+It is based on the SimpleEscrow tutorial on [docs.kleros.io](https://docs.kleros.io/) and illustrates the core V1 integration pattern.
 
 ---
 
@@ -15,127 +15,97 @@ This is a simplified version of the [Escrow V2 product](/developers/products/esc
 
 ```solidity
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.7.6;
 
-import {IArbitrableV2, IArbitratorV2} from "@kleros/kleros-v2-contracts/interfaces/IArbitrableV2.sol";
-import {IDisputeTemplateRegistry} from "@kleros/kleros-v2-contracts/interfaces/IDisputeTemplateRegistry.sol";
+import "@kleros/erc-792/contracts/IArbitrable.sol";
+import "@kleros/erc-792/contracts/IArbitrator.sol";
+import "@kleros/erc-792/contracts/erc-1497/IEvidence.sol";
 
-contract SimpleEscrow is IArbitrableV2 {
-    enum Status { Created, Reclaimed, Disputed, Resolved }
+contract SimpleEscrow is IArbitrable, IEvidence {
+    address payable public payer = msg.sender;
+    address payable public payee;
+    uint256 public value;
+    IArbitrator public arbitrator;
+    string public agreement;
+    uint256 public createdAt;
+    uint256 public constant reclamationPeriod = 3 days;
+    uint256 public constant arbitrationFeeDepositPeriod = 3 days;
 
-    struct Transaction {
-        address payable sender;
-        address payable receiver;
-        uint256 amount;
-        uint256 disputeID;
-        Status status;
-    }
+    uint256 public reclaimedAt;
 
-    IArbitratorV2 public immutable arbitrator;
-    bytes public arbitratorExtraData;
-    uint256 public immutable feeTimeout;
-    uint256 public templateId;
+    enum Status { Initial, Reclaimed, Disputed, Resolved }
+    Status public status;
 
-    mapping(uint256 => Transaction) public transactions;
-    mapping(uint256 => uint256) public disputeIDtoTxID;
-    uint256 public txCount;
-
-    // Ruling options: 0 = Refuse, 1 = Pay Sender, 2 = Pay Receiver
-    uint256 constant SENDER_WINS = 1;
-    uint256 constant RECEIVER_WINS = 2;
+    uint256 public disputeID;
+    uint256 constant numberOfRulingOptions = 2;
+    enum RulingOptions { RefusedToArbitrate, PayerWins, PayeeWins }
 
     constructor(
-        IArbitratorV2 _arbitrator,
-        bytes memory _arbitratorExtraData,
-        uint256 _feeTimeout,
-        IDisputeTemplateRegistry _templateRegistry,
-        string memory _templateData,
-        string memory _templateDataMappings
-    ) {
+        address payable _payee,
+        IArbitrator _arbitrator,
+        string memory _agreement
+    ) payable {
+        value = msg.value;
+        payee = _payee;
         arbitrator = _arbitrator;
-        arbitratorExtraData = _arbitratorExtraData;
-        feeTimeout = _feeTimeout;
-        templateId = _templateRegistry.setDisputeTemplate(
-            "", _templateData, _templateDataMappings
-        );
+        agreement = _agreement;
+        createdAt = block.timestamp;
+
+        // ERC-1497: announce the agreement (MetaEvidence) at deployment.
+        emit MetaEvidence(0, _agreement);
     }
 
-    /// @dev Create an escrow transaction.
-    function createTransaction(address payable _receiver) external payable returns (uint256 txID) {
-        require(msg.value > 0, "Must send ETH");
-        txID = txCount++;
-        transactions[txID] = Transaction({
-            sender: payable(msg.sender),
-            receiver: _receiver,
-            amount: msg.value,
-            disputeID: 0,
-            status: Status.Created
-        });
+    /// @dev Payer releases the funds to the payee.
+    function releaseFunds() public {
+        require(status == Status.Initial, "Transaction is not in Initial state.");
+        if (msg.sender != payer)
+            require(block.timestamp - createdAt > reclamationPeriod, "Payer still has time to reclaim.");
+        status = Status.Resolved;
+        payee.transfer(value);
     }
 
-    /// @dev Sender releases payment to receiver (both parties agree).
-    function pay(uint256 _txID) external {
-        Transaction storage tx_ = transactions[_txID];
-        require(msg.sender == tx_.sender, "Only sender");
-        require(tx_.status == Status.Created, "Wrong status");
-        tx_.status = Status.Resolved;
-        // Use .call() not .transfer() — .transfer() can fail with smart contract recipients
-        (bool ok,) = tx_.receiver.call{value: tx_.amount}("");
-        require(ok, "Transfer failed");
-    }
+    /// @dev Payer reclaims the funds, opening a window for the payee to dispute.
+    function reclaimFunds() public payable {
+        require(status == Status.Initial || status == Status.Reclaimed, "Cannot reclaim in this state.");
+        require(msg.sender == payer, "Only the payer can reclaim.");
 
-    /// @dev Raise a dispute with Kleros Court.
-    function raiseDispute(uint256 _txID) external payable {
-        Transaction storage tx_ = transactions[_txID];
-        require(tx_.status == Status.Created, "Wrong status");
-        require(
-            msg.sender == tx_.sender || msg.sender == tx_.receiver,
-            "Only parties"
-        );
-
-        uint256 cost = arbitrator.arbitrationCost(arbitratorExtraData);
-        require(msg.value >= cost, "Insufficient fee");
-
-        tx_.status = Status.Disputed;
-        tx_.disputeID = arbitrator.createDispute{value: msg.value}(
-            2, // number of ruling options
-            arbitratorExtraData
-        );
-        disputeIDtoTxID[tx_.disputeID] = _txID;
-
-        emit DisputeRequest(
-            arbitrator,
-            tx_.disputeID,
-            _txID,
-            templateId,
-            ""
-        );
-    }
-
-    /// @dev Called by the arbitrator when a ruling is final.
-    function rule(uint256 _disputeID, uint256 _ruling) external override {
-        require(msg.sender == address(arbitrator), "Only arbitrator");
-        uint256 txID = disputeIDtoTxID[_disputeID];
-        Transaction storage tx_ = transactions[txID];
-        require(tx_.status == Status.Disputed, "Not disputed");
-
-        tx_.status = Status.Resolved;
-
-        if (_ruling == SENDER_WINS) {
-            (bool ok,) = tx_.sender.call{value: tx_.amount}("");
-            require(ok, "Transfer failed");
-        } else if (_ruling == RECEIVER_WINS) {
-            (bool ok,) = tx_.receiver.call{value: tx_.amount}("");
-            require(ok, "Transfer failed");
+        if (status == Status.Reclaimed) {
+            require(block.timestamp - reclaimedAt > arbitrationFeeDepositPeriod, "Payee still has time to deposit.");
+            payer.transfer(address(this).balance);
+            status = Status.Resolved;
         } else {
-            // Ruling 0 = Refuse to Arbitrate — split equally as fallback
-            uint256 half = tx_.amount / 2;
-            (bool ok1,) = tx_.sender.call{value: half}("");
-            (bool ok2,) = tx_.receiver.call{value: tx_.amount - half}("");
-            require(ok1 && ok2, "Transfer failed");
+            require(msg.value == arbitrator.arbitrationCost(""), "Must deposit the arbitration cost.");
+            reclaimedAt = block.timestamp;
+            status = Status.Reclaimed;
         }
+    }
+
+    /// @dev Payee deposits the arbitration fee, creating a dispute in Kleros Court.
+    function depositArbitrationFeeForPayee() public payable {
+        require(status == Status.Reclaimed, "Transaction is not in Reclaimed state.");
+        disputeID = arbitrator.createDispute{value: msg.value}(numberOfRulingOptions, "");
+        status = Status.Disputed;
+        // ERC-1497: link the dispute to metaEvidence 0 and evidence group 0.
+        emit Dispute(arbitrator, disputeID, 0, 0);
+    }
+
+    /// @dev Called by the arbitrator to enforce the ruling.
+    function rule(uint256 _disputeID, uint256 _ruling) public override {
+        require(msg.sender == address(arbitrator), "Only the arbitrator can rule.");
+        require(status == Status.Disputed, "There must be a dispute to execute a ruling.");
+        require(_ruling <= numberOfRulingOptions, "Ruling out of bounds.");
+
+        status = Status.Resolved;
+        if (_ruling == uint256(RulingOptions.PayerWins)) payer.transfer(address(this).balance);
+        else payee.transfer(address(this).balance);
 
         emit Ruling(arbitrator, _disputeID, _ruling);
+    }
+
+    /// @dev Submit evidence for the dispute (ERC-1497).
+    function submitEvidence(string memory _evidence) public {
+        require(status != Status.Resolved, "The dispute is already resolved.");
+        emit Evidence(arbitrator, 0, msg.sender, _evidence);
     }
 }
 ```
@@ -144,29 +114,33 @@ contract SimpleEscrow is IArbitrableV2 {
 
 ## Key Integration Points
 
-**`createDispute()`**: Sends the arbitration fee to KlerosCore and receives a `disputeID`. The `arbitratorExtraData` encodes the court ID and juror count.
+**`createDispute()`**: Sends the arbitration fee to the V1 arbitrator (KlerosLiquid) and receives a `disputeID`. The `_extraData` argument (empty string here) can encode the subcourt ID and juror count.
 
-**`rule()`**: KlerosCore calls this when the dispute is resolved. The ruling is enforced immediately by transferring funds.
+**`rule()`**: The arbitrator calls this when the dispute is resolved. The ruling is enforced immediately by transferring the escrowed funds.
 
-**`DisputeRequest` event**: Emitted to link the dispute with a display template in the Court V2 UI. The `templateId` references a template registered in the `DisputeTemplateRegistry`.
+**ERC-1497 events**: `MetaEvidence` announces the agreement at deployment, `Dispute` links the dispute to that metaEvidence and an evidence group, and `Evidence` records each submission. These are the V1 evidence standard events consumed by the Court V1 and Dispute Resolver interfaces.
 
 ---
 
-## Dispute Template
+## Agreement (MetaEvidence)
 
-The dispute template tells the Court UI how to display this dispute:
+In V1, the agreement is described with an ERC-1497 MetaEvidence JSON document, uploaded to IPFS and passed to the constructor:
 
 ```json
 {
-  "title": "Escrow Payment Dispute: {{ amount }} ETH",
-  "description": "Should the funds be released to the receiver or returned to the sender?",
+  "title": "Escrow Payment Dispute",
+  "description": "Should the escrowed funds be released to the payee or returned to the payer?",
   "question": "Which party should receive the escrowed funds?",
-  "answers": [
-    { "title": "Refuse to Rule", "id": "0x0" },
-    { "title": "Return to Sender", "id": "0x1" },
-    { "title": "Release to Receiver", "id": "0x2" }
-  ],
-  "policyURI": "/ipfs/QmEscrowPolicy..."
+  "rulingOptions": {
+    "titles": ["Refuse to Arbitrate", "Payer Wins", "Payee Wins"],
+    "descriptions": [
+      "The arbitrator refuses to rule.",
+      "Return the funds to the payer.",
+      "Release the funds to the payee."
+    ]
+  },
+  "category": "Escrow",
+  "fileURI": "/ipfs/QmEscrowAgreement..."
 }
 ```
 
@@ -174,6 +148,6 @@ The dispute template tells the Court UI how to display this dispute:
 
 ## Next Steps
 
-- Add appeal support for losing parties to fund additional rounds
-- Add ERC20 token support alongside native ETH
-- Add settlement negotiation before disputes reach court
+- Add appeal support so a losing party can fund additional rounds
+- Add ERC20 token support alongside native ETH (see the token compatibility notes for [Escrow V1](/products/escrow))
+- Review the [ERC-792](/developers/arbitrable-apps/erc-792) and [ERC-1497](/developers/arbitrable-apps/erc-1497) standards in full

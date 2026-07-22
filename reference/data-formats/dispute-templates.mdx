@@ -1,6 +1,6 @@
 ---
 title: "Dispute Templates"
-description: "Full specification for dispute templates and data mappings — what jurors see and how template variables are populated from on-chain data"
+description: "Full specification for dispute templates and data mappings - what jurors see and how template variables are populated from on-chain data"
 ---
 
 Dispute templates define the question, answer options, and metadata presented to jurors. They are registered on-chain via the `DisputeTemplateRegistry` contract and can contain dynamic placeholders populated at dispute-creation time via the data mappings system.
@@ -85,18 +85,18 @@ Answer IDs are hex-encoded ruling values:
 
 | ID | Meaning |
 |---|---|
-| `"0x00"` | **Always reserved for "Refuse to Arbitrate / Invalid"** — jurors use this when the dispute is malformed or unanswerable |
+| `"0x00"` | **Always reserved for "Refuse to Arbitrate / Invalid"** - jurors use this when the dispute is malformed or unanswerable |
 | `"0x01"` | First substantive answer |
 | `"0x02"` | Second substantive answer |
 | `"0x03"`, ... | Additional answers |
 
-The `0x00` ruling is handled specially by KlerosCore — if a majority selects it, no party is considered to have won.
+The `0x00` ruling is handled specially by KlerosCore - if a majority selects it, no party is considered to have won.
 
 ---
 
 ## Pre-dispute Evidence (`extraEvidences`)
 
-The `extraEvidences` field lets arbitrable contracts surface evidence that was submitted **before the dispute was created** — such as a requester's registration submission or a challenger's objection — directly in the Kleros Court UI. Without this field, jurors would need to navigate to the arbitrable app separately to find that evidence.
+The `extraEvidences` field lets arbitrable contracts surface evidence that was submitted **before the dispute was created** - such as a requester's registration submission or a challenger's objection - directly in the Kleros Court UI. Without this field, jurors would need to navigate to the arbitrable app separately to find that evidence.
 
 ### Schema
 
@@ -154,13 +154,13 @@ The `requesterEvidence` and `challengerEvidence` variables are populated by a `f
 
 ## Data Mappings
 
-The `templateDataMappings` parameter is a **JSON array** that defines how template `{{variable}}` placeholders are populated from external data sources at dispute creation time. The system resolves mappings sequentially — later mappings can reference values populated by earlier ones.
+The `templateDataMappings` parameter is a **JSON array** that defines how template `{{variable}}` placeholders are populated from external data sources at dispute creation time. The system resolves mappings sequentially - later mappings can reference values populated by earlier ones.
 
 Each mapping object has a `type` field that determines its structure, plus `seek` (list of data paths to extract) and `populate` (list of template variable names to fill, in the same order as `seek`).
 
 ### Mapping Types
 
-#### 1. `graphql` — Subgraph Query
+#### 1. `graphql` - Subgraph Query
 
 Fetches data from a TheGraph subgraph endpoint.
 
@@ -197,7 +197,7 @@ Fetches data from a TheGraph subgraph endpoint.
 - `seek`: Dot-notation paths into the GraphQL response data.
 - `populate`: Template variable names to set, positionally matching `seek`.
 
-#### 2. `fetch/ipfs/json` — IPFS JSON Fetch
+#### 2. `fetch/ipfs/json` - IPFS JSON Fetch
 
 Retrieves a JSON file from IPFS and extracts fields.
 
@@ -214,7 +214,7 @@ Retrieves a JSON file from IPFS and extracts fields.
 - `seek`: JSON field paths within the fetched document.
 - `populate`: Template variable names to fill.
 
-#### 3. `abi/call` — Smart Contract Call
+#### 3. `abi/call` - Smart Contract Call
 
 Calls a view function on a contract and extracts return values.
 
@@ -237,7 +237,7 @@ Calls a view function on a contract and extracts return values.
 - `seek`: Indices (as strings) into the returned tuple, or named return values.
 - `populate`: Template variable names to fill.
 
-#### 4. `abi/event` — On-Chain Event Data
+#### 4. `abi/event` - On-Chain Event Data
 
 Extracts data from a previously emitted on-chain event.
 
@@ -258,7 +258,7 @@ Extracts data from a previously emitted on-chain event.
 - `seek`: Event parameter names to extract.
 - `populate`: Template variable names to fill.
 
-#### 5. `json` — Hardcoded Values
+#### 5. `json` - Hardcoded Values
 
 Injects hardcoded values directly into template variables.
 
@@ -375,7 +375,7 @@ With mappings:
 ]
 ```
 
-### Curate V2 — Registration
+### Curate V2 - Registration
 
 Registration and removal disputes use **separate templates** with inverted answer logic. For registration, accepting means the item should be added; for removal, accepting means the item should be removed.
 
@@ -403,7 +403,7 @@ Registration and removal disputes use **separate templates** with inverted answe
 }
 ```
 
-**Removal template** uses inverted semantics — `0x01` means "yes, remove":
+**Removal template** uses inverted semantics - `0x01` means "yes, remove":
 
 ```json
 {
@@ -474,7 +474,7 @@ If the template is large, store it on IPFS and pass its URI as `_templateUri` in
 
 ### Updating Templates
 
-Use `changeDisputeTemplate()` (available on arbitrable contracts like Escrow) to update the template after deployment — new disputes will use the updated template while old ones retain the original `templateId` snapshot.
+Use `changeDisputeTemplate()` (available on arbitrable contracts like Escrow) to update the template after deployment - new disputes will use the updated template while old ones retain the original `templateId` snapshot.
 
 ```solidity
 escrow.changeDisputeTemplate(newTemplateJSON, newMappingsJSON);

@@ -1,6 +1,6 @@
 ---
 title: "Overview"
-description: "Decentralized dispute resolution powered by crypto-economic incentives and game theory"
+description: "Kleros Court is a decentralized arbitration protocol using random jurors, PNK staking, and crypto-economic incentives on Ethereum (V1) and Arbitrum (V2)."
 sidebarTitle: "Overview"
 
 ---
@@ -11,15 +11,39 @@ sidebarTitle: "Overview"
 
 # Kleros Court
 
-<Badge>V2</Badge>
-
 **Kleros Court** is a decentralized dispute resolution protocol that provides arbitration services for smart contracts and decentralized applications. It works by randomly selecting jurors from a pool who are incentivized to resolve disputes honestly through a crypto-economic mechanism based on game theory.
 
-Think of it as a decentralized judiciary for Web3. When a dispute arises, jurors are randomly drawn, they review evidence, vote on the outcome, and the majority decision is enforced—all without centralized intermediaries.
+Think of it as a decentralized judiciary for Web3. When a dispute arises, jurors are randomly drawn, they review evidence, vote on the outcome, and the majority decision is enforced-all without centralized intermediaries.
 
-<Note>
-Looking for V1 documentation? See [Court V1 (Legacy)](/legacy/court-v1).
-</Note>
+Kleros Court comes in two versions. **V1** is the production-proven protocol running on Ethereum since 2018. **V2** is the next-generation upgrade on Arbitrum with a modular architecture.
+
+---
+
+## V1 - Production Protocol
+
+Court V1 launched on Ethereum Mainnet in 2018 and has resolved over 1,500 disputes. Its core smart contract is **KlerosLiquid**, a single (monolithic) contract that combines juror staking, random selection, voting, and dispute management.
+
+<Frame >
+  <img src="/images/v1-court.png" alt="Court V1 interface, screenshot to be added" />
+</Frame>
+
+| Aspect | Court V1 |
+| --- | --- |
+| **Network** | Ethereum L1 (also Gnosis Chain) |
+| **Core contract** | KlerosLiquid (monolithic) |
+| **Standards** | ERC-792 (arbitration), ERC-1497 (evidence) |
+| **Staking** | PNK stays in the juror's wallet |
+| **Voting** | Commit-reveal with plurality aggregation |
+| **RNG** | Blockhash-based |
+| **Courts** | Hierarchical subcourt tree with the General Court as root |
+
+Jurors stake PNK directly from their wallet in a subcourt, are drawn at random with probability proportional to their stake, then commit and reveal their votes on the submitted evidence. Coherent jurors are rewarded; incoherent jurors lose part of their stake.
+
+---
+
+## V2 - Next-Gen Upgrade
+
+Court V2 runs on Arbitrum L2 and replaces the monolithic contract with a modular design: **KlerosCore** coordinates disputes, the **SortitionModule** handles juror selection, and pluggable **DisputeKits** provide the resolution mechanism. Cross-chain disputes are relayed through the **VEA bridge**.
 
 ---
 
@@ -113,22 +137,34 @@ This creates a self-policing system where dishonest behavior is economically pun
 
 ---
 
-## V2 Improvements
+## What Changed in V2
 
-Kleros Court V2 represents a significant evolution from V1:
+V2 keeps the same crypto-economic model as V1 and changes how it is implemented and where it runs:
 
-| Feature | V1 | V2 |
+| Component | V1 | V2 |
 | --- | --- | --- |
-| **Network** | Ethereum Mainnet | Arbitrum (lower gas costs) |
-| **Cross-Chain** | Single chain only | Multi-chain via Vea bridge |
-| **Dispute Kits** | Single mechanism | Modular, pluggable kits |
-| **Vote Privacy** | Basic commit-reveal | Shutter encryption (in testing) |
+| **Network** | Ethereum L1 | Arbitrum L2 |
+| **Core contract** | KlerosLiquid (monolithic) | KlerosCore (modular) |
+| **Juror selection** | Built into KlerosLiquid | SortitionModule (separate) |
+| **Dispute resolution** | Single mechanism | Pluggable DisputeKits (Classic, Shutter, Gated, GatedShutter) |
+| **Cross-chain** | Single chain | Multi-chain via VEA bridge |
 | **Staking** | PNK stays in wallet | PNK transfers to contract |
 | **RNG** | Single source | Enhanced with fallback mechanisms |
 
 <Note>
 Kleros V2 is currently in beta with 100+ disputes successfully processed. The system is undergoing internal review and external audits.
 </Note>
+
+---
+
+## Current Status
+
+As of the May 2026 development update:
+
+- **Court V2**: the partial-coherence dispute kit was merged, and contract simplification across dispute kits was merged (June 2026).
+- **Court V1**: April staking rewards were shipped in the rewards exporter.
+
+Follow development on the [Kleros blog - developer updates](https://blog.kleros.io/tag/developer/).
 
 ---
 
@@ -164,8 +200,8 @@ Kleros V2 is currently in beta with 100+ disputes successfully processed. The sy
   Open the Kleros Court application
 </Card>
 
-<Card title="Become a Juror" icon="user-plus" href="https://blog.kleros.io/kleros-2-0-juror-101/">
-  Step-by-step guide to staking and voting
+<Card title="Become a Juror" icon="user-plus" href="/tutorials/juror-tutorial-v1">
+  Step-by-step staking and voting tutorial
 </Card>
 
 <Card title="Contract Addresses" icon="file-contract" href="/reference/contracts/deployment-addresses">

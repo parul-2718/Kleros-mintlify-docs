@@ -1,13 +1,20 @@
 ---
 title: "Overview"
-description: "Decentralized arbitration for your smart contracts"
+description: "Integrate decentralized arbitration into your smart contracts using Kleros V1 on Ethereum and Gnosis, or Kleros V2 on Arbitrum with cross-chain support."
 ---
 
-## What is Kleros V2?
+## What is Kleros?
 
-Kleros is a decentralized dispute resolution protocol. Think of it as a **court system for smart contracts** when parties disagree, Kleros provides a trustless way to reach an enforceable ruling.
+Kleros is a decentralized dispute resolution protocol. Think of it as a **court system for smart contracts** - when parties disagree, Kleros provides a trustless way to reach an enforceable ruling.
 
-**V2** brings major upgrades: cross-chain support, modular dispute resolution, and improved scalability by operating on Arbitrum.
+Kleros is implemented on Ethereum (V1) and Arbitrum (V2):
+
+- **V1** is production infrastructure running on Ethereum Mainnet and Gnosis Chain. It has been in production since 2018 and continues to receive active development.
+- **V2** operates on Arbitrum, with cross-chain support via the [Vea bridge](/developers/crosschain/vea-bridge), modular dispute resolution via dispute kits, and improved scalability.
+
+<Note>
+Each product section covers both V1 and V2. V1 integration guides and examples are included directly. V2 pages document technical specifications and contract references.
+</Note>
 
 ## Why Integrate?
 
@@ -16,13 +23,13 @@ Kleros is a decentralized dispute resolution protocol. Think of it as a **court 
     No central authority. Rulings are cryptoeconomically secured by staked jurors.
   </Card>
   <Card title="Flexible Resolution" icon="puzzle-piece">
-    Binary yes/no, multiple choice, or nuanced rulings your contract defines the options.
+    Binary yes/no, multiple choice, or nuanced rulings - your contract defines the options.
   </Card>
   <Card title="Cross-Chain Ready" icon="link">
     Disputes can originate from Ethereum mainnet or other chains via the gateway system.
   </Card>
   <Card title="Battle-Tested" icon="shield-check">
-    Over $50M in value secured through Kleros arbitration since 2018.
+    Over $50M in value secured through Kleros arbitration since 2018, with 100+ cases resolved on Court V2 Beta (September 2025).
   </Card>
 </CardGroup>
 
@@ -42,15 +49,11 @@ Kleros is a decentralized dispute resolution protocol. Think of it as a **court 
 Your Contract → Creates Dispute → Jurors Vote → Ruling Returned → Your Contract Enforces
 ```
 
-1. Your contract implements `IArbitrableV2` interface
+1. Your contract implements the `IArbitrableV2` interface
 2. When a dispute arises, call `createDispute()` with arbitration fees
 3. Random jurors are drawn (weighted by staked PNK)
 4. Jurors vote, with appeals possible
-5. Final ruling is passed back to your contract via `rule()`
-
-
-
-
+5. The final ruling is passed back to your contract via `rule()`
 
 ## Next Steps
 
@@ -60,5 +63,8 @@ Your Contract → Creates Dispute → Jurors Vote → Ruling Returned → Your C
   </Card>
   <Card title="Architecture" icon="sitemap" href="/developers/architecture">
     Understand the protocol components
+  </Card>
+  <Card title="Products (V1 + V2)" icon="grid-2" href="/developers/products/overview">
+    Reference for every Kleros product
   </Card>
 </CardGroup>

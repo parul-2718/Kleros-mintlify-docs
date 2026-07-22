@@ -1,7 +1,14 @@
 ---
 title: "Quick Start"
-description: "Integrate Kleros arbitration in your smart contract"
+description: "Install Kleros contracts, implement the arbitrable interface, and create your first dispute with V2 IArbitratorV2 or V1 ERC-792 on Arbitrum or Ethereum."
 ---
+
+Kleros arbitration can be integrated on either protocol version:
+
+- **V1** uses the ERC-792 arbitration standard (`IArbitrable` / `IArbitrator`) on Ethereum Mainnet and Gnosis Chain. See [ERC-792](/developers/arbitrable-apps/erc-792) and [ERC-1497](/developers/arbitrable-apps/erc-1497) for the full V1 standards.
+- **V2** uses `IArbitrableV2` / `IArbitratorV2` on Arbitrum, with dispute templates and cross-chain support.
+
+The steps below show both. Pick the version that matches the network you are deploying to. For contract addresses, see [Deployment Addresses](/reference/contracts/deployment-addresses-v1).
 
 ## Installation
 
@@ -36,7 +43,10 @@ Always verify addresses on the [official repository](https://github.com/kleros/k
 
 ## Minimal Integration
 
-### Step 1: Implement IArbitrableV2
+### Step 1: Implement the arbitrable interface
+
+<Tabs>
+  <Tab title="V2 (IArbitrableV2)">
 
 ```solidity
 // SPDX-License-Identifier: MIT
@@ -85,6 +95,57 @@ contract MyArbitrable is IArbitrableV2 {
     }
 }
 ```
+
+  </Tab>
+  <Tab title="V1 (ERC-792)">
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.7.0;
+
+import "@kleros/erc-792/contracts/IArbitrable.sol";
+import "@kleros/erc-792/contracts/IArbitrator.sol";
+import "@kleros/erc-792/contracts/erc-1497/IEvidence.sol";
+
+contract MyArbitrable is IArbitrable, IEvidence {
+    IArbitrator public arbitrator;
+    
+    mapping(uint256 => bool) public resolved;
+    
+    constructor(IArbitrator _arbitrator) {
+        arbitrator = _arbitrator;
+    }
+    
+    function createDispute(
+        bytes memory _extraData,
+        string memory _metaEvidence
+    ) public payable returns (uint256 disputeID) {
+        uint256 cost = arbitrator.arbitrationCost(_extraData);
+        require(msg.value >= cost, "Insufficient fee");
+        
+        // numberOfChoices (e.g., 2 for binary) + court params in _extraData
+        disputeID = arbitrator.createDispute{value: cost}(2, _extraData);
+        
+        emit MetaEvidence(disputeID, _metaEvidence);
+        emit Dispute(arbitrator, disputeID, disputeID, disputeID);
+    }
+    
+    function rule(uint256 _disputeID, uint256 _ruling) external override {
+        require(msg.sender == address(arbitrator), "Only arbitrator");
+        require(!resolved[_disputeID], "Already resolved");
+        
+        resolved[_disputeID] = true;
+        
+        // Execute your business logic based on _ruling
+        // 0 = refused to rule, 1+ = actual ruling choices
+        
+        emit Ruling(arbitrator, _disputeID, _ruling);
+    }
+}
+```
+
+  </Tab>
+</Tabs>
 
 ### Step 2: Encode Extra Data
 
@@ -144,7 +205,7 @@ Register templates on-chain or reference via IPFS URI.
 
 <Steps>
   <Step title="Use Arbitrum Sepolia">
-    Deploy to testnet first. Faucets available at [arbitrum.io/faucet](https://arbitrum.io/faucet)
+    Deploy to testnet first. Get Arbitrum Sepolia ETH from a public faucet such as the [Arbitrum faucets list](https://docs.arbitrum.io/for-devs/dev-tools-and-resources/chain-info)
   </Step>
   <Step title="Get Test PNK">
     Testnet PNK is available from the Kleros faucet

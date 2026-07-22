@@ -1,6 +1,6 @@
 ---
 title: "KlerosCore"
-description: "Core arbitrator contract disputes, appeals, juror management, rulings"
+description: "KlerosCore contract reference: createDispute, arbitrationCost, appeal funding, juror drawing, period transitions, and ruling execution methods."
 ---
 
 
@@ -33,10 +33,10 @@ Returns the current ruling and its status:
 |--------|------|-------------|
 | `ruling` | `uint256` | Current winning option. `0` means "Refuse to Arbitrate" or no majority yet. |
 | `tied` | `bool` | `true` when two or more options have equal votes. A tied dispute will default to ruling `0` if the appeal period expires without resolution. Always design your contracts to handle ruling `0` explicitly. |
-| `overridden` | `bool` | `true` when the parent court changed the ruling on appeal. Useful for monitoring or analytics — the final `rule()` callback on your arbitrable contract already reflects the overridden value. |
+| `overridden` | `bool` | `true` when the parent court changed the ruling on appeal. Useful for monitoring or analytics - the final `rule()` callback on your arbitrable contract already reflects the overridden value. |
 
 ### `setStake(uint96 _courtID, uint256 _newStake)`
-Juror staking — requires prior PNK approval. In the Neo deployment, staking also requires the juror to hold the `KlerosV2NeoEarlyUser` NFT.
+Juror staking - requires prior PNK approval. In the Neo deployment, staking also requires the juror to hold the `KlerosV2NeoEarlyUser` NFT.
  
 ## Initialization Parameters
  
@@ -45,12 +45,12 @@ The contract is initialized with the following key parameters (relevant for inte
 | Parameter | Description |
 |---|---|
 | `_governor` | Address with full governance rights (pause, upgrade, parameter changes) |
-| `_guardian` | Emergency address — can pause only |
+| `_guardian` | Emergency address - can pause only |
 | `_pinakion` | PNK token contract address |
 | `_jurorProsecutionModule` | Address authorized to trigger juror penalty execution outside normal dispute flow |
 | `_disputeKit` | Initial dispute kit registered on the root court |
 | `_sortitionModuleAddress` | SortitionModule contract address |
-| `_wNative` | Wrapped native token address (WETH on Arbitrum) — used for ERC-20 fee conversions |
+| `_wNative` | Wrapped native token address (WETH on Arbitrum) - used for ERC-20 fee conversions |
 
 ## Governance Roles
 
@@ -72,7 +72,7 @@ arbitrator.createDispute(choices, extraData, feeToken, cost);
 ```
  
 <Warning>
-ERC-20 fee support is only available when interacting directly with KlerosCore on Arbitrum. The `ForeignGateway` (used for cross-chain arbitration from Ethereum/Gnosis) does **not** support ERC-20 fees — only ETH is accepted through the gateway.
+ERC-20 fee support is only available when interacting directly with KlerosCore on Arbitrum. The `ForeignGateway` (used for cross-chain arbitration from Ethereum/Gnosis) does **not** support ERC-20 fees - only ETH is accepted through the gateway.
 </Warning>
  
 ## Dispute Kits

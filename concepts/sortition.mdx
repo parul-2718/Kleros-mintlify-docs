@@ -1,6 +1,6 @@
 ---
 title: "Sortition"
-description: "How jurors are randomly selected using stake-weighted sortition"
+description: "How Kleros draws jurors using a sortition sum tree, PNK stake weighting, a three-phase staking cycle, and secure random number generation on-chain."
 ---
 
 
@@ -82,6 +82,10 @@ Secure randomness is critical, if anyone can predict or influence the random num
 Kleros V2 uses **Randomizer.io** as the primary random number source on the production deployment (Arbitrum One), with Chainlink VRF and BlockHash RNG also deployed as alternatives. All three contracts implement a common `IRNG` interface so the SortitionModule can swap RNG sources through governance. The `rngLookahead` parameter sets the minimum block distance between requesting and receiving the random number, ensuring the result cannot be predicted at request time.
 
 The RNG request is made with a configurable **lookahead** parameter, the random number depends on a future block, not the current one. This prevents the requester from knowing the outcome at request time.
+
+<Note>
+In Kleros V1, juror selection is built into the KlerosLiquid contract rather than a separate SortitionModule, and randomness comes from a blockhash-based source. V2 moves selection into the standalone SortitionModule and adds swappable RNG sources.
+</Note>
 
 ---
 

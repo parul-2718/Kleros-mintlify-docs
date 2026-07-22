@@ -1,0 +1,21 @@
+---
+title: "Dispute Resolver"
+description: "Developer overview of the V1 Dispute Resolver tool for creating Kleros Court disputes without deploying a custom arbitrable smart contract."
+---
+
+The Dispute Resolver (formerly "Resolve") is a V1 tool that lets users create disputes in Kleros Court directly, without building a custom arbitrable contract. Users define the dispute question, options, and evidence, then submit it to Court for resolution. Evidence submission and appeal management happen through the Dispute Resolver interface.
+
+In V2, the ability to create disputes directly is integrated into the Court interface.
+
+---
+
+## Technical notes
+
+- **File uploads**: evidence uploads go through Atlas to IPFS, with a SIWE info message at the upload step
+- **Evidence display**: the interface fetches data from dynamic scripts for flexible evidence display, and normalizes PoH evidence payloads (including older submissions and non-object payloads)
+- **MetaEvidence**: fetched via an API-based approach
+- **Realitio cases**: ruling options display correctly for Realitio disputes
+- **Networks**: Base Sepolia is supported alongside the existing networks
+- **Dispute creation**: the create-dispute form validates inputs before submission
+
+For the history of changes, see the [Changelog](/changelog) and the [Kleros blog developer updates](https://blog.kleros.io/tag/developer/).

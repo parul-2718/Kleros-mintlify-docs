@@ -1,6 +1,6 @@
 ---
 title: "Integration Guide"
-description: "Integrate the Reality.eth + Kleros oracle into your smart contract to access reliable real-world data on-chain."
+description: "Integrate the Reality.eth and Kleros oracle into your smart contract, with bond escalation, arbitrator proxies, and reliable real-world data on-chain."
 ---
 
 ## How Kleros Arbitration Works with Reality.eth
@@ -21,7 +21,7 @@ The RealityV2 Kleros integration contract has a `feeTimeout` parameter (set to *
 uint32 public constant FEE_TIMEOUT = 600; // 10 minutes
 ```
 
-Inform your users about this window — if they request arbitration, the other party has only 10 minutes to match the fee.
+Inform your users about this window - if they request arbitration, the other party has only 10 minutes to match the fee.
 
 <Warning>
   The `disputeTemplateMappings` field in the Reality V2 deployment script is currently marked `TODO` in the reference implementation. This means the dispute template shown to Kleros jurors for Reality questions does not yet have dynamic data mappings (it shows static text). Check the [kleros/reality-v2 repository](https://github.com/kleros/reality-v2) for the latest status before relying on dynamic template population.
@@ -83,15 +83,15 @@ Any ETH sent with `askQuestion` becomes the question reward, incentivizing answe
 
 #### Question Parameters
 
-- **`templateID`** — `0` for bool, `1` for uint, `2` for single-select, `3` for multiple-select, `4` for datetime, `5` for hash.
-- **`question`** — Parameters separated by the `␟` (U+241F) delimiter, formatted to match the template. Examples:
+- **`templateID`** - `0` for bool, `1` for uint, `2` for single-select, `3` for multiple-select, `4` for datetime, `5` for hash.
+- **`question`** - Parameters separated by the `␟` (U+241F) delimiter, formatted to match the template. Examples:
   - Bool: `"Did event X happen?␟category␟en"`
   - Uint: `"What was the price of ETH on April 16, 2025?␟crypto␟en"`
   - Single-select: `"Which team won?␟\"Lakers\",\"Celtics\",\"Bucks\"␟sports␟en"`
-- **`arbitrator`** — Kleros Arbitrator Proxy address. See [Smart Contracts](/developers/products/reality/smart-contracts#kleros-arbitrator-proxy-addresses) for available proxies.
-- **`timeout`** — Seconds before an unchallenged answer finalizes. Typically 86400 (24 hours). The contract enforces a maximum of 365 days.
-- **`openingTimestamp`** — Earliest time answers can be submitted. Set to `0` for immediate.
-- **`nonce`** — Differentiator for identical questions with the same parameters. Use `0` if you don't need to ask the same question more than once.
+- **`arbitrator`** - Kleros Arbitrator Proxy address. See [Smart Contracts](/developers/products/reality/smart-contracts#kleros-arbitrator-proxy-addresses) for available proxies.
+- **`timeout`** - Seconds before an unchallenged answer finalizes. Typically 86400 (24 hours). The contract enforces a maximum of 365 days.
+- **`openingTimestamp`** - Earliest time answers can be submitted. Set to `0` for immediate.
+- **`nonce`** - Differentiator for identical questions with the same parameters. Use `0` if you don't need to ask the same question more than once.
 
 ### Step 2: Read the Finalized Answer
 
@@ -155,10 +155,10 @@ When a Reality.eth question goes to arbitration, evidence helps jurors make info
 ### Evidence Timeline
 
 1. Question posted on Reality.eth
-2. Answer phase — users submit answers with bonds
-3. Arbitration requested — someone pays the arbitration fee
+2. Answer phase - users submit answers with bonds
+3. Arbitration requested - someone pays the arbitration fee
 4. **Evidence period opens** (typically 3-7 days, varies by court configuration)
-5. Voting phase — Kleros jurors review evidence and vote
+5. Voting phase - Kleros jurors review evidence and vote
 6. Final ruling reported back to Reality.eth
 
 ### Submitting Evidence from a Contract
@@ -214,11 +214,11 @@ Evidence JSON follows the [ERC-1497](https://github.com/ethereum/EIPs/issues/149
 
 ### Evidence Best Practices
 
-- **IPFS first** — `/ipfs/QmHash` or `ipfs://QmHash` is preferred for permanence. Web URLs work but rely on host availability.
-- **Both sides should submit** — supporters of each answer should submit their own evidence. Jurors weigh both.
-- **Quality over quantity** — clear, authoritative sources beat numerous weak ones.
-- **Submit early** — anyone can submit during the evidence period, but late submissions risk being missed.
-- **Reference the underlying claim** — each evidence file should clearly map to the answer it supports.
+- **IPFS first** - `/ipfs/QmHash` or `ipfs://QmHash` is preferred for permanence. Web URLs work but rely on host availability.
+- **Both sides should submit** - supporters of each answer should submit their own evidence. Jurors weigh both.
+- **Quality over quantity** - clear, authoritative sources beat numerous weak ones.
+- **Submit early** - anyone can submit during the evidence period, but late submissions risk being missed.
+- **Reference the underlying claim** - each evidence file should clearly map to the answer it supports.
 
 ### Monitoring Evidence Submissions
 
@@ -292,7 +292,7 @@ The Reality.eth + Kleros system has five fee types. Each plays a specific role i
 
 ## Custom Primary Document for Arbitration
 
-Most DApp integrations work fine with the standard [Question Resolution Policy](https://ipfs.io/ipfs/QmaUr6hnSVxYD899xdcn2GUVtXVjXoSXKZbce3zFtGWw4H/Question_Resolution_Policy.pdf). In some cases, you may need a custom primary document tailored to your application.
+Most DApp integrations work fine with the standard [Question Resolution Policy](https://cdn.kleros.link/ipfs/QmaUr6hnSVxYD899xdcn2GUVtXVjXoSXKZbce3zFtGWw4H/Question_Resolution_Policy.pdf). In some cases, you may need a custom primary document tailored to your application.
 
 ### When You Need a Custom Document
 
@@ -303,18 +303,18 @@ Most DApp integrations work fine with the standard [Question Resolution Policy](
 
 ### How the Process Works
 
-1. **Initial assessment** — the Kleros team reviews your use case to confirm a custom document is necessary
-2. **Document drafting** — you work with Kleros to create a document that:
+1. **Initial assessment** - the Kleros team reviews your use case to confirm a custom document is necessary
+2. **Document drafting** - you work with Kleros to create a document that:
    - Explains your application's context to jurors
    - Provides guidance on evaluating evidence
    - Defines specialized terminology
    - Establishes clear criteria for determining correct answers
-3. **Deployment** — Kleros deploys a dedicated arbitrator proxy with your primary document embedded as part of the proxy's metaevidence
-4. **Usage** — when disputes go to arbitration, jurors apply your guidelines
+3. **Deployment** - Kleros deploys a dedicated arbitrator proxy with your primary document embedded as part of the proxy's metaevidence
+4. **Usage** - when disputes go to arbitration, jurors apply your guidelines
 
 ### Real-World Example: Seer Prediction Markets
 
-[Seer](https://seer.pm) needed a [custom resolution policy](https://ipfs.io/ipfs/QmPmRkXFUmzP4rq2YfD3wNwL8bg3WDxkYuvTP9A9UZm9gJ/seer-markets-resolution-policy.pdf) because their prediction markets have specific rules for handling complex outcomes, edge cases like delayed events, and explicit authoritative information sources.
+[Seer](https://seer.pm) needed a [custom resolution policy](https://cdn.kleros.link/ipfs/QmPmRkXFUmzP4rq2YfD3wNwL8bg3WDxkYuvTP9A9UZm9gJ/seer-markets-resolution-policy.pdf) because their prediction markets have specific rules for handling complex outcomes, edge cases like delayed events, and explicit authoritative information sources.
 
 If your application might need this level of customization, contact `integrations@kleros.io`.
 
@@ -352,9 +352,9 @@ Full deployment data: [Reality.eth monorepo](https://github.com/RealityETH/reali
 
 The Reality.eth + Kleros oracle is used in production by:
 
-- **Prediction Markets** — [Seer](https://seer.pm), Polkamarkets/Foreland, and [Omen](https://omen.eth.limo) use it to verify real-world event outcomes
-- **Optimistic Governance** — the [Zodiac SafeSnap module](https://docs.kleros.io/integrations/types-of-integrations/1.-dispute-resolution-integration-plan/channel-partners/kleros-reality-module#safesnap) uses it for secure DAO proposal execution
-- **Content Moderation** — [Moderate / Susie bot](https://kleros.io/moderate) uses it for decentralized content policy enforcement
+- **Prediction Markets** - [Seer](https://seer.pm), Polkamarkets/Foreland, and [Omen](https://omen.eth.limo) use it to verify real-world event outcomes
+- **Optimistic Governance** - the [Zodiac SafeSnap module](https://docs.kleros.io/integrations/types-of-integrations/1.-dispute-resolution-integration-plan/channel-partners/kleros-reality-module#safesnap) uses it for secure DAO proposal execution
+- **Content Moderation** - [Moderate / Susie bot](/legacy/retired/moderate) uses it for decentralized content policy enforcement
 
 ***
 
@@ -381,7 +381,7 @@ For integration testing with Kleros Court V2, use the **Arbitrum Sepolia** testn
 No. Your DApp only needs to interact with Reality.eth for the standard question/answer flow. The proxy is invoked automatically when arbitration is requested. You only need to call the proxy directly to submit evidence during an active arbitration.
 
 **What happens if there's a dispute?**
-Reality.eth and Kleros handle the dispute flow through the arbitrator proxy. Your DApp doesn't need any special logic — once the dispute resolves, `resultFor()` returns the arbitrated answer.
+Reality.eth and Kleros handle the dispute flow through the arbitrator proxy. Your DApp doesn't need any special logic - once the dispute resolves, `resultFor()` returns the arbitrated answer.
 
 **How do I write a clear question?**
 Be specific, include resolution criteria, and specify a trusted information source. Example: "Did the S&P 500 close above 5,000 on April 10, 2025, according to the official S&P website?"

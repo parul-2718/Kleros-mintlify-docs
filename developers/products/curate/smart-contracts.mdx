@@ -1,6 +1,6 @@
 ---
 title: "Smart Contracts"
-description: "Curate V2 contract interfaces, data structures, and function reference"
+description: "Reference for Kleros Curate V2 smart contracts, including item structs, request lifecycle, arbitration hooks, and function signatures for integrators."
 
 ---
 
@@ -88,7 +88,7 @@ function initialize(
 ### Example Initialization
 
 ```javascript
-// Court ID must be uint96, juror count uint256 — matches IArbitratorV2 spec
+// Court ID must be uint96, juror count uint256 - matches IArbitratorV2 spec
 const extraData = ethers.solidityPacked(
   ["uint96", "uint256"],
   [1, 3] // Court ID 1 (General Court), 3 jurors
@@ -153,16 +153,16 @@ A submitted item must be a JSON object with one key per column label:
 }
 ```
 
-The `itemID` is `keccak256(abi.encodePacked(itemJSON))` — the hash of the exact JSON string submitted. The data mappings system uses this column structure to extract `{{itemName}}` and `{{itemDescription}}` template variables.
+The `itemID` is `keccak256(abi.encodePacked(itemJSON))` - the hash of the exact JSON string submitted. The data mappings system uses this column structure to extract `{{itemName}}` and `{{itemDescription}}` template variables.
 
 ---
 
-## `arbitrationParamsIndex` — Versioning
+## `arbitrationParamsIndex` - Versioning
 
 Each `Request` stores a `uint24 arbitrationParamsIndex` that snapshots the registry's arbitration parameters at submission time. This is critical: if the governor updates the arbitrator or extraData after a request is submitted, the **original parameters are preserved** for that request's challenge and dispute lifecycle.
 
 This means:
-- Challengers must use the **same arbitrationParamsIndex** as the original submission — fetch it from the request before challenging
+- Challengers must use the **same arbitrationParamsIndex** as the original submission - fetch it from the request before challenging
 - Cost calculations must use the arbitration params at `request.arbitrationParamsIndex`, not the current params
 
 ```solidity
@@ -175,7 +175,7 @@ uint256 cost = arb.arbitrationCost(extraData);
 
 ---
 
-## Registration vs Removal — Separate Dispute Templates
+## Registration vs Removal - Separate Dispute Templates
 
 Curate V2 uses **two separate dispute templates**: one for registration requests and one for removal (clearing) requests. They have different answer logic:
 

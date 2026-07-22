@@ -1,0 +1,75 @@
+---
+title: "Curate Tutorial"
+description: "Step-by-step guide to Kleros Curate: deploy a decentralized list, configure deposits and courts, register in the List of Lists, and submit or challenge items."
+---
+
+# Curate Tutorial
+
+This tutorial walks through creating a decentralized list on Kleros Curate, registering it in the List of Lists, and submitting or challenging items.
+
+Curate lists are deployed as smart contracts. The platform uses a hierarchical structure where top-level lists can contain sublists.
+
+---
+
+## Create a List
+
+Access the list creation page via the **Create a List** header button.
+
+<Steps>
+  <Step title="Set the basic parameters">
+    - **Title**: the name of your list (for example, "Hip Hop Legends")
+    - **Description**: a brief overview of the list's purpose
+    - **Acceptance criteria**: a critical piece of information specifying what submissions are accepted or rejected
+    - **Item name**: the label for individual submissions (for example, "Hip Hop Legend")
+    - **Deposit settings**: a slider-based configuration balancing submission cost against quality control
+    - **Court selection**: choose the arbitration court based on the list's complexity and value
+  </Step>
+  <Step title="Configure advanced parameters (optional)">
+    Power users can set each deposit individually:
+
+    - Submission deposit
+    - Removal deposit
+    - Challenge submission deposit
+    - Challenge removal deposit
+  </Step>
+  <Step title="Define the list fields">
+    Add custom fields for submissions (text, images, and other types). Enable **Index** on a field to make it searchable.
+  </Step>
+  <Step title="Badge list parameters (optional)">
+    An optional tiered system allows submissions to earn additional badges based on specific criteria.
+  </Step>
+  <Step title="Deploy">
+    Pay the contract deployment fees via your wallet to launch the list.
+  </Step>
+</Steps>
+
+
+---
+
+## Register in the List of Lists
+
+Submit your deployed list to the main Registry by clicking **Submit List** and paying a confirmation deposit. This makes it visible on the Curate homepage.
+
+---
+
+## Submit & Challenge Items
+
+- **Submissions**: users deposit funds to add items to a list. The deposit is returned if the item is accepted.
+- **Challenges**: anyone can dispute a submission by describing how it violates the list's policy. Kleros jurors arbitrate the dispute, and the winner receives the loser's deposit (minus arbitration fees).
+
+<Tip>
+Write your acceptance criteria carefully before deploying. Jurors rule on challenges based on your list's policy, so ambiguous criteria lead to unpredictable outcomes.
+</Tip>
+
+---
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Curate Product Page" icon="list-check" href="/products/curate">
+    How Curate works and its variants
+  </Card>
+  <Card title="Build with Curate" icon="code" href="/developers/products/curate">
+    Curate smart contracts and integrator standards
+  </Card>
+</CardGroup>

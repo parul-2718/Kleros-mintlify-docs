@@ -1,0 +1,36 @@
+---
+title: "July 13, 2026"
+description: "Curate Rewards page, faster Foresight homepage with post-timer prediction lock, new Vea Arbitrum–Base route, and IPFS handling hardened across products."
+---
+
+## New features
+
+### Curate Rewards page in Curate classic
+
+[Kleros Curate](/products/curate) (classic) now has a dedicated Curate Rewards page listing every rewards distribution since inception, with direct IPFS links to each snapshot. Contributors can trace historical rewards without leaving the app.
+
+### Arbitrum ↔ Base route in Vea
+
+The [Vea bridge](/developers/crosschain/vea-bridge) adds a new Arbitrum ↔ Base route, with corresponding broadcast addresses published in the [Vea deployment addresses](/developers/crosschain/vea-deployment-addresses) reference. The Veashi SDK now exports the new routes and updated types so integrators can build against them directly.
+
+## Updates
+
+### Faster Foresight homepage and market pages
+
+[Kleros Foresight](/products/foresight) speeds up the initial homepage load with skeleton placeholders for markets, profit/loss, and participation sections, plus a resolved-markets banner. Market charts are now served from an extended CDN cache with data processing moved server-side, and the "Predict All" popup and first-visit guide load on demand so the shell renders sooner.
+
+### Predictions lock after the trading period ends
+
+[Foresight](/products/foresight) markets now automatically disable prediction inputs — including the slider, CSV upload, and "Predict All" flow — once the trading period timer expires, preventing submissions that would be rejected by the contract.
+
+### Deferred project card loading in Foresight
+
+Foresight project funding cards now load their contents only when you open the accordion, cutting unnecessary work on pages with many projects.
+
+## Bug fixes
+
+**Hardened IPFS and URL handling across products** — [Kleros Court](/court/overview), [Curate](/products/curate), [Escrow](/products/escrow), and [Dispute Resolver](/products/proof-of-humanity) now share a stricter IPFS URI policy: bare CIDs (v0 and v1) and prefixed URIs are validated and normalized consistently across attachments, case details, claim modals, evidence, and file previews. Absolute `http(s)` URLs pass through unchanged, and rejected fetches are no longer cached, so retries pick up recovered content.
+
+**Escrow attachment navigation** — [Kleros Escrow](/products/escrow) now URL-encodes attachment paths in the Explore navbar, fixing broken links for files with special characters, and cleans up a style glitch on the attached-file preview card.
+
+**Foresight chart section** — The Foresight market chart now renders through a dedicated section component with proper caching, resolving intermittent stale-data issues and layout jumps on market pages.

@@ -1,6 +1,6 @@
 ---
-title: "Guide"
-description: "Step-by-step implementation of an arbitrable contract"
+title: "Arbitrable Apps V2"
+description: "Step-by-step guide to building a Kleros V2 arbitrable smart contract, from IArbitratorV2 integration to dispute creation, evidence, and ruling."
 ---
 
 ## Interface Reference
@@ -80,7 +80,7 @@ interface IArbitrableV2 {
 
     /// @dev Called by the arbitrator when a ruling is final.
     /// @param _disputeID The arbitrator-assigned dispute ID.
-    /// @param _ruling    The winning option. 0 = "Refuse to Arbitrate" — always handle this.
+    /// @param _ruling    The winning option. 0 = "Refuse to Arbitrate" - always handle this.
     function rule(uint256 _disputeID, uint256 _ruling) external;
 
     event Ruling(IArbitratorV2 indexed _arbitrator, uint256 indexed _disputeID, uint256 _ruling);
@@ -92,15 +92,15 @@ interface IArbitrableV2 {
 `extraData` configures the court and juror count:
 
 ```solidity
-// V2 uses uint96 for courtID (not uint256 as in V1 — this is a breaking change)
+// V2 uses uint96 for courtID (not uint256 as in V1 - this is a breaking change)
 bytes memory extraData = abi.encodePacked(
-    uint96(1),   // courtID  — 1 = General Court
-    uint256(3)   // minJurors — always use odd numbers to avoid ties
+    uint96(1),   // courtID  - 1 = General Court
+    uint256(3)   // minJurors - always use odd numbers to avoid ties
 );
 ```
 
 | Bytes | Type | Field | Notes |
-|-------|------|-------|-------|
+| --- | --- | --- | --- |
 | 0–11 | `uint96` | `courtID` | **Must be `uint96`**, not `uint256`. Using `uint256` encodes a wrong value. |
 | 12–43 | `uint256` | `minJurors` | Use 3, 5, or 7. Even numbers risk tied votes (see below). |
 
@@ -118,7 +118,7 @@ uint256 disputeID = arbitrator.createDispute(2, extraData, weth, cost);
 ```
 
 <Warning>
-ERC-20 fees only work when calling KlerosCore directly on Arbitrum. The `ForeignGateway` (for cross-chain disputes from Ethereum or Gnosis) only accepts native ETH.
+  ERC-20 fees only work when calling KlerosCore directly on Arbitrum. The `ForeignGateway` (for cross-chain disputes from Ethereum or Gnosis) only accepts native ETH.
 </Warning>
 
 To check accepted tokens, listen for the `AcceptedFeeToken(token, accepted)` event on KlerosCore.
@@ -220,7 +220,7 @@ function raiseDispute(uint256 _txID) external payable {
         templateUri
     );
     
-    // Refund excess — use .call() not .transfer()
+    // Refund excess - use .call() not .transfer()
     if (msg.value > cost) {
         (bool ok,) = payable(msg.sender).call{value: msg.value - cost}("");
         require(ok, "Refund failed");
@@ -242,7 +242,7 @@ function rule(uint256 _disputeID, uint256 _ruling) external override {
     
     tx.status = Status.Resolved;
 
-    // Execute ruling — use .call() not .transfer() to avoid gas limit issues
+    // Execute ruling - use .call() not .transfer() to avoid gas limit issues
     if (_ruling == uint256(Ruling.PaySeller)) {
         (bool ok,) = tx.seller.call{value: tx.amount}("");
         require(ok, "Transfer failed");
@@ -343,7 +343,7 @@ function submitEvidence(uint256 _txID, string calldata _evidence) external {
 ```
 
 <Warning>
-Evidence is immutable once submitted. The `fileURI` should point to IPFS/Arweave for permanence.
+  Evidence is immutable once submitted. The `fileURI` should point to IPFS/Arweave for permanence.
 </Warning>
 
 ## Handling Appeals
@@ -428,108 +428,108 @@ function setArbitrationParams(uint96 _courtID, uint256 _minJurors) external only
 ```
 
 | Bytes | Field | Description |
-|-------|-------|-------------|
+| --- | --- | --- |
 | 0-11 | courtID | uint96, target court |
 | 12-43 | minJurors | uint256, minimum jurors |
 
 ## Complete Example
 
 <Accordion title="Full Escrow Contract">
-```solidity
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.18;
-
-import "@kleros/kleros-v2-contracts/arbitration/interfaces/IArbitrableV2.sol";
-import "@kleros/kleros-v2-contracts/arbitration/interfaces/IArbitratorV2.sol";
-import "@kleros/kleros-v2-contracts/evidence/interfaces/IEvidence.sol";
-
-contract Escrow is IArbitrableV2, IEvidence {
-    IArbitratorV2 public immutable arbitrator;
-    bytes public arbitratorExtraData;
-    string public templateUri;
-    
-    enum Status { Created, Disputed, Resolved }
-    
-    struct Transaction {
-        address buyer;
-        address seller;
-        uint256 amount;
-        Status status;
-        uint256 disputeID;
-    }
-    
-    mapping(uint256 => Transaction) public transactions;
-    mapping(uint256 => uint256) public disputeToTx;
-    uint256 public txCount;
-    
-    constructor(
-        IArbitratorV2 _arbitrator,
-        bytes memory _extraData,
-        string memory _templateUri
-    ) {
-        arbitrator = _arbitrator;
-        arbitratorExtraData = _extraData;
-        templateUri = _templateUri;
-    }
-    
-    function createTransaction(address _seller) external payable returns (uint256) {
-        require(msg.value > 0, "No funds");
-        uint256 txID = txCount++;
-        transactions[txID] = Transaction(msg.sender, _seller, msg.value, Status.Created, 0);
-        return txID;
-    }
-    
-    function raiseDispute(uint256 _txID) external payable {
-        Transaction storage t = transactions[_txID];
-        require(t.status == Status.Created, "Invalid status");
-        
-        uint256 cost = arbitrator.arbitrationCost(arbitratorExtraData);
-        require(msg.value >= cost, "Insufficient fee");
-        
-        uint256 disputeID = arbitrator.createDispute{value: cost}(2, arbitratorExtraData);
-        t.status = Status.Disputed;
-        t.disputeID = disputeID;
-        disputeToTx[disputeID] = _txID;
-        
-        emit DisputeRequest(arbitrator, disputeID, _txID, 0, templateUri);
-        
-        if (msg.value > cost) {
-            (bool ok,) = payable(msg.sender).call{value: msg.value - cost}("");
-            require(ok, "Refund failed");
-        }
-    }
-    
-    function submitEvidence(uint256 _txID, string calldata _evidence) external {
-        Transaction storage t = transactions[_txID];
-        require(t.status == Status.Disputed, "Not disputed");
-        emit Evidence(arbitrator, _txID, msg.sender, _evidence);
-    }
-    
-    function rule(uint256 _disputeID, uint256 _ruling) external override {
-        require(msg.sender == address(arbitrator), "Only arbitrator");
-        uint256 txID = disputeToTx[_disputeID];
-        Transaction storage t = transactions[txID];
-        require(t.status == Status.Disputed, "Not disputed");
-        
-        t.status = Status.Resolved;
-
-        if (_ruling == 1) {
-            (bool ok,) = t.seller.call{value: t.amount}("");
-            require(ok, "Transfer failed");
-        } else {
-            // Ruling 0 (Refuse to Arbitrate) or ruling 2 → refund buyer
-            (bool ok,) = t.buyer.call{value: t.amount}("");
-            require(ok, "Transfer failed");
-        }
-        
-        emit Ruling(arbitrator, _disputeID, _ruling);
-    }
-    
-    function getArbitrationCost() external view returns (uint256) {
-        return arbitrator.arbitrationCost(arbitratorExtraData);
-    }
-}
-```
+  ```solidity
+  // SPDX-License-Identifier: MIT
+  pragma solidity ^0.8.18;
+  
+  import "@kleros/kleros-v2-contracts/arbitration/interfaces/IArbitrableV2.sol";
+  import "@kleros/kleros-v2-contracts/arbitration/interfaces/IArbitratorV2.sol";
+  import "@kleros/kleros-v2-contracts/evidence/interfaces/IEvidence.sol";
+  
+  contract Escrow is IArbitrableV2, IEvidence {
+      IArbitratorV2 public immutable arbitrator;
+      bytes public arbitratorExtraData;
+      string public templateUri;
+      
+      enum Status { Created, Disputed, Resolved }
+      
+      struct Transaction {
+          address buyer;
+          address seller;
+          uint256 amount;
+          Status status;
+          uint256 disputeID;
+      }
+      
+      mapping(uint256 => Transaction) public transactions;
+      mapping(uint256 => uint256) public disputeToTx;
+      uint256 public txCount;
+      
+      constructor(
+          IArbitratorV2 _arbitrator,
+          bytes memory _extraData,
+          string memory _templateUri
+      ) {
+          arbitrator = _arbitrator;
+          arbitratorExtraData = _extraData;
+          templateUri = _templateUri;
+      }
+      
+      function createTransaction(address _seller) external payable returns (uint256) {
+          require(msg.value > 0, "No funds");
+          uint256 txID = txCount++;
+          transactions[txID] = Transaction(msg.sender, _seller, msg.value, Status.Created, 0);
+          return txID;
+      }
+      
+      function raiseDispute(uint256 _txID) external payable {
+          Transaction storage t = transactions[_txID];
+          require(t.status == Status.Created, "Invalid status");
+          
+          uint256 cost = arbitrator.arbitrationCost(arbitratorExtraData);
+          require(msg.value >= cost, "Insufficient fee");
+          
+          uint256 disputeID = arbitrator.createDispute{value: cost}(2, arbitratorExtraData);
+          t.status = Status.Disputed;
+          t.disputeID = disputeID;
+          disputeToTx[disputeID] = _txID;
+          
+          emit DisputeRequest(arbitrator, disputeID, _txID, 0, templateUri);
+          
+          if (msg.value > cost) {
+              (bool ok,) = payable(msg.sender).call{value: msg.value - cost}("");
+              require(ok, "Refund failed");
+          }
+      }
+      
+      function submitEvidence(uint256 _txID, string calldata _evidence) external {
+          Transaction storage t = transactions[_txID];
+          require(t.status == Status.Disputed, "Not disputed");
+          emit Evidence(arbitrator, _txID, msg.sender, _evidence);
+      }
+      
+      function rule(uint256 _disputeID, uint256 _ruling) external override {
+          require(msg.sender == address(arbitrator), "Only arbitrator");
+          uint256 txID = disputeToTx[_disputeID];
+          Transaction storage t = transactions[txID];
+          require(t.status == Status.Disputed, "Not disputed");
+          
+          t.status = Status.Resolved;
+  
+          if (_ruling == 1) {
+              (bool ok,) = t.seller.call{value: t.amount}("");
+              require(ok, "Transfer failed");
+          } else {
+              // Ruling 0 (Refuse to Arbitrate) or ruling 2 → refund buyer
+              (bool ok,) = t.buyer.call{value: t.amount}("");
+              require(ok, "Transfer failed");
+          }
+          
+          emit Ruling(arbitrator, _disputeID, _ruling);
+      }
+      
+      function getArbitrationCost() external view returns (uint256) {
+          return arbitrator.arbitrationCost(arbitratorExtraData);
+      }
+  }
+  ```
 </Accordion>
 
 ## Next Steps

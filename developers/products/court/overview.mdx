@@ -1,0 +1,91 @@
+---
+title: "Court"
+description: "Developer reference for Kleros Court V1 (Mainnet, Gnosis) and V2 (Arbitrum), covering arbitrator contracts, dispute lifecycle, and integration."
+---
+
+Kleros Court is the core dispute resolution protocol. This page covers both V1 (Ethereum Mainnet and Gnosis Chain) and V2 (Arbitrum).
+
+---
+
+## V1 (Ethereum Mainnet / Gnosis Chain)
+
+Court V1 is the production interface for Kleros dispute resolution on Ethereum Mainnet and Gnosis Chain. It has been in production since 2018 and continues to receive active development.
+
+Technical details:
+
+- Operates on Ethereum Mainnet and Gnosis Chain
+- Uses the ERC-792 arbitration standard and ERC-1497 evidence standard
+- Juror selection via a sortition tree with PNK staking
+- Staking rewards distributed monthly (KIP-66, implemented September 2025)
+
+V1 uses a single `KlerosLiquid` contract that combines arbitration, staking, juror drawing, voting, and appeal logic:
+
+| Contract | Role |
+| --- | --- |
+| **KlerosLiquid** | Core court contract handling disputes, juror selection, and ruling enforcement |
+| **PNK** | ERC-20 token used for staking and juror incentives |
+| **PolicyRegistry** | Stores court policies describing juror guidelines |
+| **Arbitrable Contracts** | Implement ERC-792 to interact with KlerosLiquid |
+
+**V1 integration is fully supported.** Developers can use the [ERC-792](/developers/arbitrable-apps/erc-792) and [ERC-1497](/developers/arbitrable-apps/erc-1497) standards (documented under Arbitrable Apps) to build arbitrable contracts that use Court V1.
+
+### V1 interface
+
+The Court V1 interface at [court.kleros.io](https://court.kleros.io/) supports:
+
+- **Wallet-optional browsing**: the interface works without a connected wallet, defaulting to view mode with a Connect prompt, including the switch-to-mainnet modal
+- **Dark mode**
+- **Notifications via Atlas**: vote reminders (with a fixed, configurable reminder time), dispute outcomes (won/lost), appeals, and appealable disputes, with an unsubscribe option on the settings page
+- **Staking rewards exporter**: a paginated, mobile-friendly page showing monthly KIP-66 staking rewards and monthly totals, with APY calculated using adjusted KLEROS supply
+- **Per-court vote visibility**: public vs. hidden vote details for each court are visible at staking time
+- **Reality case display**: "Invalid" is shown instead of "Refuse to Arbitrate" for Reality cases
+- **Registry whitelists**: Seer Curate on Gnosis, the Kleros Tokens Registry, and the Seer Market registry
+
+For the history of changes, see the [Changelog](/changelog) and the [Kleros blog developer updates](https://blog.kleros.io/tag/developer/). For V1 contract addresses, see [Deployment Addresses V1](/reference/contracts/deployment-addresses-v1).
+
+---
+
+## V2 (Arbitrum)
+
+Court V2 is the next-generation dispute resolution protocol on Arbitrum. This section documents technical details only.
+
+Technical details:
+
+- Modular dispute resolution via pluggable dispute kits (DisputeKitClassic, DisputeKitSybilResistant, and others)
+- Cross-chain ruling delivery via the [Vea bridge](/developers/crosschain/vea-bridge)
+- Juror selection via the SortitionModule using Chainlink VRF v2.5 for verifiable randomness
+- Support for multiple specialized dispute kits per court
+
+Contract audit status:
+
+- Four internal review rounds (Rounds 1–4, September–November 2025) with all findings triaged
+- External audit by Certora (December 2025–January 2026); audit responses submitted
+- Internal review completed April 2026
+- Contract simplification work across dispute kits (May–June 2026)
+
+<Note>
+The Certora audit was conducted on the contracts as submitted (December 2025–January 2026). Contract simplification work continued afterward, so the audit does not cover the final version.
+</Note>
+
+Specialized dispute kits:
+
+- Argentina Consumer Protection DK (gated, SBT-based)
+- University DK
+- Shutter DK (commit/reveal with threshold encryption via Shutter Network)
+- Partial-coherence dispute kit (merged)
+- Forking dispute kit (in draft)
+
+Frontend:
+
+- 100+ cases resolved on Court V2 Beta
+- Profile page live; commit logic extracted from the UI for testability
+- End-to-end test infrastructure in progress
+
+For V2 contract addresses, see the [V2 Deployment Addresses](/reference/contracts/deployment-addresses) reference.
+
+---
+
+## Links
+
+- Court V1: [court.kleros.io](https://court.kleros.io/)
+- Court V2: [v2.kleros.builders](https://v2.kleros.builders/)

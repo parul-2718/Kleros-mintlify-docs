@@ -1,7 +1,6 @@
-
 ---
 title: "API Reference"
-description: "HTTP API reference for the Kleros IPFS gateway — upload and retrieve dispute templates, evidence, and policy documents"
+description: "HTTP API for the Kleros IPFS gateway: upload and retrieve dispute templates, evidence files, policy documents, and Curate item metadata."
 ---
 
 Every Kleros integration that involves jurors needs off-chain content: dispute templates that tell jurors what question to answer, evidence files that parties submit, and policy documents that define ruling criteria. All of this content is stored on IPFS and referenced on-chain by its CID.
@@ -33,11 +32,11 @@ https://cdn.kleros.link
 | Content | Where it's used | Schema |
 |---------|----------------|--------|
 | Dispute template JSON | `DisputeTemplateRegistry.setDisputeTemplate()` | [Dispute Templates](/reference/data-formats/dispute-templates) |
-| Evidence file JSON | `EvidenceModule` — submitted by parties during a dispute | [Evidence Format](/reference/data-formats/evidence-format) |
+| Evidence file JSON | `EvidenceModule` - submitted by parties during a dispute | [Evidence Format](/reference/data-formats/evidence-format) |
 | Policy document JSON | `policyURI` field in dispute templates | [Policy Format](/reference/data-formats/policy-format) |
 | Item attachment | Curate V2 item metadata | Column-based JSON schema |
 
-## Uploading content — SDK
+## Uploading content - SDK
 
 The `@kleros/kleros-sdk` wraps the gateway upload in a typed helper:
 

@@ -1,0 +1,128 @@
+---
+title: "PoH: Remove & Challenge"
+description: "Challenge non-compliant Proof of Humanity 2.0 profiles, initiate profile removal, follow the Kleros Court dispute, and resubmit rejected humanity claims."
+---
+
+# Proof of Humanity Tutorial: Remove & Challenge
+
+This tutorial covers challenging profiles, removing profiles, and resubmitting profiles in the Proof of Humanity 2.0 registry.
+
+For registering and vouching, see the [Register & Vouch tutorial](/tutorials/poh-register-and-vouch).
+
+---
+
+## Challenge a Claim
+
+<Steps>
+  <Step title="Browse and check profiles">
+    Visit the [PoH app](https://v2.poh.id/) and filter for **In Review** or **Removal Proposed** profiles using the right-side filter. Click individual profiles to verify compliance with the PoH guidelines. Look for deepfakes, inappropriate content, or guideline violations.
+<Frame >
+  <img src="/images/status-poh.png"  />
+</Frame>
+<Frame >
+  <img src="/images/inreview-poh.png"  />
+</Frame>
+    Detection tools that can help:
+
+    - [Deepware.ai](https://deepware.ai)
+    - [Sensity.ai](https://sensity.ai)
+    - Voice recognition software for computer-generated audio
+  </Step>
+  <Step title="Submit a challenge">
+    1. Click the orange **Challenge** button at the top right of the profile
+    2. Select the violation reason and provide a justification
+    3. Click **Challenge request** and send the transaction
+
+    The challenger deposit is a locked amount of ETH or xDAI that deters frivolous challenges. A successful challenge returns your deposit plus the submitter's deposit (minus arbitration fees). A failed challenge forfeits your deposit.
+  <Frame >
+  <img src="/images/challenge-poh.png"  />
+</Frame>
+<Frame >
+  <img src="/images/disputed-poh.png"  />
+</Frame>
+  </Step>
+  <Step title="Follow the dispute">
+    The challenge enters [Kleros Court](/court/overview) for jury voting. Submit evidence from the bottom of the profile page and monitor progress over 5-7 days. Appeal options are available if you disagree with the ruling.
+  <Frame >
+  <img src="/images/submitevidence.png"  />
+</Frame>
+<Frame >
+  <img src="/images/evidencedetails-poh.png"  />
+</Frame>
+  </Step>
+</Steps>
+
+
+---
+
+## Remove a Profile
+
+### Remove your own profile (Needs Vouch status)
+
+Click the **Withdraw** button on your profile page to recover your deposit.
+<Frame >
+  <img src="/images/withdraw-poh.png"  />
+</Frame>
+
+### Remove registered or Verified Human profiles
+
+1. Open the profile and click **Revoke**
+2. Lock a deposit (reimbursed if the removal succeeds)
+3. Optionally submit evidence supporting the revocation
+<Frame >
+  <img src="/images/revoke-poh.png"  />
+</Frame>
+<Frame >
+  <img src="/images/revokedeposit-poh.png"  />
+</Frame>
+
+Example evidence submissions:
+
+- **Self-removal from the same address**: name it "Self-removal of submission" and confirm your submitter status via the address.
+- **Self-removal from a different address**: name it "Self-removal of submission" and include a video recording stating: "I want to revoke my own submission from the Proof of Humanity registry".
+- **Malicious submission removal**: name it "Removal of deepfake submission" and include deepfake analysis reports as evidence.
+
+<Frame >
+  <img src="/images/revoketitle-poh.png"  />
+</Frame>
+### Remove in-review profiles
+
+Use the challenge process described above.
+
+---
+
+## Resubmit a Profile
+
+### From a new address
+
+1. Ensure the old profile shows **Revoked** status (check `https://v2.poh.id/PoHID`)
+2. Remove it if necessary using the steps above
+3. Connect the new address and submit a fresh profile
+<Frame >
+  <img src="/images/revokedstatus-poh.png"  />
+</Frame>
+
+### From the same address
+
+1. Verify the old profile is **Revoked**
+2. Remove it if needed
+3. Click the **Resubmit Profile** button at the bottom left of the profile
+
+### Reapply an expired or expiring profile
+
+Profiles expire two years after registration. Reapply to prove your continued existence and control of the address.
+<Frame >
+  <img src="/images/expired-poh.png"  />
+</Frame>
+---
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Register & Vouch Tutorial" icon="user-plus" href="/tutorials/poh-register-and-vouch">
+    Register your own profile on Proof of Humanity
+  </Card>
+  <Card title="Proof of Humanity Product Page" icon="fingerprint" href="/products/proof-of-humanity">
+    Learn how the registry works
+  </Card>
+</CardGroup>

@@ -1,6 +1,6 @@
 ---
 title: "Smart Contracts"
-description: "Reality.eth + Kleros contract interfaces, arbitrator proxy addresses, function reference, and result decoding."
+description: "Reference for Reality.eth and Kleros arbitrator proxy contracts, covering proxy addresses, interface functions, result decoding, and integration hooks."
 ---
 
 ## Kleros Arbitrator Proxy Addresses
@@ -138,7 +138,7 @@ Questions use the Unicode delimiter `␟` (U+241F) to separate fields. The exact
 // Template 4 (datetime):
 "When did event X occur?␟history␟en"
 
-// Template 5 (hash) — added in v3.2:
+// Template 5 (hash) - added in v3.2:
 "Does this hash correspond to the document?␟verification␟en"
 ```
 
@@ -171,8 +171,8 @@ Answers are returned as `bytes32`. How to decode them depends on the template.
 
 Two reserved bytes32 values appear in answers:
 
-- `0xff...ff` (all `f`s) — **Invalid**. The question is unanswerable, ambiguous, or violates the question policy. Always handle this case in your contract.
-- `0xff...fe` (all `f`s except the last digit) — **Answered too early**. The question was asked before the underlying event could be resolved. The question can be re-asked once the event has occurred.
+- `0xff...ff` (all `f`s) - **Invalid**. The question is unanswerable, ambiguous, or violates the question policy. Always handle this case in your contract.
+- `0xff...fe` (all `f`s except the last digit) - **Answered too early**. The question was asked before the underlying event could be resolved. The question can be re-asked once the event has occurred.
 
 ```solidity theme={null}
 bytes32 constant ANSWERED_INVALID = bytes32(type(uint256).max);
@@ -284,4 +284,4 @@ The Reality.eth + Kleros system involves several fee types, each with a specific
 
 \*When settled by arbitration, the arbitrator specifies who receives the reward.
 
-For full details on each fee — including how the takeover fee equals the previous answerer's bond, and when the 2.5% claim fee burn applies (Reality.eth v2.1+) — see the [Integration Guide → Fees and Payments](/developers/products/reality/integration#fees-and-payments).
+For full details on each fee - including how the takeover fee equals the previous answerer's bond, and when the 2.5% claim fee burn applies (Reality.eth v2.1+) - see the [Integration Guide → Fees and Payments](/developers/products/reality/integration#fees-and-payments).

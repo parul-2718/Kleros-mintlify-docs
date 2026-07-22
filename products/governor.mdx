@@ -1,16 +1,36 @@
 ---
 title: "Governor"
-description: "Decentralized governance execution with dispute resolution for contested actions"
+description: "Kleros Governor lets DAOs execute Snapshot votes on-chain with optimistic execution, using Kleros Court to resolve competing transaction lists."
 ---
 
 # Governor
 
 <img src="/images/governor-hero.png" alt="Kleros Governor Interface" />
-<Note>**V2** Looking for V1 documentation? See [Governor V1 (Legacy)](/legacy/governor-v1).</Note>
 
 **Kleros Governor** enables DAOs and on-chain organizations to execute governance decisions with a built-in dispute resolution backstop. It uses an optimistic execution model: anyone can submit a list of transactions to be executed, and if no one challenges it, the transactions go through. If multiple competing lists are submitted, Kleros Court resolves the conflict.
 
 Governor is the mechanism Kleros itself uses to manage protocol parameters, court configurations, and contract upgrades.
+
+---
+
+## V1 - Production Protocol
+
+Governor V1 runs on Ethereum Mainnet. It was deployed as part of the transition to fully decentralized governance using Snapshot voting and on-chain execution (see [KIP-30](https://forum.kleros.io/t/kip-30-migrate-governance-to-snapshot/469)). It uses the same optimistic execution model as V2, with a simpler implementation:
+
+
+
+1. A governance vote passes on Snapshot
+2. Anyone submits a transaction list to Governor implementing the approved changes
+3. During the submission period, others can submit competing lists
+4. If only one list is submitted, it executes automatically
+5. If multiple lists are submitted, a Kleros Court dispute determines the correct one
+6. After resolution, the winning list's transactions are executed on-chain
+
+---
+
+## V2 - Next-Gen Upgrade
+
+Governor V2 runs on Arbitrum and keeps the same optimistic execution model. The sections below describe the V2 implementation.
 
 ---
 

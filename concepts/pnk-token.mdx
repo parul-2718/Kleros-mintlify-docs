@@ -1,0 +1,72 @@
+---
+title: "PNK Token"
+description: "PNK powers juror staking, governance voting, and 51% attack resistance in Kleros, with market scarcity, price impact, and forking as core defenses."
+---
+
+# PNK Token
+
+**PNK** is the native token of the Kleros protocol. It serves two core functions: **staking for juror eligibility** and **governance voting rights**. Token holders stake PNK to participate in dispute resolution, with higher stakes increasing selection probability, and use it to vote on governance proposals, court parameters, and platform changes.
+
+The name references **Pinakions**, the bronze plates used in Ancient Athens for randomized jury selection.
+
+---
+
+## Token Supply
+
+The max PNK token supply is **915,528,222.07931277**. Supply changes are controlled exclusively through Kleros DAO governance votes.
+
+- Mainnet contract: [`0x93ED3FBe21207Ec2E8f2d3c3de6e058Cb73Bc04d`](https://etherscan.io/token/0x93ed3fbe21207ec2e8f2d3c3de6e058cb73bc04d)
+
+---
+
+## What PNK Is Used For
+
+| Function | How it works |
+| --- | --- |
+| **Juror staking** | Stake PNK in a court to become eligible for juror selection. Selection probability is proportional to stake. |
+| **Incentive alignment** | Coherent jurors earn arbitration fees and PNK redistributed from incoherent jurors; incoherent jurors lose part of their stake. |
+| **Governance** | PNK holders vote on Kleros Improvement Proposals (KIPs), court parameters, and protocol upgrades. |
+
+<Frame >
+  <img src="/images/PNK_hero.png"  />
+</Frame>
+
+---
+
+## [Why Kleros Needs a Native Token](https://medium.com/kleros/why-kleros-needs-a-native-token-5c6c6e39cdfe)
+
+PNK's design provides three layers of protection against a 51% [(Sybil) attack](https://en.wikipedia.org/wiki/Sybil_attack):
+
+1. **Market scarcity defense.** Acquiring 51% of PNK becomes economically prohibitive: large purchases exhaust available liquidity and drive the price up, unlike an attack denominated in ETH or another asset with vastly deeper markets.
+2. **Price impact risk.** A successful attack would substantially devalue PNK itself, imposing a massive cost on the attacker that does not exist when attacking with an external asset.
+3. **Fork capability.** As a last resort, the community can perform an emergency fork that removes the attacker's holdings, a recovery path unavailable with external tokens.
+
+
+---
+
+## How to Get PNK
+
+The fastest way is the [Buy PNK page of the Court](https://court.kleros.io/tokens), which routes to the exchanges listed there.
+
+| Venue type | Options |
+| --- | --- |
+| **DEX aggregators** (large trades) | Paraswap, 1inch |
+| **DEXs** (medium trades) | Uniswap, Sushiswap, Balancer |
+| **Centralized exchanges** | Bitfinex, Gate.io, OKX |
+| **Fiat onramp** | Guardarian |
+
+---
+
+## What's Next?
+
+<CardGroup cols={3}>
+  <Card title="Tokenomics" icon="chart-pie" href="/concepts/tokenomics">
+    The full economic model behind Kleros
+  </Card>
+  <Card title="Become a Juror" icon="user-plus" href="/tutorials/juror-tutorial-v1">
+    Stake PNK and start judging cases
+  </Card>
+  <Card title="Governance" icon="landmark" href="/governance/overview">
+    Vote with PNK on protocol decisions
+  </Card>
+</CardGroup>

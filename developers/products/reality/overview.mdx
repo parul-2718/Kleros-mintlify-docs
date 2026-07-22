@@ -1,6 +1,6 @@
 ---
-title: "Reality (Oracle) Overview"
-description: "Subjective oracle system combining Reality.eth bond escalation with Kleros Court arbitration for on-chain verification of real-world events."
+title: "Reality"
+description: "Developer overview of the Kleros Reality.eth oracle and SafeSnap, covering bond escalation, arbitrator proxies, and DAO governance integration."
 ---
 
 ## Introduction
@@ -18,6 +18,21 @@ Your application only interacts with Reality.eth. Kleros is invoked automaticall
     Step-by-step guide to ask questions and retrieve answers from your contract
   </Card>
 </CardGroup>
+
+***
+
+## V1 - SafeSnap Integration (Ethereum / Gnosis Chain)
+
+The Reality.eth + Kleros oracle powers SafeSnap for DAO governance, and **V1 integration is actively supported**.
+
+Technical notes for integrators:
+
+- **Zodiac / SafeSnap**: the Kleros Reality Module works with Snapshot through the Gnosis Zodiac Safe configuration. The Zodiac bots validate keccak hashes for Reality questions automatically (issuing a warning rather than failing when a hash cannot be verified), normalize Reality links to consistent casing, and handle Reality questions with no Snapshot proposal attached.
+- **Monitoring**: integrations can be monitored using ENS, Snapshot, and contract addresses (as done for Panther Protocol).
+- **Court display**: Court V1 displays "Invalid" instead of "Refuse to Arbitrate" for Reality cases.
+- **Networks**: the Realitio integration extends to the Base Sepolia testnet, and the cross-chain Realitio proxy is actively maintained.
+
+For the full SafeSnap integration walkthrough, see the [Integration Guide](/developers/products/reality/integration).
 
 ***
 
@@ -106,14 +121,14 @@ The system follows a push/pull model. Your DApp pushes a question to Reality.eth
 
 A question can be resolved through two paths:
 
-### Happy Path — Consensus Resolution
+### Happy Path - Consensus Resolution
 
 1. An answerer submits an answer with a bond
 2. No one challenges within the timeout period
 3. The answer finalizes automatically
 4. Your DApp reads the result via `resultFor(questionID)`
 
-### Unhappy Path — Arbitration Resolution
+### Unhappy Path - Arbitration Resolution
 
 1. An answerer submits an answer with a bond
 2. Another user posts a counter-answer with a higher bond
@@ -161,7 +176,7 @@ The Reality.eth + Kleros oracle powers production systems across multiple catego
 
 - **Prediction Markets**: [Seer](https://seer.pm), Polkamarkets/Foreland, and [Omen](https://omen.eth.limo) use it to verify real-world event outcomes
 - **Optimistic Governance**: The [Zodiac SafeSnap module](https://docs.kleros.io/integrations/types-of-integrations/1.-dispute-resolution-integration-plan/channel-partners/kleros-reality-module#safesnap) implements it for secure DAO proposal execution
-- **Content Moderation**: [Moderate / Susie bot](https://kleros.io/moderate) leverages it for decentralized content policy enforcement
+- **Content Moderation**: [Moderate / Susie bot](/legacy/retired/moderate) leverages it for decentralized content policy enforcement
 
 ***
 

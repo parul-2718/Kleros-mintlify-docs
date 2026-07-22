@@ -1,0 +1,40 @@
+---
+title: "July 6, 2026"
+description: "June juror rewards in Court, Foresight adds trader and volume metrics, Scout ships agent guidance, wallet-connect fixes in Curate and Scout."
+---
+
+## New features
+
+### June juror rewards available to claim
+
+June 2026 juror rewards are live in [Kleros Court](/court/overview). Open the claim modal on mainnet or xDai to collect rewards for cases you ruled on last month.
+
+### Trader and volume metrics in Foresight
+
+[Kleros Foresight](/products/foresight) now surfaces trader counts and trading volume alongside existing market data, giving you a fuller picture of activity and liquidity when evaluating a prediction market.
+
+### Agent-ready guidance and Learn · AI mode in Scout
+
+[Kleros Scout](/products/scout) adds a dedicated Agent experience to the guide page. The former Quick Guide is now **Learn · AI**, with a Human/Agent selector so you can switch between the human walkthrough and instructions written for AI assistants. Scout also ships an agent-readable entrypoint (`/llms.txt`) and a visible footer link so agents can discover Scout's guidance from any route. Agent guidance covers Scout's four fixed Gnosis registries.
+
+## Updates
+
+### Faster and more reliable Foresight data delivery
+
+[Foresight](/products/foresight) API responses are now served through CDN caching with per-request opt-out, and the fresh and stale data paths are handled separately. Market pages load quicker and stay responsive under load, while sensitive requests can still bypass the cache when needed.
+
+### Updated CSV template values in Foresight
+
+The [Foresight](/products/foresight) market CSV template now uses current default values, so creators starting from the template get sensible, up-to-date parameters out of the box.
+
+## Bug fixes
+
+**Wallet connection restored in Curate and Scout** — [Kleros Curate](/products/curate) (classic) and [Kleros Scout](/products/scout) pinned the wallet-connection library to a compatible version, resolving issues where the "Connect Wallet" flow could fail or hang for some users.
+
+**Removed items now sort correctly in Scout** — [Kleros Scout](/products/scout) fixes the ordering of removed items in registry lists so entries appear in the expected timestamp order.
+
+**Proof of Humanity V2 appeal funding in Dispute Resolver** — [Dispute Resolver](/products/proof-of-humanity) now uses the correct appeal fee multipliers for Proof of Humanity V2 disputes, so appeal cost estimates and required deposits match what the contract expects.
+
+**Chart no longer duplicates the last point in Foresight** — [Foresight](/products/foresight) market charts stopped repeating the final data point at the end of the series.
+
+**Market estimate and prediction no longer overlap in Foresight** — The market estimate and user prediction indicators on [Foresight](/products/foresight) market pages now sit cleanly next to each other instead of overlapping on smaller screens.

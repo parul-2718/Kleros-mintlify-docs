@@ -1,0 +1,52 @@
+---
+title: "Foresight"
+description: "Developer overview of Kleros Foresight V2, a prediction-market decision engine, covering conditional tokens, market resolution, and arbitration hooks."
+---
+
+Kleros Foresight is a V2 product with no V1 equivalent. This page documents technical details only.
+
+---
+
+## What is Kleros Foresight
+
+- Officially named Kleros Foresight in February 2026 (previously referred to as the Futarchy UI)
+- A prediction market platform for decision-making, where market outcomes are resolved through Kleros arbitration
+- Uses a conditional token framework on Gnosis Chain with Swapr-based AMM pools
+- Supports both DAI and Foresight Credits for participation
+
+---
+
+## Architecture
+
+- Built on a conditional token framework
+- Trade wallet system for depositing/withdrawing DAI, minting/merging prediction tokens, and redeeming after market resolution
+- Batch predictions via CSV upload, with a trade executor for batch operations
+- Transaction chunking splits large prediction batches into multiple transactions to stay within gas limits
+- On-chain price fetch for markets without subgraph entries
+- Market resolution logic uses Kleros arbitration
+
+---
+
+## Experiments
+
+- Movie Experiment round 1 launched March 2026 - participants predict the CTO's percentile scores for 16 movies
+- Movie Experiment round 2 launched June 2026
+
+---
+
+## Technical capabilities
+
+- Batch redeem
+- P&L display wired through the API
+- CSV export for predictions with UTC timestamps
+- Foresight Credits system
+- Resolved answers shown on the slider and market cards
+- Redemption value calculation with a pre-check
+- Email notifications triggered when a market resolves, processed through the per-product Atlas pipeline with a Foresight-specific unsubscribe
+
+---
+
+## Links
+
+- App: [foresight.kleros.io](https://foresight.kleros.io/)
+- Repository: [github.com/kleros/futarchy-ui](https://github.com/kleros/futarchy-ui)

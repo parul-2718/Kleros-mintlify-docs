@@ -1,6 +1,6 @@
 ---
 title: "Sortition Module"
-description: "Juror selection via weighted random draws based on staked PNK"
+description: "Sortition Module reference: PNK-weighted juror drawing, sum tree stakes, staking, generating, and drawing phases, and RNG integration in Kleros V2."
 ---
 
 
@@ -34,4 +34,4 @@ Updates a juror's stake in the sum tree.
 
 Uses a sortition sum tree where each leaf represents a juror's stake in a court. Drawing probability is proportional to stake: a juror with 10% of total staked PNK in a court has a 10% chance of being drawn for each juror slot.
 
-[View Source](https://github.com/kleros/kleros-v2/blob/dev/contracts/src/arbitration/SortitionModuleBase.sol)
+[View Source](https://github.com/kleros/kleros-v2/blob/dev/contracts/src/arbitration/SortitionModule.sol)

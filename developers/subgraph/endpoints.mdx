@@ -1,14 +1,18 @@
 ---
 title: "Subgraph Endpoints"
-description: "GraphQL endpoints for all Kleros V2 and V1 subgraphs"
+description: "GraphQL endpoints for Kleros V2 core, DRT, and V1 subgraphs on Arbitrum, Ethereum, and Gnosis, served via The Graph decentralized network and Goldsky."
 ---
 
 
 
 All Kleros subgraphs are deployed on The Graph. Use these endpoints to query Kleros data via GraphQL.
 
+<Note>
+**Infrastructure:** Subgraphs were migrated from Alchemy to Goldsky following Alchemy's subgraph service shutdown (December 2025–January 2026). The core subgraph 0.18.1 and DRT subgraph 0.14.0 were deployed on Goldsky (November 2025), and the GTCR Indexer reached v0.1.7 with an Envio branch (April 2026). Some applications use Envio HyperIndex as the primary indexer with a subgraph as fallback.
+</Note>
+
 <Warning>
-Subgraph endpoints on the decentralized network require a **Graph API key**. Get one at [thegraph.com/studio](https://thegraph.com/studio). In template mappings you will see `{{{graphApiKey}}}` — this is injected at runtime by the Kleros SDK.
+Subgraph endpoints on the decentralized network require a **Graph API key**. Get one at [thegraph.com/studio](https://thegraph.com/studio). In template mappings you will see `{{{graphApiKey}}}` - this is injected at runtime by the Kleros SDK.
 </Warning>
 
 ---
@@ -31,7 +35,7 @@ Subgraph endpoints on the decentralized network require a **Graph API key**. Get
 https://gateway.thegraph.com/api/{YOUR_API_KEY}/subgraphs/id/{SUBGRAPH_ID}
 ```
 
-Get the `SUBGRAPH_ID` (deployment hash) from the Studio pages linked above — it is shown on the subgraph's Overview tab.
+Get the `SUBGRAPH_ID` (deployment hash) from the Studio pages linked above - it is shown on the subgraph's Overview tab.
 
 ### Dispute Template Registry Subgraph
 
@@ -62,7 +66,7 @@ Curate V2 subgraph is under active development. Check the [curate-v2 repository]
 
 ---
 
-## V1 Subgraphs (Legacy)
+## V1 Subgraphs
 
 These index V1 Kleros products still in active use.
 
@@ -83,7 +87,7 @@ You can also query PoH V1 directly: call `isRegistered(address)` on `0xC5E9dDebb
 
 ### Other V1 Products
 
-For Escrow V1, Linguo, Tokens, and other legacy apps, see the [Kleros subgraph list on GitHub](https://github.com/orgs/kleros/repositories?q=subgraph).
+For Escrow V1, Linguo, Tokens, and other V1 apps, see the [Kleros subgraph list on GitHub](https://github.com/orgs/kleros/repositories?q=subgraph).
 
 ---
 

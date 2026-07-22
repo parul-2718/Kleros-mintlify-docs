@@ -1,0 +1,250 @@
+---
+title: "Juror Tutorial (V2)"
+description: "Become a Kleros Court V2 juror on Arbitrum: set up your wallet, bridge PNK, choose a court, stake, handle your first dispute, and claim juror rewards."
+---
+
+# Juror Tutorial (V2)
+
+This tutorial walks you through participating as a juror on **Kleros Court V2** at [v2.kleros.builders](https://v2.kleros.builders/), the next-generation court on Arbitrum. No signup or personal information is required.
+
+<Note>
+New to Web3 entirely? The [Complete Beginner's Guide to Kleros Court V2 on Notion](https://kleros.notion.site/Complete-Beginner-s-Guide-to-Kleros-Court-V2-20e9a9db4f08803da1b2c372ed2f2c6e) covers everything from wallet setup and seed-phrase security to your first case, with screenshots for every step.
+</Note>
+
+For the V1 court on Ethereum and Gnosis Chain, see the [V1 Juror Tutorial](/tutorials/juror-tutorial-v1).
+
+---
+
+## What You Need
+
+- A Web3 wallet: **Rabby** (recommended, auto-detects networks) or MetaMask
+- **PNK tokens on Arbitrum**
+- **ETH on Arbitrum** for transaction fees (keep roughly 20-30% of your budget as an ETH buffer)
+
+
+### Set up Arbitrum One
+
+Kleros V2 runs on Arbitrum One (Chain ID 42161), a Layer 2 that keeps Ethereum's security with much lower fees. Rabby detects and switches networks automatically. In MetaMask, add the network manually (RPC `https://arb1.arbitrum.io/rpc`, currency ETH, explorer [arbiscan.io](https://arbiscan.io/)) or use [chainlist.org](https://chainlist.org/).
+
+### Get PNK on Arbitrum
+
+- **Directly in the Court interface**: use the "Get PNK" option
+- **DEXs**: swap ETH for PNK on [Uniswap](https://app.uniswap.org/) while connected to Arbitrum
+- **Centralized exchanges**: see the listings on CoinGecko, then bridge to Arbitrum
+- If you hold PNK on Ethereum, bridge it via [bridge.arbitrum.io](https://bridge.arbitrum.io/)
+
+A starting amount of 5,000-10,000 PNK is a reasonable baseline; each court sets its own minimum stake (the General Court minimum is around 2,300 PNK).
+
+---
+
+## Understanding Courts and Parameters
+
+Courts form a hierarchy: the **General Court** (ID 1) is the root, with specialized courts beneath it (Blockchain, Curation, English Language, and others) and the **Forking Court** (ID 0) reserved for protocol disputes. Staking in a specialized court automatically stakes you in all its parent courts.
+
+Beginner-friendly courts include the **General Court** and the **English Language Court**. Specialized courts such as **Blockchain Technical**, **Curation**, **Insurance**, and the **Corte de Disputas de Consumo y Vecinidad** (inside Corte General en Español, which serves enterprise cases like Lemon and MetLife) expect specific expertise.
+
+Each court page shows the parameters that matter to you:
+
+| Parameter | What it means for you |
+| --- | --- |
+| **Minimum Stake** | The least PNK you can stake in that court |
+| **Alpha** | Fraction of your stake locked when drawn: `pnkAtStakePerJuror = (minStake × alpha) / 10000` |
+| **Fee for Juror** | What you earn per coherent vote, in ETH or a whitelisted ERC-20 |
+| **Hidden Votes** | Whether the court uses commit-reveal voting |
+| **Time per Period** | Duration of the evidence, commit, vote, and appeal phases (periods can end early when no more interactions are needed) |
+| **Jurors for Court Jump** | Juror count at which an appealed dispute escalates to the parent court |
+
+<Warning>
+Always read the court policy before staking or voting in a court. It defines the dispute types, evaluation rules, and required skills, and it is binding for your votes.
+</Warning>
+
+<Frame caption="One-pager: Court Hierarchy and Parameters (infographic to be added)">
+  <img src="/images/Court tree.png" alt="One-pager: Court Hierarchy and Parameters, infographic to be added" />
+</Frame>
+
+---
+
+## Staking Your PNK
+
+<Steps>
+  <Step title="Open the Court and connect">
+    Visit [v2.kleros.builders](https://v2.kleros.builders/), click **Connect Wallet**, and approve the connection. Make sure you are on Arbitrum One.
+  </Step>
+  <Step title="Choose your court">
+    Click **Courts**, browse the tree, and open a court to review its policy, minimum stake, fee per juror, and recent cases.
+   <Frame >
+  <img src="/images/selectcourt-v2.avif"  />
+</Frame>
+  </Step>
+  <Step title="Approve PNK">
+    Staking requires a standard ERC-20 approval so KlerosCore can use your PNK. You approve each time you increase your stake.
+  </Step>
+  <Step title="Set your stake">
+    Click **Stake**, enter an amount at or above the court minimum, and confirm in your wallet.
+  </Step>
+  <Step title="Verify">
+    Confirm your stake appears correctly on your profile.
+  <Frame >
+  <img src="/images/checkstake-v2.avif"  />
+</Frame>
+ 
+ </Step>
+</Steps>
+
+<Frame caption="One-pager: Staking Flow in V2 (infographic to be added)">
+  <img src="/images/Staking PNK.png" alt="One-pager: Staking Flow in V2, infographic to be added" />
+</Frame>
+
+Things to know about V2 staking:
+
+- **Your PNK transfers to the KlerosCore contract** while staked (in V1 it stayed in your wallet). You can unstake anytime unless it is locked in an active case.
+- **You can stake in at most 4 courts** (a gas-efficiency limit), so plan your court selection.
+- **Timing matters**: the court cycles through Staking, Generating, and Drawing phases. Stake changes made during the Generating or Drawing phases are recorded but only take effect in the next Staking phase. The UI shows whether your stake is "Current" or "Delayed."
+
+---
+
+## Getting Selected
+
+Selection is random but stake-weighted: your probability per draw is your stake divided by the court's total stake (5,000 PNK in a court with 100,000 PNK staked gives you a 5% chance per draw). You can be drawn multiple times for the same case; each draw is one vote, and all your votes must be for the same choice.
+
+When drawn:
+
+- A portion of your stake is locked as collateral
+- The case appears in **My Cases**
+- You are notified in the interface (and by email if you enabled notifications in Settings, which is strongly recommended for deadline reminders)
+
+---
+
+## Handling Your First Dispute
+
+<Frame caption="One-pager: Handling Your First Dispute (infographic to be added)">
+  <img src="/images/Handling your first dispute.png" alt="One-pager: Handling Your First Dispute, infographic to be added" />
+</Frame>
+
+<Steps>
+  <Step title="Get drawn">
+    You receive a notification and your dashboard updates.
+  </Step>
+  <Step title="Open the case in My Cases">
+    The case view has these sections: **Title & Description** (what the dispute is about), **Question** (the specific question to answer), **Voting Options**, **Policy** (rules for evaluation), **Evidence** (party submissions), and **Timeline** (current phase and deadlines).
+  </Step>
+  <Step title="Read the court policy first">
+    The policy is your guide to correct voting. Read it before looking at evidence.
+  </Step>
+  <Step title="Examine all submitted evidence">
+    Read everything thoroughly, check submission timestamps, verify technical claims, and take notes on key points. Budget real time for this (2-4 hours for a substantial case).
+  </Step>
+  <Step title="Consider all voting options">
+    The common pattern is: **In favor of Requester** (evidence supports the requester's claim), **In favor of Respondent** (evidence supports the respondent's position), and **Refuse to Arbitrate** (the case is invalid, illegal, or morally unacceptable).
+  </Step>
+  <Step title="Cast your vote (or commit if hidden votes)">
+    See the two voting flows below.
+  </Step>
+  <Step title="Write your justification">
+    Explain your reasoning: a brief case summary, the key evidence you reviewed, the relevant policy sections, and your conclusion. Justifications support Markdown formatting, help jurors in appeal rounds, and create precedent.
+  </Step>
+  <Step title="Wait for the appeal period">
+    Either party can appeal by funding fees. If only one side pays the appeal fees, that side automatically wins.
+  </Step>
+  <Step title="Claim rewards after execution">
+    Once the ruling is final and executed, rewards become claimable.
+  </Step>
+</Steps>
+
+### Voting in visible courts
+
+1. Select your choice
+2. Click **Vote**
+3. Confirm the transaction
+4. Your vote is immediately visible
+
+### Voting in hidden courts (commit-reveal)
+
+1. Select your choice
+2. Write your justification
+3. Click **Commit** (submits a hash of your vote)
+4. Wait for the reveal phase
+5. Return and click **Reveal**
+6. Your vote is now visible
+
+<Warning>
+In hidden courts, keep your vote secret and remember to return for the reveal phase. Failing to reveal means losing your locked PNK. If a juror reveals early, anyone can report them and claim part of their locked stake.
+</Warning>
+
+### Common mistakes
+
+| Mistake | How to avoid it |
+| --- | --- |
+| Not reading the policy | Always read it before reviewing evidence |
+| Voting personal opinion | Follow the policy, not feelings |
+| Missing deadlines | Enable notifications and check regularly |
+| Forgetting to reveal | Set a reminder for the reveal period |
+
+Missing a deadline means a stake penalty and being unstaked from all courts.
+
+---
+
+## Rewards and Penalties
+
+You earn rewards for voting **coherently** with the final outcome:
+
+- **Arbitration fees** (ETH or whitelisted ERC-20s) paid by the disputing parties, divided among coherent jurors: `jurorReward = (totalFees / numberOfCoherentVotes) × degreeOfCoherence`
+- **PNK redistribution** from incoherent jurors: `pnkReward = (totalPenalties / numberOfCoherentVotes) × degreeOfCoherence`
+
+In the Classic Dispute Kit, coherence is binary: full coherence if your vote matches the final ruling, zero if it differs or you failed to reveal. Incoherent jurors lose a portion of their locked stake and forfeit fee rewards.
+
+**Worked example**: 5 jurors at 0.05 ETH each (0.25 ETH total), 3 coherent and 2 incoherent. Each coherent juror receives about 0.083 ETH plus a share of the incoherent jurors' PNK.
+
+**Claiming**: a Kleros bot claims rewards automatically roughly every hour, or claim manually from the case page or rewards dashboard. The UI lets you batch claims to save gas.
+
+<Frame caption="One-pager: Juror Rewards and Coherence (infographic to be added)">
+  <img src="/images/The juror incentive system.png" alt="One-pager: Juror Rewards and Coherence, infographic to be added" />
+</Frame>
+
+---
+
+## Appeals and Court Jumps
+
+- Appeal funding follows `feeForJuror × ((nbVotes × 2) + 1)`: the winning side must fund 1× the appeal cost and the challenging side 2×. With 3 jurors at 0.05 ETH, that is 0.35 ETH for the winner and 0.70 ETH for the challenger.
+- The challenger can only fund during the **first half** of the appeal period; the winner has the entire period.
+- Each appeal round increases the juror count (`n×2 + 1`). When the count reaches the court's `jurorsForCourtJump` threshold (for example, 511), the dispute escalates to the parent court, and juror numbers adjust to the new court's parameters. You may be drawn for jumped cases; expect them to be more complex.
+
+<Frame caption="One-pager: Appeals and Court Jumps (infographic to be added)">
+  <img src="/images/Appeals.png" alt="One-pager: Appeals and Court Jumps, infographic to be added" />
+</Frame>
+
+---
+
+## Cross-Chain Disputes
+
+V2 natively supports disputes originating on other EVM chains (Ethereum, Gnosis Chain, Polygon, Optimism, and more). As a juror, everything happens on Arbitrum: disputes are bridged in, evidence appears unified in the interface, and rulings are bridged back to the origin chain. The process is identical for you regardless of where the dispute came from.
+
+---
+
+## Troubleshooting
+
+| Problem | What to do |
+| --- | --- |
+| Wrong network error | Switch to Arbitrum One (Rabby prompts automatically) |
+| PNK not visible in wallet | Import the PNK token contract manually; verify the address from official sources |
+| Stake transaction fails | Check PNK balance, ETH for gas, and the court minimum |
+| Case not in My Cases | Confirm you were drawn, wait for confirmation, refresh |
+| Vote deadline passed | Late votes are never accepted; set multiple reminders next time |
+
+For help: [Discord](https://discord.gg/kleros), [Telegram](https://t.me/kleros), or support@kleros.io.
+
+---
+
+## What's Next?
+
+<CardGroup cols={3}>
+  <Card title="Beginner's Guide (Notion)" icon="book-open" href="https://kleros.notion.site/Complete-Beginner-s-Guide-to-Kleros-Court-V2-20e9a9db4f08803da1b2c372ed2f2c6e">
+    The complete beginner's walkthrough with screenshots
+  </Card>
+  <Card title="How Kleros Court Works" icon="gavel" href="/court/how-it-works">
+    The full dispute lifecycle in V1 and V2
+  </Card>
+  <Card title="PNK Token" icon="coins" href="/concepts/pnk-token">
+    What PNK is and where to get it
+  </Card>
+</CardGroup>
